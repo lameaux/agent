@@ -2,14 +2,15 @@ package processor;
 
 import java.util.Date;
 
-public class TimeCommand implements Command {
+public class TimeCommand extends CommandBase implements Command {
 
 	public String execute(String request) {
 		return new Date().toString();
 	}
 
-	public boolean match(String request) {
-		return "time".equalsIgnoreCase(request);
+	@Override
+	public String name() {
+		return "time";
 	}
 
 }

@@ -8,8 +8,12 @@ public class CommandProcessor {
 	List<Command> commands = new ArrayList<Command>();
 
 	public CommandProcessor() {
+		commands.add(new HelpCommand(commands));
 		commands.add(new TimeCommand());
 		commands.add(new UptimeCommand());
+		commands.add(new PingCommand());
+		commands.add(new VersionCommand());
+		commands.add(new HostnameCommand());
 	}
 
 	public String process(String request) {

@@ -1,6 +1,6 @@
 package processor;
 
-public class UptimeCommand implements Command {
+public class UptimeCommand extends CommandBase implements Command {
 
 	private long started;
 
@@ -16,8 +16,9 @@ public class UptimeCommand implements Command {
 				((serverUptimeSeconds % 86400) % 3600) % 60);
 	}
 
-	public boolean match(String request) {
-		return "uptime".equalsIgnoreCase(request);
+	@Override
+	public String name() {
+		return "uptime";
 	}
 
 }

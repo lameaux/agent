@@ -6,4 +6,7 @@ public interface Command {
 
 	boolean match(String request);
 
+	String name();
+
+	String help();
 }
