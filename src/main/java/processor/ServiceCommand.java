@@ -1,9 +1,12 @@
 package processor;
 
-import telnet.TelnetServer;
+import service.ServiceManager;
+import service.ServiceState;
 import agent.Agent;
 
 public class ServiceCommand extends CommandBase implements Command {
+
+	private final ServiceManager serviceManager = Agent.get().getServiceManager();
 
 	public String execute(String request) {
 
@@ -12,25 +15,26 @@ public class ServiceCommand extends CommandBase implements Command {
 			return syntaxError();
 		}
 
-		String serviceName = params[0];
-		String action = params[1];
+		String serviceName = params[0].toLowerCase();
+		String action = params[1].toLowerCase();
 
-		if (serviceName.equals("telnet")) {
-			if (action.equals("stop")) {
-				Agent.serviceManager.stopService(TelnetServer.SERVICE_NAME);
-			} else if (action.equals("status")) {
-				return Agent.serviceManager.getState(TelnetServer.SERVICE_NAME).toString();
-			}
-			
+		if (!serviceManager.isAvailable(serviceName)) {
+			return "Service " + serviceName + " is not available";
+		}
+
+		if (!serviceManager.isAllowedAction(serviceName, action)) {
 			return "Unable to " + action + " " + serviceName;
 		}
 
-		return "Unknown service";
+		ServiceState status = serviceManager.executeAction(serviceName, action);
+
+		return serviceName + ": " + status.toString();
+
 	}
 
 	@Override
 	public String help() {
-		return "service web status|start|stop|restart";
+		return "service rest status|start|stop|restart";
 	}
 
 	@Override

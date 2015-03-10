@@ -16,7 +16,7 @@ public class Configuration {
 	}
 
 	public String[] getActiveServices() {
-		return new String[] {TelnetServer.SERVICE_NAME};
-	}	
-	
+		return new String[] { TelnetServer.SERVICE_NAME };
+	}
+
 }

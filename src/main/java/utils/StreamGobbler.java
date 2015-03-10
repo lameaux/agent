@@ -10,7 +10,7 @@ public class StreamGobbler extends Thread {
 
 	private InputStream is;
 	private CharArrayWriter caw;
-	private volatile boolean finished = false; 
+	private volatile boolean finished = false;
 
 	public StreamGobbler(InputStream is) {
 		this.is = is;
@@ -39,9 +39,9 @@ public class StreamGobbler extends Thread {
 	public CharArrayWriter getCharArrayWriter() {
 		return caw;
 	}
-	
+
 	public void finish() {
 		finished = true;
 	}
-	
+
 }
