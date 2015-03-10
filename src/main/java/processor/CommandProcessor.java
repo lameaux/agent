@@ -14,6 +14,7 @@ public class CommandProcessor {
 		commands.add(new ShellCommand());
 		commands.add(new VersionCommand());
 		commands.add(new HostnameCommand());
+		commands.add(new ServiceCommand());		
 	}
 
 	public String process(String request) {
