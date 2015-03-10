@@ -2,6 +2,8 @@ package processor;
 
 public abstract class CommandBase implements Command {
 
+	public static final String COMMAND_SEPARATOR = " ";
+
 	public abstract String name();
 
 	public String help() {
@@ -9,7 +11,11 @@ public abstract class CommandBase implements Command {
 	}
 
 	public boolean match(String request) {
-		return name().equalsIgnoreCase(request);
+		if (nullOrEmpty(request)) {
+			return false;
+		}
+
+		return name().equalsIgnoreCase(request) || request.toLowerCase().startsWith(name() + COMMAND_SEPARATOR);
 	}
 
 	public String syntaxError() {
@@ -18,7 +24,12 @@ public abstract class CommandBase implements Command {
 
 	public String[] parameters(String request) {
 
-		String[] params = request.substring(name().length()).trim().split(" ");
+		String nameWithSeparator = name() + COMMAND_SEPARATOR;
+		if (!request.startsWith(nameWithSeparator)) {
+			return new String[0];
+		}
+
+		String[] params = request.substring(nameWithSeparator.length()).trim().split(COMMAND_SEPARATOR);
 		// trim
 		for (int i = 0; i < params.length; i++) {
 			params[i] = params[i].trim();
