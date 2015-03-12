@@ -36,4 +36,12 @@ public class Agent {
 		}
 	}
 
+	public static Agent get() {
+		return instance;
+	}
+	
+	public Configuration getConfig() {
+		return config;
+	}
+	
 }

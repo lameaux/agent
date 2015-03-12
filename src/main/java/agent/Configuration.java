@@ -19,6 +19,10 @@ public class Configuration {
 		}		
 	}
 
+	public Properties getProperties() {
+		return properties;
+	}
+	
 	public static final String TELNET_PORT = "agent.telnet.port";
 	public static final String DEFAULT_TELNET_PORT = "21023";
 
@@ -36,9 +40,21 @@ public class Configuration {
 		return Integer.parseInt(properties.getProperty(REST_PORT, DEFAULT_REST_PORT));
 	}
 
+	public String get(String key) {
+		return properties.getProperty(key);
+	}
+	
 	public String[] getAutorunServices() {
 		String autorun = properties.getProperty(AUTORUN, DEFAULT_AUTORUN).trim();
-		return autorun.split("\\s+");
+		return autorun.split(",");
 	}	
+	
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		for (Object k : properties.keySet()) {
+			sb.append(k).append("=").append(properties.get(k)).append("\r\n");
+		}
+		return sb.toString();
+	}
 	
 }
