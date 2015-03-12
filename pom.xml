@@ -4,8 +4,16 @@
 	<groupId>com.euromoby</groupId>
 	<artifactId>agent</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+	<name>agent</name>
+	<url>http://euromoby.com</url>
 
 	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+			</resource>
+		</resources>
+
 		<plugins>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>

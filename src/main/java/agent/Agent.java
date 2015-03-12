@@ -31,7 +31,7 @@ public class Agent {
 		TelnetServer telnet = new TelnetServer(config.getTelnetPort());
 		serviceManager.registerService(telnet);
 		
-		for (String serviceName : config.getActiveServices()) {
+		for (String serviceName : config.getAutorunServices()) {
 			serviceManager.startService(serviceName);
 		}
 	}
