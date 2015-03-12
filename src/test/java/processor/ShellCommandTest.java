@@ -36,7 +36,7 @@ public class ShellCommandTest {
 	public void testGoodRequest() {
 		String params = "echo Hello";
 		String result = shell.execute(shell.name() + ShellCommand.COMMAND_SEPARATOR + params);
-		assertEquals("Hello", result);
+		assertEquals("Hello", result.trim());
 	}
 
 }
