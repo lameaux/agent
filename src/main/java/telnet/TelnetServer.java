@@ -9,17 +9,16 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
-import io.netty.util.concurrent.Future;
 import service.Service;
 import service.ServiceState;
 
-public class TelnetServer extends Thread implements Service {
+public class TelnetServer implements Service {
 
 	public static final String SERVICE_NAME = "telnet";
-	
+
 	private final int port;
-	private final EventLoopGroup bossGroup;
-	private final EventLoopGroup workerGroup;
+	private EventLoopGroup bossGroup;
+	private EventLoopGroup workerGroup;
 	private volatile ServiceState serviceState = ServiceState.STOPPED;
 
 	private Channel serverChannel;
@@ -31,8 +30,6 @@ public class TelnetServer extends Thread implements Service {
 
 	public TelnetServer(int port, boolean ssl) {
 		this.port = port;
-		bossGroup = new NioEventLoopGroup(1);
-		workerGroup = new NioEventLoopGroup();
 
 		if (ssl) {
 			try {
@@ -50,6 +47,10 @@ public class TelnetServer extends Thread implements Service {
 	public void run() {
 
 		try {
+
+			bossGroup = new NioEventLoopGroup(1);
+			workerGroup = new NioEventLoopGroup();
+
 			ServerBootstrap b = new ServerBootstrap();
 			b.group(bossGroup, workerGroup);
 			b.channel(NioServerSocketChannel.class);
@@ -57,40 +58,40 @@ public class TelnetServer extends Thread implements Service {
 			b.childHandler(new TelnetServerInitializer(sslCtx));
 
 			serverChannel = b.bind(port).sync().channel();
-			serverChannel.closeFuture();
-			
+			// serverChannel.closeFuture();
+
 			serviceState = ServiceState.RUNNING;
 		} catch (Exception e) {
 			shutdown();
 		}
 	}
 
-
 	public void shutdown() {
 		try {
 			if (serverChannel != null) {
 				serverChannel.close().sync();
 			}
-		} catch(Exception e) {
-			
+		} catch (Exception e) {
+
 		} finally {
 			shutdownWorkers();
 			serviceState = ServiceState.STOPPED;
 		}
-	}	
-	
+	}
+
 	private void shutdownWorkers() {
-		Future<?> fb = bossGroup.shutdownGracefully();
-		Future<?> fw = workerGroup.shutdownGracefully();
-		try {
-			fb.await();
-			fw.await();
-		} catch (InterruptedException ignore) {
+		if (bossGroup != null) {
+			bossGroup.shutdownGracefully();
+			bossGroup = null;
+		}
+		if (workerGroup != null) {
+			workerGroup.shutdownGracefully();
+			workerGroup = null;
 		}
 	}
 
 	public void startService() {
-		this.start();
+		new Thread(this).start();
 	}
 
 	public void stopService() {
@@ -104,7 +105,5 @@ public class TelnetServer extends Thread implements Service {
 	public ServiceState getServiceState() {
 		return serviceState;
 	}
-
-
 
 }
