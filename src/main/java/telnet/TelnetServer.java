@@ -58,7 +58,6 @@ public class TelnetServer implements Service {
 			b.childHandler(new TelnetServerInitializer(sslCtx));
 
 			serverChannel = b.bind(port).sync().channel();
-			// serverChannel.closeFuture();
 
 			serviceState = ServiceState.RUNNING;
 		} catch (Exception e) {

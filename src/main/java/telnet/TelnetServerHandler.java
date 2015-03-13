@@ -28,9 +28,9 @@ public class TelnetServerHandler extends SimpleChannelInboundHandler<String> {
 		String response;
 		boolean close = false;
 		if (request.isEmpty()) {
-			response = "Please type something.\r\n";
+			response = "\r\n";
 		} else if ("exit".equals(request.toLowerCase())) {
-			response = "Have a good day!\r\n";
+			response = "Bye!\r\n";
 			close = true;
 		} else {
 			response = commandProcessor.process(request) + "\r\n";
