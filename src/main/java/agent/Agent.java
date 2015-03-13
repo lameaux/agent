@@ -1,5 +1,6 @@
 package agent;
 
+import rest.RestServer;
 import service.ServiceManager;
 import telnet.TelnetServer;
 
@@ -20,6 +21,10 @@ public class Agent {
 		TelnetServer telnet = new TelnetServer(config.getTelnetPort());
 		serviceManager.registerService(telnet);
 
+		RestServer rest = new RestServer(config.getRestPort());
+		serviceManager.registerService(rest);
+		
+		
 		for (String serviceName : config.getAutorunServices()) {
 			serviceManager.executeAction(serviceName, ServiceManager.ACTION_START);
 		}
