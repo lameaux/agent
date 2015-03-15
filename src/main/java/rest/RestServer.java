@@ -1,27 +1,29 @@
 package rest;
 
-import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
+
+import org.restexpress.RestExpress;
+import org.restexpress.pipeline.SimpleConsoleLogMessageObserver;
+import org.restexpress.serialization.GsonSerializationProvider;
+
+import rest.handler.EchoHandler;
+import rest.handler.HtmlHandler;
 import service.Service;
 import service.ServiceState;
 
 public class RestServer implements Service {
 
+	private static GsonSerializationProvider jsonSerialization = new GsonSerializationProvider();
+
 	public static final String SERVICE_NAME = "rest";
 
 	private final int port;
-	private EventLoopGroup bossGroup;
-	private EventLoopGroup workerGroup;
+	private RestExpress server;
+
 	private volatile ServiceState serviceState = ServiceState.STOPPED;
 
-	private Channel serverChannel;
 	private SslContext sslCtx;
 
 	public RestServer(int port) {
@@ -48,16 +50,15 @@ public class RestServer implements Service {
 
 		try {
 
-			bossGroup = new NioEventLoopGroup(1);
-			workerGroup = new NioEventLoopGroup();
+			RestExpress.setSerializationProvider(jsonSerialization);
 
-			ServerBootstrap b = new ServerBootstrap();
-			b.group(bossGroup, workerGroup);
-			b.channel(NioServerSocketChannel.class);
-			b.handler(new LoggingHandler(LogLevel.INFO));
-			b.childHandler(new RestServerInitializer(sslCtx));
+			server = new RestExpress();
+			server.setName("Agent Rest Server");
+			server.addMessageObserver(new SimpleConsoleLogMessageObserver());
 
-			serverChannel = b.bind(port).sync().channel();
+			registerRoutes();
+
+			server.bind(port);
 
 			serviceState = ServiceState.RUNNING;
 		} catch (Exception e) {
@@ -65,28 +66,16 @@ public class RestServer implements Service {
 		}
 	}
 
-	public void shutdown() {
-		try {
-			if (serverChannel != null) {
-				serverChannel.close().sync();
-			}
-		} catch (Exception e) {
-
-		} finally {
-			shutdownWorkers();
-			serviceState = ServiceState.STOPPED;
-		}
+	private void registerRoutes() {
+		server.uri("/echo", new EchoHandler()).method(HttpMethod.GET);
+		server.uri("/html", new HtmlHandler()).method(HttpMethod.GET).noSerialization();
 	}
 
-	private void shutdownWorkers() {
-		if (bossGroup != null) {
-			bossGroup.shutdownGracefully();
-			bossGroup = null;
+	public void shutdown() {
+		if (server != null) {
+			server.shutdown();
 		}
-		if (workerGroup != null) {
-			workerGroup.shutdownGracefully();
-			workerGroup = null;
-		}
+		serviceState = ServiceState.STOPPED;
 	}
 
 	public void startService() {
