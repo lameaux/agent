@@ -2,6 +2,8 @@ package utils;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Scanner;
 
 public class IOUtils {
 	public static void closeQuietly(Closeable closeable) {
@@ -13,4 +15,14 @@ public class IOUtils {
 			// ignore
 		}
 	}
+
+	public static String streamToString(InputStream is) {
+		Scanner s = new Scanner(is, "UTF-8");
+		try {
+			return s.useDelimiter("\\A").next();
+		} finally {
+			closeQuietly(s);
+		}
+	}
+
 }

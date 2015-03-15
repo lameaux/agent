@@ -1,15 +1,14 @@
 package rest;
 
 import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.util.SelfSignedCertificate;
 
 import org.restexpress.RestExpress;
 import org.restexpress.pipeline.SimpleConsoleLogMessageObserver;
 import org.restexpress.serialization.GsonSerializationProvider;
 
-import rest.handler.EchoHandler;
-import rest.handler.HtmlHandler;
+import processor.CommandProcessor;
+import rest.handler.CliHandler;
+import rest.handler.WelcomeHandler;
 import service.Service;
 import service.ServiceState;
 
@@ -20,30 +19,14 @@ public class RestServer implements Service {
 	public static final String SERVICE_NAME = "rest";
 
 	private final int port;
+	private final CommandProcessor commandProcessor;
 	private RestExpress server;
 
 	private volatile ServiceState serviceState = ServiceState.STOPPED;
 
-	private SslContext sslCtx;
-
-	public RestServer(int port) {
-		this(port, false);
-	}
-
-	public RestServer(int port, boolean ssl) {
+	public RestServer(int port, CommandProcessor commandProcessor) {
 		this.port = port;
-
-		if (ssl) {
-			try {
-				SelfSignedCertificate ssc = new SelfSignedCertificate();
-				sslCtx = SslContext.newServerContext(ssc.certificate(), ssc.privateKey());
-			} catch (Exception e) {
-				sslCtx = null;
-			}
-		} else {
-			sslCtx = null;
-		}
-
+		this.commandProcessor = commandProcessor;
 	}
 
 	public void run() {
@@ -67,8 +50,12 @@ public class RestServer implements Service {
 	}
 
 	private void registerRoutes() {
-		server.uri("/echo", new EchoHandler()).method(HttpMethod.GET);
-		server.uri("/html", new HtmlHandler()).method(HttpMethod.GET).noSerialization();
+		// welcome
+		server.uri("/", new WelcomeHandler(commandProcessor)).method(HttpMethod.GET).noSerialization();
+		// command line interface
+		CliHandler cliHandler = new CliHandler(commandProcessor);
+		server.uri("/cli", cliHandler).method(HttpMethod.GET).noSerialization();
+		server.uri("/cli", cliHandler).method(HttpMethod.POST);
 	}
 
 	public void shutdown() {

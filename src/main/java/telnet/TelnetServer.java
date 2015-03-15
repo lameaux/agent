@@ -7,8 +7,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.util.SelfSignedCertificate;
+import processor.CommandProcessor;
 import service.Service;
 import service.ServiceState;
 
@@ -22,26 +21,11 @@ public class TelnetServer implements Service {
 	private volatile ServiceState serviceState = ServiceState.STOPPED;
 
 	private Channel serverChannel;
-	private SslContext sslCtx;
+	private CommandProcessor commandProcessor;
 
-	public TelnetServer(int port) {
-		this(port, false);
-	}
-
-	public TelnetServer(int port, boolean ssl) {
+	public TelnetServer(int port, CommandProcessor commandProcessor) {
 		this.port = port;
-
-		if (ssl) {
-			try {
-				SelfSignedCertificate ssc = new SelfSignedCertificate();
-				sslCtx = SslContext.newServerContext(ssc.certificate(), ssc.privateKey());
-			} catch (Exception e) {
-				sslCtx = null;
-			}
-		} else {
-			sslCtx = null;
-		}
-
+		this.commandProcessor = commandProcessor;
 	}
 
 	public void run() {
@@ -55,7 +39,7 @@ public class TelnetServer implements Service {
 			b.group(bossGroup, workerGroup);
 			b.channel(NioServerSocketChannel.class);
 			b.handler(new LoggingHandler(LogLevel.INFO));
-			b.childHandler(new TelnetServerInitializer(sslCtx));
+			b.childHandler(new TelnetServerInitializer(commandProcessor));
 
 			serverChannel = b.bind(port).sync().channel();
 

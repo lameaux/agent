@@ -1,16 +1,18 @@
 package agent;
 
+import processor.CommandProcessor;
 import rest.RestServer;
 import service.ServiceManager;
 import telnet.TelnetServer;
 
 public class Agent {
 
+	public static final String TITLE = "Agent";
 	public static final String VERSION = "0.1";
 	private static final Agent instance = new Agent();
 
 	private Configuration config = new Configuration();
-	public ServiceManager serviceManager = new ServiceManager();
+	private ServiceManager serviceManager = new ServiceManager();
 
 	public void init(Configuration config) {
 		this.config = config;
@@ -18,13 +20,15 @@ public class Agent {
 	}
 
 	private void initServices() {
-		TelnetServer telnet = new TelnetServer(config.getTelnetPort());
+
+		CommandProcessor commandProcessor = new CommandProcessor(serviceManager);
+
+		TelnetServer telnet = new TelnetServer(config.getTelnetPort(), commandProcessor);
 		serviceManager.registerService(telnet);
 
-		RestServer rest = new RestServer(config.getRestPort());
+		RestServer rest = new RestServer(config.getRestPort(), commandProcessor);
 		serviceManager.registerService(rest);
-		
-		
+
 		for (String serviceName : config.getAutorunServices()) {
 			serviceManager.executeAction(serviceName, ServiceManager.ACTION_START);
 		}
@@ -37,8 +41,7 @@ public class Agent {
 	public Configuration getConfig() {
 		return config;
 	}
-	
-	
+
 	public ServiceManager getServiceManager() {
 		return serviceManager;
 	}

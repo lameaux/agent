@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Agent CLI</title>
+<script src="http://code.jquery.com/jquery.js"></script>
+<style>
+textarea,input {
+	width: 100%
+}
+</style>
+</head>
+<body>
+	<script>
+		var commandHistory = [];
+		var pointer = commandHistory.length - 1;
+
+		$(function() {
+			$('#request').keydown(function(event) {
+				event = event || window.event;
+				keyCode = event.keyCode;
+
+				if (keyCode == 38) { // up arrow
+					if (pointer >= 0) {
+						$('#request').val(commandHistory[pointer]);
+						if (pointer > 0) {
+							pointer--;
+						}
+					}
+					return false;
+				}
+
+				if (keyCode == 40) { // down arrow
+					if (pointer >= 0 && pointer <= commandHistory.length - 1) {
+						$('#request').val(commandHistory[pointer]);
+						if (pointer < commandHistory.length - 1) {
+							pointer++;
+						}
+					}
+					return false;
+				}
+
+				if (keyCode != 13) { // check for ENTER
+					return true;
+				}
+
+				var requestString = $('#request').val();
+
+				if (requestString == '') {
+					return false;
+				}
+
+				commandHistory.push(requestString);
+				pointer = commandHistory.length - 1;
+				$('#request').val("");
+
+				var request = {
+					request : requestString
+				};
+
+				$.ajax({
+					type : 'POST',
+					url : '/cli',
+					contentType : 'application/json; charset=utf-8',
+					data : JSON.stringify(request),
+					dataType : 'json',
+					success : function(response) {
+						$("#response").val(response.data.message);
+					}
+
+				});
+				
+				return false;
+			});
+		});
+	</script>
+	Request
+	<br>
+	<input id="request" value="help"></input>
+	<br>
+	<br> Response:
+	<br>
+	<textarea id="response" rows="10"></textarea>
+</body>
+</html>

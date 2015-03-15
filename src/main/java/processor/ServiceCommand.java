@@ -2,12 +2,16 @@ package processor;
 
 import service.ServiceManager;
 import service.ServiceState;
-import agent.Agent;
 
 public class ServiceCommand extends CommandBase implements Command {
 
-	private final ServiceManager serviceManager = Agent.get().getServiceManager();
+	public ServiceCommand(ServiceManager serviceManager) {
+		this.serviceManager = serviceManager;
+	}
 
+	private final ServiceManager serviceManager;
+
+	@Override
 	public String execute(String request) {
 
 		String[] params = parameters(request);

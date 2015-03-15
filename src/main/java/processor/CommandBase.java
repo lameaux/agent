@@ -1,10 +1,20 @@
 package processor;
 
+import org.restexpress.Request;
+
 public abstract class CommandBase implements Command {
 
 	public static final String COMMAND_SEPARATOR = " ";
 
 	public abstract String name();
+
+	public String execute(String request) {
+		return null;
+	}
+
+	public String execute(Request request) {
+		return null;
+	}
 
 	public String help() {
 		return name();

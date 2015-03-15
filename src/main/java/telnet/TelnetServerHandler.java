@@ -13,7 +13,11 @@ import processor.CommandProcessor;
 @Sharable
 public class TelnetServerHandler extends SimpleChannelInboundHandler<String> {
 
-	private CommandProcessor commandProcessor = new CommandProcessor();
+	private CommandProcessor commandProcessor;
+
+	public TelnetServerHandler(CommandProcessor commandProcessor) {
+		this.commandProcessor = commandProcessor;
+	}
 
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
@@ -37,7 +41,8 @@ public class TelnetServerHandler extends SimpleChannelInboundHandler<String> {
 		}
 
 		// We do not need to write a ChannelBuffer here.
-		// We know the encoder inserted at TelnetPipelineFactory will do the conversion.
+		// We know the encoder inserted at TelnetPipelineFactory will do the
+		// conversion.
 		ChannelFuture future = ctx.write(response);
 
 		// Close the connection after sending 'Have a good day!'
