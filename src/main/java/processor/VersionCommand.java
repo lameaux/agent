@@ -1,7 +1,5 @@
 package processor;
 
-import org.restexpress.Request;
-
 import agent.Agent;
 
 public class VersionCommand extends CommandBase implements Command {
@@ -10,11 +8,6 @@ public class VersionCommand extends CommandBase implements Command {
 
 	@Override
 	public String execute(String request) {
-		return executeInternal();
-	}
-
-	@Override
-	public String execute(Request request) {
 		return executeInternal();
 	}
 

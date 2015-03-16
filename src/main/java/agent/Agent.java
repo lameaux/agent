@@ -26,7 +26,7 @@ public class Agent {
 		TelnetServer telnet = new TelnetServer(config.getTelnetPort(), commandProcessor);
 		serviceManager.registerService(telnet);
 
-		RestServer rest = new RestServer(config.getRestPort(), commandProcessor);
+		RestServer rest = new RestServer(config.getRestPort(), false, commandProcessor);
 		serviceManager.registerService(rest);
 
 		for (String serviceName : config.getAutorunServices()) {

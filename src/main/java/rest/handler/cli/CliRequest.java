@@ -1,4 +1,4 @@
-package rest.handler;
+package rest.handler.cli;
 
 public class CliRequest {
 	private String request;

@@ -1,16 +1,13 @@
 package processor;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import service.ServiceManager;
 
 public class CommandProcessor {
 
 	private List<Command> commands = new ArrayList<Command>();
-	private Map<String, Object> context = new HashMap<String, Object>();
 
 	public CommandProcessor(ServiceManager serviceManager) {
 		commands.add(new HelpCommand(commands));

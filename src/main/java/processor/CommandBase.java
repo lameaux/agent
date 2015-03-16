@@ -1,6 +1,5 @@
 package processor;
 
-import org.restexpress.Request;
 
 public abstract class CommandBase implements Command {
 
@@ -9,10 +8,6 @@ public abstract class CommandBase implements Command {
 	public abstract String name();
 
 	public String execute(String request) {
-		return null;
-	}
-
-	public String execute(Request request) {
 		return null;
 	}
 

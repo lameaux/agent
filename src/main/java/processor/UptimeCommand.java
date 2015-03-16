@@ -1,6 +1,5 @@
 package processor;
 
-import org.restexpress.Request;
 
 public class UptimeCommand extends CommandBase implements Command {
 
@@ -8,11 +7,6 @@ public class UptimeCommand extends CommandBase implements Command {
 
 	@Override
 	public String execute(String request) {
-		return executeInternal();
-	}
-
-	@Override
-	public String execute(Request request) {
 		return executeInternal();
 	}
 
