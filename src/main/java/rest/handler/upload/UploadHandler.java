@@ -11,7 +11,7 @@ import utils.IOUtils;
 
 public class UploadHandler extends RestHandlerBase {
 
-	// Get show input form
+	// GET show input form
 	@Override
 	public FullHttpResponse doGet() {
 		InputStream is = UploadHandler.class.getResourceAsStream("upload.html");

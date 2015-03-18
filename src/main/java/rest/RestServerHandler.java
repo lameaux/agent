@@ -82,7 +82,9 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 	}
 
 	private void processRequest(ChannelHandlerContext ctx) {
-		handler.process(ctx);
+		if (handler != null) {
+			handler.process(ctx);
+		}
 	}
 
 	private void processError(ChannelHandlerContext ctx, Exception e) {
@@ -111,6 +113,7 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 			}
 			try {
 				decoder = new HttpPostRequestDecoder(factory, request);
+				decoder.setDiscardThreshold(0);
 				// save decoder
 				handler.setHttpPostRequestDecoder(decoder);
 			} catch (ErrorDataDecoderException e1) {

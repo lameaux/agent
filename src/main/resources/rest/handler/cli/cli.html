@@ -60,13 +60,11 @@ textarea,input {
 				$.ajax({
 					type : 'POST',
 					url : '/cli',
-					contentType : 'application/json; charset=utf-8',
-					data : JSON.stringify(request),
+					data : request,
 					dataType : 'json',
 					success : function(response) {
-						$("#response").val(response.data.message);
+						$("#response").val(response.message);
 					}
-
 				});
 				
 				return false;

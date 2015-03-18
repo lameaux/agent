@@ -17,7 +17,6 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.ServerCookieEncoder;
-import io.netty.handler.codec.http.multipart.Attribute;
 import io.netty.handler.codec.http.multipart.FileUpload;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder.EndOfDataDecoderException;
@@ -50,10 +49,14 @@ public class RestHandlerBase implements RestHandler {
 		}
 
 		FullHttpResponse response;
-		if (request.getMethod().equals(HttpMethod.POST)) {
-			response = doPost();
-		} else {
-			response = doGet();
+		try {
+			if (request.getMethod().equals(HttpMethod.POST)) {
+				response = doPost();
+			} else {
+				response = doGet();
+			}
+		} catch (IOException e) {
+			response = errorResponse(e);
 		}
 
 		writeResponse(ctx.channel(), response);
@@ -63,7 +66,7 @@ public class RestHandlerBase implements RestHandler {
 		return getFullHttpResponse(Unpooled.copiedBuffer("GET", CharsetUtil.UTF_8));
 	}
 
-	public FullHttpResponse doPost() {
+	public FullHttpResponse doPost() throws IOException {
 		return getFullHttpResponse(Unpooled.copiedBuffer("POST", CharsetUtil.UTF_8));
 	}
 
@@ -84,8 +87,6 @@ public class RestHandlerBase implements RestHandler {
 		QueryStringDecoder decoderQuery = new QueryStringDecoder(request.getUri());
 		return decoderQuery.parameters();
 	}
-
-	// readHttpDataChunkByChunk();
 
 	protected FullHttpResponse getFullHttpResponse(ByteBuf buf) {
 		FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, buf);
@@ -128,43 +129,35 @@ public class RestHandlerBase implements RestHandler {
 		}
 	}
 
+	protected FullHttpResponse errorResponse(Exception e) {
+		FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST, Unpooled.copiedBuffer(e.getMessage(),
+				CharsetUtil.UTF_8));
+		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html; charset=UTF-8");
+		return response;
+	}
+
 	/**
-	 * Example of reading request by chunk and getting values from chunk to
-	 * chunk
+	 * Reading POST data
 	 */
-	private void readHttpDataChunkByChunk() {
+	protected void processPostData(PostDataProcessor processor) throws IOException {
 		try {
 			while (decoder.hasNext()) {
 				InterfaceHttpData data = decoder.next();
 				if (data != null) {
 					try {
-						// new value
-						writeHttpData(data);
+						processor.process(data);
 					} finally {
 						data.release();
 					}
 				}
 			}
 		} catch (EndOfDataDecoderException e1) {
-			// end of decoder content, ok
+			// ok
 		}
 	}
 
 	private void writeHttpData(InterfaceHttpData data) {
-		if (data.getHttpDataType() == HttpDataType.Attribute) {
-			Attribute attribute = (Attribute) data;
-			String value;
-			try {
-				value = attribute.getValue();
-			} catch (IOException e1) {
-				// PROCESS ERROR!!!
-				// Error while reading data from File, only print name and error
-				return;
-			}
 
-			// TODO: value!!!
-
-		} else {
 			if (data.getHttpDataType() == HttpDataType.FileUpload) {
 				FileUpload fileUpload = (FileUpload) data;
 				if (fileUpload.isCompleted()) {
@@ -179,6 +172,6 @@ public class RestHandlerBase implements RestHandler {
 				}
 			}
 		}
-	}
+	
 
 }
