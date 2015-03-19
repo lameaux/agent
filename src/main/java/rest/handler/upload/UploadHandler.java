@@ -22,18 +22,18 @@ import utils.StringUtils;
 public class UploadHandler extends RestHandlerBase {
 
 	public static final String URL = "/upload";
-	
+
 	private static final String REQUEST_INPUT_LOCATION = "location";
 	private static final String REQUEST_INPUT_FILE = "file";
-	
+
 	private String uploadPath;
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(UploadHandler.class);
-	
+
 	public UploadHandler(String uploadPath) {
 		this.uploadPath = uploadPath;
 	}
-	
+
 	// GET show input form
 	@Override
 	public FullHttpResponse doGet() {
@@ -54,33 +54,31 @@ public class UploadHandler extends RestHandlerBase {
 
 		String location = requestParameters.get(REQUEST_INPUT_LOCATION);
 		File tempUploadedFile = requestFiles.get(REQUEST_INPUT_FILE);
-		
+
 		if (StringUtils.nullOrEmpty(location)) {
-			return redirectResponse(URL + "?error=location");
+			return redirectResponse(URL + "?result=error_location");
 		}
-		
+
 		if (tempUploadedFile == null) {
-			return redirectResponse(URL + "?error=file");
+			return redirectResponse(URL + "?result=error_file");
 		}
-		
+
 		File targetFile = new File(new File(uploadPath), location);
 		File parentDir = targetFile.getParentFile();
 		if (!parentDir.exists() && !parentDir.mkdirs()) {
-			return redirectResponse(URL + "?error=server");
+			return redirectResponse(URL + "?result=error_server");
 		}
-		
+
 		FileUtils.copyFile(tempUploadedFile, targetFile);
 		LOG.info("Uploaded file " + targetFile.getPath());
-		
-		return redirectResponse(URL + "?ok");
+
+		return redirectResponse(URL + "?result=success");
 	}
 
-	
 	private FullHttpResponse redirectResponse(String location) {
 		FullHttpResponse response = createHttpResponse(HttpResponseStatus.FOUND);
 		response.headers().add("Location", location);
-		return response;		
+		return response;
 	}
-	
-	
+
 }
