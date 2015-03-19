@@ -4,7 +4,10 @@ import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.util.CharsetUtil;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 
 import rest.handler.RestHandlerBase;
 import utils.IOUtils;
@@ -20,10 +23,14 @@ public class UploadHandler extends RestHandlerBase {
 
 	// POST
 	@Override
-	public FullHttpResponse doPost() {
-		// CliRequest cliRequest = request.getBodyAs(CliRequest.class);
-		// String message = commandProcessor.process(cliRequest.getRequest());
-		// return new CliResponse(message);
-		return getFullHttpResponse(Unpooled.copiedBuffer("POST", CharsetUtil.UTF_8));
+	public FullHttpResponse doPost() throws IOException {
+
+		Map<String, String> requestParameters = getRequestParameters();
+		Map<String, File> requestFiles = getRequestFiles();
+
+		return getFullHttpResponse();
 	}
+
+	
+	
 }

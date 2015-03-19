@@ -7,8 +7,6 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.Cookie;
-import io.netty.handler.codec.http.CookieDecoder;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpContent;
@@ -19,7 +17,6 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
-import io.netty.handler.codec.http.ServerCookieEncoder;
 import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
 import io.netty.handler.codec.http.multipart.DiskAttribute;
 import io.netty.handler.codec.http.multipart.DiskFileUpload;
@@ -27,10 +24,6 @@ import io.netty.handler.codec.http.multipart.HttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder.ErrorDataDecoderException;
 import io.netty.util.CharsetUtil;
-
-import java.util.Collections;
-import java.util.Set;
-
 import processor.CommandProcessor;
 import rest.handler.RestHandler;
 import rest.handler.cli.CliHandler;
@@ -41,19 +34,20 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 
 	private CommandProcessor commandProcessor;
 	private RestHandler handler;
-
 	private HttpRequest request;
 
 	// store on disk if > 16k
 	private static final HttpDataFactory factory = new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);
 
-	private HttpPostRequestDecoder decoder;
 	static {
 		DiskFileUpload.deleteOnExitTemporaryFile = true;
 		DiskFileUpload.baseDirectory = null; // system temp directory
 		DiskAttribute.deleteOnExitTemporaryFile = true;
 		DiskAttribute.baseDirectory = null; // system temp directory
-	}
+	}	
+	
+	private HttpPostRequestDecoder decoder;
+
 
 	public RestServerHandler(CommandProcessor commandProcessor) {
 		this.commandProcessor = commandProcessor;
@@ -90,6 +84,7 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 	private void processError(ChannelHandlerContext ctx, Exception e) {
 		ByteBuf outputBuf = Unpooled.copiedBuffer(e.getMessage(), CharsetUtil.UTF_8);
 		writeErrorResponse(ctx.channel(), outputBuf);
+		ctx.channel().close();
 	}
 
 	@Override
@@ -100,7 +95,7 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 			handler = getRestHandler();
 			if (handler == null) {
 				processError(ctx, new Exception("Mapping not found"));
-				ctx.channel().close();
+
 				return;
 			}
 
@@ -113,12 +108,10 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 			}
 			try {
 				decoder = new HttpPostRequestDecoder(factory, request);
-				decoder.setDiscardThreshold(0);
 				// save decoder
 				handler.setHttpPostRequestDecoder(decoder);
 			} catch (ErrorDataDecoderException e1) {
 				processError(ctx, e1);
-				ctx.channel().close();
 				return;
 			}
 		}
@@ -133,7 +126,6 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 					decoder.offer(chunk);
 				} catch (ErrorDataDecoderException e1) {
 					processError(ctx, e1);
-					ctx.channel().close();
 					return;
 				}
 
@@ -149,41 +141,13 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 	}
 
 	private void writeErrorResponse(Channel channel, ByteBuf buf) {
-
-		// Decide whether to close the connection or not.
-		boolean close = request.headers().contains(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.CLOSE, true)
-				|| request.getProtocolVersion().equals(HttpVersion.HTTP_1_0)
-				&& !request.headers().contains(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE, true);
-
 		// Build the response object.
-		FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, buf);
+		FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST, buf);
 		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
 
-		if (!close) {
-			// There's no need to add 'Content-Length' header
-			// if this is the last response.
-			response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, buf.readableBytes());
-		}
-
-		Set<Cookie> cookies;
-		String value = request.headers().get(HttpHeaders.Names.COOKIE);
-		if (value == null) {
-			cookies = Collections.emptySet();
-		} else {
-			cookies = CookieDecoder.decode(value);
-		}
-		if (!cookies.isEmpty()) {
-			// Reset the cookies if necessary.
-			for (Cookie cookie : cookies) {
-				response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.encode(cookie));
-			}
-		}
 		// Write the response.
 		ChannelFuture future = channel.writeAndFlush(response);
-		// Close the connection after the write operation is done if necessary.
-		if (close) {
-			future.addListener(ChannelFutureListener.CLOSE);
-		}
+		future.addListener(ChannelFutureListener.CLOSE);
 	}
 
 	private void reset() {

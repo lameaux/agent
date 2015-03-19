@@ -17,6 +17,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.ServerCookieEncoder;
+import io.netty.handler.codec.http.multipart.Attribute;
 import io.netty.handler.codec.http.multipart.FileUpload;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder.EndOfDataDecoderException;
@@ -24,8 +25,10 @@ import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType;
 import io.netty.util.CharsetUtil;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,6 +38,9 @@ public class RestHandlerBase implements RestHandler {
 	protected HttpRequest request;
 	protected HttpPostRequestDecoder decoder;
 
+	protected Map<String, String> requestParameters = new HashMap<String, String>();
+	protected Map<String, File> requestFiles = new HashMap<String, File>();
+
 	public void setHttpRequest(HttpRequest request) {
 		this.request = request;
 	}
@@ -43,22 +49,33 @@ public class RestHandlerBase implements RestHandler {
 		this.decoder = decoder;
 	}
 
+	public Map<String, String> getRequestParameters() {
+		return requestParameters;
+	}
+
+	public Map<String, File> getRequestFiles() {
+		return requestFiles;
+	}
+
 	public void process(ChannelHandlerContext ctx) {
 		if (request == null) {
 			throw new RuntimeException("No HttpRequest");
 		}
-
 		FullHttpResponse response;
 		try {
 			if (request.getMethod().equals(HttpMethod.POST)) {
+				processPostData();
 				response = doPost();
 			} else {
 				response = doGet();
 			}
 		} catch (IOException e) {
 			response = errorResponse(e);
+		} finally {
+			if (request.getMethod().equals(HttpMethod.POST)) {
+				deleteTempFiles();
+			}
 		}
-
 		writeResponse(ctx.channel(), response);
 	}
 
@@ -86,6 +103,10 @@ public class RestHandlerBase implements RestHandler {
 	public Map<String, List<String>> getUriAttributes() {
 		QueryStringDecoder decoderQuery = new QueryStringDecoder(request.getUri());
 		return decoderQuery.parameters();
+	}
+
+	protected FullHttpResponse getFullHttpResponse() {
+		return getFullHttpResponse(Unpooled.buffer(0));
 	}
 
 	protected FullHttpResponse getFullHttpResponse(ByteBuf buf) {
@@ -139,13 +160,24 @@ public class RestHandlerBase implements RestHandler {
 	/**
 	 * Reading POST data
 	 */
-	protected void processPostData(PostDataProcessor processor) throws IOException {
+	protected void processPostData() throws IOException {
 		try {
 			while (decoder.hasNext()) {
 				InterfaceHttpData data = decoder.next();
 				if (data != null) {
 					try {
-						processor.process(data);
+						if (data.getHttpDataType() == HttpDataType.Attribute) {
+							Attribute attribute = (Attribute) data;
+							requestParameters.put(attribute.getName(), attribute.getValue());
+						} else if (data.getHttpDataType() == HttpDataType.FileUpload) {
+							FileUpload fileUpload = (FileUpload) data;
+							if (fileUpload.isCompleted()) {
+								File tempFile = File.createTempFile("agent", "upload");
+								fileUpload.renameTo(tempFile);
+								requestFiles.put(fileUpload.getName(), tempFile);
+							}
+						}
+
 					} finally {
 						data.release();
 					}
@@ -156,22 +188,10 @@ public class RestHandlerBase implements RestHandler {
 		}
 	}
 
-	private void writeHttpData(InterfaceHttpData data) {
-
-			if (data.getHttpDataType() == HttpDataType.FileUpload) {
-				FileUpload fileUpload = (FileUpload) data;
-				if (fileUpload.isCompleted()) {
-					// TODO: upload file
-					try {
-						fileUpload.getString(fileUpload.getCharset());
-					} catch (IOException e1) {
-						// do nothing for the example
-						e1.printStackTrace();
-					}
-
-				}
-			}
+	private void deleteTempFiles() {
+		for (File tempFile : requestFiles.values()) {
+			tempFile.delete();
 		}
-	
+	}
 
 }

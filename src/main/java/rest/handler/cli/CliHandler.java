@@ -3,18 +3,13 @@ package rest.handler.cli;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.multipart.Attribute;
-import io.netty.handler.codec.http.multipart.InterfaceHttpData;
-import io.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType;
 import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.Map;
 
 import processor.CommandProcessor;
-import rest.handler.PostDataProcessor;
 import rest.handler.RestHandlerBase;
 import utils.IOUtils;
 
@@ -41,16 +36,7 @@ public class CliHandler extends RestHandlerBase {
 	@Override
 	public FullHttpResponse doPost() throws IOException {
 
-		final Map<String, String> requestParameters = new HashMap<String, String>();
-		
-		processPostData(new PostDataProcessor() {
-			public void process(InterfaceHttpData data) throws IOException {
-				if (data.getHttpDataType() == HttpDataType.Attribute) {
-					Attribute attribute = (Attribute) data;
-					requestParameters.put(attribute.getName(), attribute.getValue());
-				}
-			}
-		});
+		Map<String, String> requestParameters = getRequestParameters();
 		
 		String message = commandProcessor.process(requestParameters.get(REQUEST_INPUT_NAME));
 
