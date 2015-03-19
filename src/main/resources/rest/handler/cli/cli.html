@@ -4,8 +4,55 @@
 <title>Agent CLI</title>
 <script src="http://code.jquery.com/jquery.js"></script>
 <style>
+html {
+	height: 95%;
+	padding:1%;
+}
+
+body {
+	background-color: black;
+	color: white;
+	height: 100%;
+	padding: 0px;
+	margin: 0px;
+}
+
+div#box {
+	display: table;
+	width: 100%;
+	height: 100%;
+	font-size:1em;
+}
+
+div#responseBox {
+	display: table-row;
+	height: 80%;
+}
+
+div#requestBox {
+	display: table-row;
+	height: 20%;
+}
+
 textarea,input {
-	width: 100%
+	background-color: black;
+	color: white;
+	border: 0px;
+	margin: 0px;
+	padding: 0px;
+}
+
+textarea {
+	height:100%;
+	width:100%;
+	font-size:1.2em;
+	resize:none;
+}
+
+input {
+	width: 100%;
+	font-size:1em;
+	padding:2px;
 }
 </style>
 </head>
@@ -15,68 +62,77 @@ textarea,input {
 		var pointer = commandHistory.length - 1;
 
 		$(function() {
-			$('#request').keydown(function(event) {
-				event = event || window.event;
-				keyCode = event.keyCode;
+			$('#request').keydown(
+					function(event) {
+						event = event || window.event;
+						keyCode = event.keyCode;
 
-				if (keyCode == 38) { // up arrow
-					if (pointer >= 0) {
-						$('#request').val(commandHistory[pointer]);
-						if (pointer > 0) {
-							pointer--;
+						if (keyCode == 38) { // up arrow
+							if (pointer >= 0) {
+								$('#request').val(commandHistory[pointer]);
+								if (pointer > 0) {
+									pointer--;
+								}
+							}
+							return false;
 						}
-					}
-					return false;
-				}
 
-				if (keyCode == 40) { // down arrow
-					if (pointer >= 0 && pointer <= commandHistory.length - 1) {
-						$('#request').val(commandHistory[pointer]);
-						if (pointer < commandHistory.length - 1) {
-							pointer++;
+						if (keyCode == 40) { // down arrow
+							if (pointer >= 0
+									&& pointer <= commandHistory.length - 1) {
+								$('#request').val(commandHistory[pointer]);
+								if (pointer < commandHistory.length - 1) {
+									pointer++;
+								}
+							}
+							return false;
 						}
-					}
-					return false;
-				}
 
-				if (keyCode != 13) { // check for ENTER
-					return true;
-				}
+						if (keyCode != 13) { // check for ENTER
+							return true;
+						}
 
-				var requestString = $('#request').val();
+						var requestString = $('#request').val();
 
-				if (requestString == '') {
-					return false;
-				}
+						if (requestString == '') {
+							return false;
+						}
 
-				commandHistory.push(requestString);
-				pointer = commandHistory.length - 1;
-				$('#request').val("");
+						commandHistory.push(requestString);
+						pointer = commandHistory.length - 1;
+						$('#request').val("");
 
-				var request = {
-					request : requestString
-				};
+						var request = {
+							request : requestString
+						};
 
-				$.ajax({
-					type : 'POST',
-					url : '/cli',
-					data : request,
-					dataType : 'json',
-					success : function(response) {
-						$("#response").val(response.message);
-					}
-				});
-				
-				return false;
-			});
+						$.ajax({
+							type : 'POST',
+							url : '/cli',
+							data : request,
+							dataType : 'json',
+							success : function(response) {
+								var responseText = '# ' + requestString
+										+ '\r\n' + response.message;
+								$("#response").val(responseText);
+							}
+						});
+
+						return false;
+					});
+
+			$('#request').focus();
 		});
 	</script>
-	Request
-	<br>
-	<input id="request" value="help"></input>
-	<br>
-	<br> Response:
-	<br>
-	<textarea id="response" rows="10"></textarea>
+	<div id="box">
+		<div id="responseBox">
+			<textarea id="response" readonly>Welcome to Agent CLI. Type your command.</textarea>
+		</div>
+
+		<div id="requestBox">
+			<input id="request" value=""
+				placeholder="enter command, type 'help' for help :)"></input>
+		</div>
+	</div>
 </body>
 </html>
