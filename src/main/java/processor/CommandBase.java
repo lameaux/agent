@@ -1,5 +1,7 @@
 package processor;
 
+import utils.StringUtils;
+
 
 public abstract class CommandBase implements Command {
 
@@ -16,7 +18,7 @@ public abstract class CommandBase implements Command {
 	}
 
 	public boolean match(String request) {
-		if (nullOrEmpty(request)) {
+		if (StringUtils.nullOrEmpty(request)) {
 			return false;
 		}
 
@@ -42,8 +44,6 @@ public abstract class CommandBase implements Command {
 		return params;
 	}
 
-	public boolean nullOrEmpty(String value) {
-		return value == null || value.trim().isEmpty();
-	}
+
 
 }

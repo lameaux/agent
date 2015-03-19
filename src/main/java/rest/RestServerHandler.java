@@ -25,6 +25,9 @@ import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder.ErrorDataDecoderException;
 import io.netty.util.CharsetUtil;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,10 +36,13 @@ import rest.handler.RestHandler;
 import rest.handler.cli.CliHandler;
 import rest.handler.upload.UploadHandler;
 import rest.handler.welcome.WelcomeHandler;
+import agent.Configuration;
 
 public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 
 	private CommandProcessor commandProcessor;
+	private Configuration config;
+	
 	private RestHandler handler;
 	private HttpRequest request;
 
@@ -54,20 +60,28 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 
 	private static final Logger LOG = LoggerFactory.getLogger(RestServerHandler.class); 		
 
-	public RestServerHandler(CommandProcessor commandProcessor) {
+	public RestServerHandler(Configuration config, CommandProcessor commandProcessor) {
+		this.config = config;
 		this.commandProcessor = commandProcessor;
 	}
 
 	private RestHandler getRestHandler() {
-		String uri = request.getUri();
-		if (uri.equals("/")) {
+		String uriString = request.getUri();
+		URI uri;
+		try {
+			uri = new URI(uriString);
+		} catch (URISyntaxException e) {
+			return null;
+		}
+		
+		if (uri.getPath().equals(WelcomeHandler.URL)) {
 			return new WelcomeHandler();
 		}
-		if (uri.equals("/cli")) {
+		if (uri.getPath().equals(CliHandler.URL)) {
 			return new CliHandler(commandProcessor);
 		}
-		if (uri.equals("/upload")) {
-			return new UploadHandler();
+		if (uri.getPath().equals(UploadHandler.URL)) {
+			return new UploadHandler(config.getRestUploadPath());
 		}
 
 		return null;
@@ -86,9 +100,9 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 		}
 	}
 
-	private void processError(ChannelHandlerContext ctx, Exception e) {
+	private void processError(ChannelHandlerContext ctx, RestException e) {
 		ByteBuf outputBuf = Unpooled.copiedBuffer(e.getMessage(), CharsetUtil.UTF_8);
-		writeErrorResponse(ctx.channel(), outputBuf);
+		writeErrorResponse(ctx.channel(), e.getStatus(), outputBuf);
 		ctx.channel().close();
 	}
 
@@ -99,7 +113,7 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 
 			handler = getRestHandler();
 			if (handler == null) {
-				processError(ctx, new Exception("Mapping not found"));
+				processError(ctx, new RestException(HttpResponseStatus.NOT_FOUND, "Not found"));
 				return;
 			}
 
@@ -114,8 +128,8 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 				decoder = new HttpPostRequestDecoder(factory, request);
 				// save decoder
 				handler.setHttpPostRequestDecoder(decoder);
-			} catch (ErrorDataDecoderException e1) {
-				processError(ctx, e1);
+			} catch (ErrorDataDecoderException e) {
+				processError(ctx, new RestException(e));
 				return;
 			}
 		}
@@ -128,8 +142,8 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 				HttpContent chunk = (HttpContent) msg;
 				try {
 					decoder.offer(chunk);
-				} catch (ErrorDataDecoderException e1) {
-					processError(ctx, e1);
+				} catch (ErrorDataDecoderException e) {
+					processError(ctx, new RestException(e));
 					return;
 				}
 
@@ -144,9 +158,9 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 		}
 	}
 
-	private void writeErrorResponse(Channel channel, ByteBuf buf) {
+	private void writeErrorResponse(Channel channel, HttpResponseStatus status, ByteBuf buf) {
 		// Build the response object.
-		FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST, buf);
+		FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, buf);
 		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
 
 		// Write the response.

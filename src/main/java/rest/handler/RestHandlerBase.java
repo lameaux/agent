@@ -80,11 +80,11 @@ public class RestHandlerBase implements RestHandler {
 	}
 
 	public FullHttpResponse doGet() {
-		return getFullHttpResponse(Unpooled.copiedBuffer("GET", CharsetUtil.UTF_8));
+		return createHttpResponse(HttpResponseStatus.NOT_IMPLEMENTED);
 	}
 
 	public FullHttpResponse doPost() throws IOException {
-		return getFullHttpResponse(Unpooled.copiedBuffer("POST", CharsetUtil.UTF_8));
+		return createHttpResponse(HttpResponseStatus.NOT_IMPLEMENTED);
 	}
 
 	public HttpHeaders getHeaders() {
@@ -105,12 +105,16 @@ public class RestHandlerBase implements RestHandler {
 		return decoderQuery.parameters();
 	}
 
-	protected FullHttpResponse getFullHttpResponse() {
-		return getFullHttpResponse(Unpooled.buffer(0));
+	protected FullHttpResponse createHttpResponse() {
+		return createHttpResponse(HttpResponseStatus.OK);
 	}
 
-	protected FullHttpResponse getFullHttpResponse(ByteBuf buf) {
-		FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, buf);
+	protected FullHttpResponse createHttpResponse(HttpResponseStatus status) {
+		return createHttpResponse(status, Unpooled.buffer(0));
+	}
+	
+	protected FullHttpResponse createHttpResponse(HttpResponseStatus status, ByteBuf buf) {
+		FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, buf);
 		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html; charset=UTF-8");
 
 		// Decide whether to close the connection or not.
@@ -143,8 +147,8 @@ public class RestHandlerBase implements RestHandler {
 		}
 		// Write the response.
 		ChannelFuture future = channel.writeAndFlush(response);
-		// Close the connection after the write operation is done if necessary.
 
+		// Close the connection after the write operation is done if necessary.
 		if (!response.headers().contains(HttpHeaders.Names.CONTENT_LENGTH)) {
 			future.addListener(ChannelFutureListener.CLOSE);
 		}
@@ -171,7 +175,7 @@ public class RestHandlerBase implements RestHandler {
 							requestParameters.put(attribute.getName(), attribute.getValue());
 						} else if (data.getHttpDataType() == HttpDataType.FileUpload) {
 							FileUpload fileUpload = (FileUpload) data;
-							if (fileUpload.isCompleted()) {
+							if (fileUpload.isCompleted() && fileUpload.length() > 0) {
 								File tempFile = File.createTempFile("agent", "upload");
 								fileUpload.renameTo(tempFile);
 								requestFiles.put(fileUpload.getName(), tempFile);

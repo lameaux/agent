@@ -14,23 +14,24 @@ import org.slf4j.LoggerFactory;
 import processor.CommandProcessor;
 import service.Service;
 import service.ServiceState;
+import agent.Configuration;
 
 public class TelnetServer implements Service {
 
 	public static final String SERVICE_NAME = "telnet";
 
-	private final int port;
 	private EventLoopGroup bossGroup;
 	private EventLoopGroup workerGroup;
 	private volatile ServiceState serviceState = ServiceState.STOPPED;
 
 	private Channel serverChannel;
+	private Configuration config;
 	private CommandProcessor commandProcessor;
 
 	private static final Logger LOG = LoggerFactory.getLogger(TelnetServer.class); 	
 	
-	public TelnetServer(int port, CommandProcessor commandProcessor) {
-		this.port = port;
+	public TelnetServer(Configuration config, CommandProcessor commandProcessor) {
+		this.config = config;
 		this.commandProcessor = commandProcessor;
 	}
 
@@ -47,12 +48,12 @@ public class TelnetServer implements Service {
 			b.handler(new LoggingHandler(LogLevel.INFO));
 			b.childHandler(new TelnetServerInitializer(commandProcessor));
 
-			serverChannel = b.bind(port).sync().channel();
+			serverChannel = b.bind(config.getTelnetPort()).sync().channel();
 
 			serviceState = ServiceState.RUNNING;
-			LOG.info("TelnetServer started on port {}", port);
+			LOG.info("TelnetServer started on port {}", config.getTelnetPort());
 		} catch (Exception e) {
-			LOG.error("Error starting TelnetServer on port " + port, e);
+			LOG.error("Error starting TelnetServer on port " + config.getTelnetPort(), e);
 			shutdown();
 		}
 	}

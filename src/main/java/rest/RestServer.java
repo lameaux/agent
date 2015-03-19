@@ -16,13 +16,14 @@ import org.slf4j.LoggerFactory;
 import processor.CommandProcessor;
 import service.Service;
 import service.ServiceState;
+import agent.Configuration;
 
 public class RestServer implements Service {
 
 	public static final String SERVICE_NAME = "rest";
 
-	private final int port;
 	private final CommandProcessor commandProcessor;
+	private final Configuration config;
 	private EventLoopGroup bossGroup;
 	private EventLoopGroup workerGroup;
 	private volatile ServiceState serviceState = ServiceState.STOPPED;
@@ -32,11 +33,11 @@ public class RestServer implements Service {
 
 	private static final Logger LOG = LoggerFactory.getLogger(RestServer.class); 
 	
-	public RestServer(int port, boolean ssl, CommandProcessor commandProcessor) {
-		this.port = port;
+	public RestServer(Configuration config, CommandProcessor commandProcessor) {
+		this.config = config;
 		this.commandProcessor = commandProcessor;
 
-		if (ssl) {
+		if (config.isRestSsl()) {
 			try {
 				SelfSignedCertificate ssc = new SelfSignedCertificate();
 				sslCtx = SslContext.newServerContext(ssc.certificate(), ssc.privateKey());
@@ -60,14 +61,14 @@ public class RestServer implements Service {
 			b.group(bossGroup, workerGroup);
 			b.channel(NioServerSocketChannel.class);
 			b.handler(new LoggingHandler(LogLevel.INFO));
-			b.childHandler(new RestServerInitializer(sslCtx, commandProcessor));
+			b.childHandler(new RestServerInitializer(sslCtx, config, commandProcessor));
 
-			serverChannel = b.bind(port).sync().channel();
+			serverChannel = b.bind(config.getRestPort()).sync().channel();
 
 			serviceState = ServiceState.RUNNING;
-			LOG.info("RestServer started on port {}", port);
+			LOG.info("RestServer started on port {}", config.getRestPort());
 		} catch (Exception e) {
-			LOG.error("Error starting RestServer on port " + port, e);
+			LOG.error("Error starting RestServer on port " + config.getRestPort(), e);
 			shutdown();
 		}
 	}

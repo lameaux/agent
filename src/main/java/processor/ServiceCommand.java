@@ -2,6 +2,7 @@ package processor;
 
 import service.ServiceManager;
 import service.ServiceState;
+import utils.StringUtils;
 
 public class ServiceCommand extends CommandBase implements Command {
 
@@ -15,7 +16,7 @@ public class ServiceCommand extends CommandBase implements Command {
 	public String execute(String request) {
 
 		String[] params = parameters(request);
-		if (params.length < 2 || nullOrEmpty(params[0]) || nullOrEmpty(params[1])) {
+		if (params.length < 2 || StringUtils.nullOrEmpty(params[0]) || StringUtils.nullOrEmpty(params[1])) {
 			return syntaxError();
 		}
 

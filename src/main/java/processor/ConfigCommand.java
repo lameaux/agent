@@ -1,5 +1,6 @@
 package processor;
 
+import utils.StringUtils;
 import agent.Agent;
 import agent.Configuration;
 
@@ -9,11 +10,9 @@ public class ConfigCommand extends CommandBase implements Command {
 		Configuration config = Agent.get().getConfig();
 		
 		String[] params = parameters(request);
-		if (params.length == 1 && !nullOrEmpty(params[0])) {
+		if (params.length == 1 && !StringUtils.nullOrEmpty(params[0])) {
 			return config.get(params[0]);
 		}		
-		
-		
 		return config.toString();
 	}
 

@@ -27,10 +27,10 @@ public class Agent {
 		
 		CommandProcessor commandProcessor = new CommandProcessor(serviceManager);
 
-		TelnetServer telnet = new TelnetServer(config.getTelnetPort(), commandProcessor);
+		TelnetServer telnet = new TelnetServer(config, commandProcessor);
 		serviceManager.registerService(telnet);
 
-		RestServer rest = new RestServer(config.getRestPort(), false, commandProcessor);
+		RestServer rest = new RestServer(config, commandProcessor);
 		serviceManager.registerService(rest);
 
 		for (String serviceName : config.getAutorunServices()) {

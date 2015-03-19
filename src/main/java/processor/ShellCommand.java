@@ -1,6 +1,7 @@
 package processor;
 
 import utils.ShellExecutor;
+import utils.StringUtils;
 
 public class ShellCommand extends CommandBase implements Command {
 
@@ -9,7 +10,7 @@ public class ShellCommand extends CommandBase implements Command {
 	public String execute(String request) {
 
 		String[] params = parameters(request);
-		if (params.length == 0 || nullOrEmpty(params[0])) {
+		if (params.length == 0 || StringUtils.nullOrEmpty(params[0])) {
 			return syntaxError();
 		}
 

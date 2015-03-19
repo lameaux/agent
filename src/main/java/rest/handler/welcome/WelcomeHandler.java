@@ -1,13 +1,17 @@
 package rest.handler.welcome;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.CharsetUtil;
 import rest.handler.RestHandlerBase;
 import agent.Agent;
 
 public class WelcomeHandler extends RestHandlerBase {
 
+	public static final String URL = "/";	
+	
 	@Override
 	public FullHttpResponse doGet() {
 
@@ -19,7 +23,8 @@ public class WelcomeHandler extends RestHandlerBase {
 		sb.append(getWelcomeString());
 		sb.append("</body></html>");
 
-		return getFullHttpResponse(Unpooled.copiedBuffer(sb.toString(), CharsetUtil.UTF_8));
+		ByteBuf content = Unpooled.copiedBuffer(sb.toString(), CharsetUtil.UTF_8);
+		return createHttpResponse(HttpResponseStatus.OK, content);
 	}
 
 	private String getWelcomeString() {
