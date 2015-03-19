@@ -24,6 +24,10 @@ import io.netty.handler.codec.http.multipart.HttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder.ErrorDataDecoderException;
 import io.netty.util.CharsetUtil;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import processor.CommandProcessor;
 import rest.handler.RestHandler;
 import rest.handler.cli.CliHandler;
@@ -48,6 +52,7 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 	
 	private HttpPostRequestDecoder decoder;
 
+	private static final Logger LOG = LoggerFactory.getLogger(RestServerHandler.class); 		
 
 	public RestServerHandler(CommandProcessor commandProcessor) {
 		this.commandProcessor = commandProcessor;
@@ -95,7 +100,6 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 			handler = getRestHandler();
 			if (handler == null) {
 				processError(ctx, new Exception("Mapping not found"));
-
 				return;
 			}
 
@@ -159,7 +163,7 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-		cause.printStackTrace();
+		LOG.debug("Exception", cause);
 		ctx.channel().close();
 	}
 

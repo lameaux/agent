@@ -8,6 +8,9 @@ import io.netty.channel.SimpleChannelInboundHandler;
 
 import java.net.InetAddress;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import processor.CommandProcessor;
 
 @Sharable
@@ -19,6 +22,8 @@ public class TelnetServerHandler extends SimpleChannelInboundHandler<String> {
 		this.commandProcessor = commandProcessor;
 	}
 
+	private static final Logger LOG = LoggerFactory.getLogger(TelnetServerHandler.class); 	
+	
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
 		// Send greeting for a new connection.
@@ -40,13 +45,8 @@ public class TelnetServerHandler extends SimpleChannelInboundHandler<String> {
 			response = commandProcessor.process(request) + "\r\n";
 		}
 
-		// We do not need to write a ChannelBuffer here.
-		// We know the encoder inserted at TelnetPipelineFactory will do the
-		// conversion.
 		ChannelFuture future = ctx.write(response);
 
-		// Close the connection after sending 'Have a good day!'
-		// if the client has sent 'bye'.
 		if (close) {
 			future.addListener(ChannelFutureListener.CLOSE);
 		}
@@ -59,7 +59,7 @@ public class TelnetServerHandler extends SimpleChannelInboundHandler<String> {
 
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-		cause.printStackTrace();
+		LOG.debug("Exception", cause);
 		ctx.close();
 	}
 }

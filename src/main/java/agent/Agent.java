@@ -1,5 +1,7 @@
 package agent;
 
+import io.netty.util.internal.logging.InternalLoggerFactory;
+import io.netty.util.internal.logging.Slf4JLoggerFactory;
 import processor.CommandProcessor;
 import rest.RestServer;
 import service.ServiceManager;
@@ -21,6 +23,8 @@ public class Agent {
 
 	private void initServices() {
 
+		InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
+		
 		CommandProcessor commandProcessor = new CommandProcessor(serviceManager);
 
 		TelnetServer telnet = new TelnetServer(config.getTelnetPort(), commandProcessor);

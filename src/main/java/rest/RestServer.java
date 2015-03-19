@@ -9,6 +9,10 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import processor.CommandProcessor;
 import service.Service;
 import service.ServiceState;
@@ -26,6 +30,8 @@ public class RestServer implements Service {
 	private Channel serverChannel;
 	private SslContext sslCtx;
 
+	private static final Logger LOG = LoggerFactory.getLogger(RestServer.class); 
+	
 	public RestServer(int port, boolean ssl, CommandProcessor commandProcessor) {
 		this.port = port;
 		this.commandProcessor = commandProcessor;
@@ -59,7 +65,9 @@ public class RestServer implements Service {
 			serverChannel = b.bind(port).sync().channel();
 
 			serviceState = ServiceState.RUNNING;
+			LOG.info("RestServer started on port {}", port);
 		} catch (Exception e) {
+			LOG.error("Error starting RestServer on port " + port, e);
 			shutdown();
 		}
 	}
@@ -74,6 +82,7 @@ public class RestServer implements Service {
 		} finally {
 			shutdownWorkers();
 			serviceState = ServiceState.STOPPED;
+			LOG.info("RestServer stopped");
 		}
 	}
 

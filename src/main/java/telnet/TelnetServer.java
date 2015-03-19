@@ -7,6 +7,10 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import processor.CommandProcessor;
 import service.Service;
 import service.ServiceState;
@@ -23,6 +27,8 @@ public class TelnetServer implements Service {
 	private Channel serverChannel;
 	private CommandProcessor commandProcessor;
 
+	private static final Logger LOG = LoggerFactory.getLogger(TelnetServer.class); 	
+	
 	public TelnetServer(int port, CommandProcessor commandProcessor) {
 		this.port = port;
 		this.commandProcessor = commandProcessor;
@@ -44,7 +50,9 @@ public class TelnetServer implements Service {
 			serverChannel = b.bind(port).sync().channel();
 
 			serviceState = ServiceState.RUNNING;
+			LOG.info("TelnetServer started on port {}", port);
 		} catch (Exception e) {
+			LOG.error("Error starting TelnetServer on port " + port, e);
 			shutdown();
 		}
 	}
@@ -59,6 +67,7 @@ public class TelnetServer implements Service {
 		} finally {
 			shutdownWorkers();
 			serviceState = ServiceState.STOPPED;
+			LOG.info("TelnetServer stopped");
 		}
 	}
 
