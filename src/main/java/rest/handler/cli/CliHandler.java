@@ -14,22 +14,22 @@ import java.util.Map;
 import processor.CommandProcessor;
 import rest.handler.RestHandlerBase;
 import utils.IOUtils;
+import agent.Agent;
 
 import com.google.gson.Gson;
 
 public class CliHandler extends RestHandlerBase {
 
-	public static final String URL = "/cli";	
-	
-	private static final String REQUEST_INPUT_NAME = "request";	
-	
+	public static final String URL = "/cli";
+
+	private static final String REQUEST_INPUT_NAME = "request";
+
 	protected final CommandProcessor commandProcessor;
 
-	public CliHandler(CommandProcessor commandProcessor) {
-		this.commandProcessor = commandProcessor;
+	public CliHandler() {
+		this.commandProcessor = Agent.get().getCommandProcessor();
 	}
 
-	// Get show input form
 	@Override
 	public FullHttpResponse doGet() {
 		InputStream is = CliHandler.class.getResourceAsStream("cli.html");
@@ -37,12 +37,11 @@ public class CliHandler extends RestHandlerBase {
 		return createHttpResponse(HttpResponseStatus.OK, content);
 	}
 
-	// POST
 	@Override
 	public FullHttpResponse doPost() throws IOException {
 
 		Map<String, String> requestParameters = getRequestParameters();
-		
+
 		String message = commandProcessor.process(requestParameters.get(REQUEST_INPUT_NAME));
 
 		Gson gson = new Gson();

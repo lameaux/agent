@@ -7,7 +7,6 @@ import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 import io.netty.handler.codec.Delimiters;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
-import processor.CommandProcessor;
 
 public class TelnetServerInitializer extends ChannelInitializer<SocketChannel> {
 
@@ -16,8 +15,8 @@ public class TelnetServerInitializer extends ChannelInitializer<SocketChannel> {
 
 	private final TelnetServerHandler serverHandler;
 
-	public TelnetServerInitializer(CommandProcessor commandProcessor) {
-		serverHandler = new TelnetServerHandler(commandProcessor);
+	public TelnetServerInitializer() {
+		serverHandler = new TelnetServerHandler();
 	}
 
 	@Override

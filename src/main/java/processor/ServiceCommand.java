@@ -3,11 +3,12 @@ package processor;
 import service.ServiceManager;
 import service.ServiceState;
 import utils.StringUtils;
+import agent.Agent;
 
 public class ServiceCommand extends CommandBase implements Command {
 
-	public ServiceCommand(ServiceManager serviceManager) {
-		this.serviceManager = serviceManager;
+	public ServiceCommand() {
+		this.serviceManager = Agent.get().getServiceManager();
 	}
 
 	private final ServiceManager serviceManager;

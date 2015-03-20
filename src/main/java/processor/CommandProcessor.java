@@ -3,13 +3,11 @@ package processor;
 import java.util.ArrayList;
 import java.util.List;
 
-import service.ServiceManager;
-
 public class CommandProcessor {
 
 	private List<Command> commands = new ArrayList<Command>();
 
-	public CommandProcessor(ServiceManager serviceManager) {
+	public CommandProcessor() {
 		commands.add(new HelpCommand(commands));
 		commands.add(new TimeCommand());
 		commands.add(new WhoCommand());
@@ -19,7 +17,8 @@ public class CommandProcessor {
 		commands.add(new ConfigCommand());
 		commands.add(new SysInfoCommand());
 		commands.add(new HostnameCommand());
-		commands.add(new ServiceCommand(serviceManager));
+		commands.add(new ServiceCommand());
+		commands.add(new PingCommand());
 	}
 
 	public String process(String request) {

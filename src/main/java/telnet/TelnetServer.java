@@ -11,9 +11,9 @@ import io.netty.handler.logging.LoggingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import processor.CommandProcessor;
 import service.Service;
 import service.ServiceState;
+import agent.Agent;
 import agent.Configuration;
 
 public class TelnetServer implements Service {
@@ -26,13 +26,11 @@ public class TelnetServer implements Service {
 
 	private Channel serverChannel;
 	private Configuration config;
-	private CommandProcessor commandProcessor;
 
 	private static final Logger LOG = LoggerFactory.getLogger(TelnetServer.class); 	
 	
-	public TelnetServer(Configuration config, CommandProcessor commandProcessor) {
-		this.config = config;
-		this.commandProcessor = commandProcessor;
+	public TelnetServer() {
+		this.config = Agent.get().getConfig();
 	}
 
 	public void run() {
@@ -46,7 +44,7 @@ public class TelnetServer implements Service {
 			b.group(bossGroup, workerGroup);
 			b.channel(NioServerSocketChannel.class);
 			b.handler(new LoggingHandler(LogLevel.INFO));
-			b.childHandler(new TelnetServerInitializer(commandProcessor));
+			b.childHandler(new TelnetServerInitializer());
 
 			serverChannel = b.bind(config.getTelnetPort()).sync().channel();
 

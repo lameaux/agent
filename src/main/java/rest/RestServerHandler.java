@@ -31,17 +31,16 @@ import java.net.URISyntaxException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import processor.CommandProcessor;
 import rest.handler.RestHandler;
 import rest.handler.cli.CliHandler;
 import rest.handler.ping.PingHandler;
 import rest.handler.upload.UploadHandler;
 import rest.handler.welcome.WelcomeHandler;
+import agent.Agent;
 import agent.Configuration;
 
 public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 
-	private CommandProcessor commandProcessor;
 	private Configuration config;
 	
 	private RestHandler handler;
@@ -61,9 +60,8 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 
 	private static final Logger LOG = LoggerFactory.getLogger(RestServerHandler.class); 		
 
-	public RestServerHandler(Configuration config, CommandProcessor commandProcessor) {
-		this.config = config;
-		this.commandProcessor = commandProcessor;
+	public RestServerHandler() {
+		this.config = Agent.get().getConfig();
 	}
 
 	private RestHandler getRestHandler() {
@@ -81,7 +79,7 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 			return new WelcomeHandler();
 		}
 		if (uri.getPath().equals(CliHandler.URL)) {
-			return new CliHandler(commandProcessor);
+			return new CliHandler();
 		}
 		if (uri.getPath().equals(UploadHandler.URL)) {
 			return new UploadHandler(config.getRestUploadPath());

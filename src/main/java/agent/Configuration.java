@@ -25,24 +25,31 @@ public class Configuration {
 		return properties;
 	}
 
+	public static final String AGENT_BASE_PORT = "agent.base.port";
+	public static final String DEFAULT_AGENT_BASE_PORT = "21000";	
+	
 	public static final String TELNET_PORT = "agent.telnet.port";
-	public static final String DEFAULT_TELNET_PORT = "21023";
+	public static final String DEFAULT_TELNET_PORT = "23";
 
 	public static final String REST_PORT = "agent.rest.port";
-	public static final String DEFAULT_REST_PORT = "21080";
+	public static final String DEFAULT_REST_PORT = "80";
 
 	public static final String AUTORUN = "agent.autorun";
 	public static final String DEFAULT_AUTORUN = "telnet";
 
 	public static final String REST_UPLOAD_PATH = "agent.rest.upload.path";
 	public static final String DEFAULT_REST_UPLOAD_PATH = null; // home directory;	
+
+	public int getBasePort() {
+		return Integer.parseInt(properties.getProperty(AGENT_BASE_PORT, DEFAULT_AGENT_BASE_PORT));
+	}	
 	
 	public int getTelnetPort() {
-		return Integer.parseInt(properties.getProperty(TELNET_PORT, DEFAULT_TELNET_PORT));
+		return getBasePort() + Integer.parseInt(properties.getProperty(TELNET_PORT, DEFAULT_TELNET_PORT));
 	}
 
 	public int getRestPort() {
-		return Integer.parseInt(properties.getProperty(REST_PORT, DEFAULT_REST_PORT));
+		return getBasePort() + Integer.parseInt(properties.getProperty(REST_PORT, DEFAULT_REST_PORT));
 	}
 
 	public boolean isRestSsl() {

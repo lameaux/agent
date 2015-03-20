@@ -13,16 +13,15 @@ import io.netty.handler.ssl.util.SelfSignedCertificate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import processor.CommandProcessor;
 import service.Service;
 import service.ServiceState;
+import agent.Agent;
 import agent.Configuration;
 
 public class RestServer implements Service {
 
 	public static final String SERVICE_NAME = "rest";
 
-	private final CommandProcessor commandProcessor;
 	private final Configuration config;
 	private EventLoopGroup bossGroup;
 	private EventLoopGroup workerGroup;
@@ -33,9 +32,8 @@ public class RestServer implements Service {
 
 	private static final Logger LOG = LoggerFactory.getLogger(RestServer.class); 
 	
-	public RestServer(Configuration config, CommandProcessor commandProcessor) {
-		this.config = config;
-		this.commandProcessor = commandProcessor;
+	public RestServer() {
+		this.config = Agent.get().getConfig();
 
 		if (config.isRestSsl()) {
 			try {
@@ -61,7 +59,7 @@ public class RestServer implements Service {
 			b.group(bossGroup, workerGroup);
 			b.channel(NioServerSocketChannel.class);
 			b.handler(new LoggingHandler(LogLevel.INFO));
-			b.childHandler(new RestServerInitializer(sslCtx, config, commandProcessor));
+			b.childHandler(new RestServerInitializer(sslCtx));
 
 			serverChannel = b.bind(config.getRestPort()).sync().channel();
 

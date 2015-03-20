@@ -12,14 +12,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import processor.CommandProcessor;
+import agent.Agent;
 
 @Sharable
 public class TelnetServerHandler extends SimpleChannelInboundHandler<String> {
 
 	private CommandProcessor commandProcessor;
 
-	public TelnetServerHandler(CommandProcessor commandProcessor) {
-		this.commandProcessor = commandProcessor;
+	public TelnetServerHandler() {
+		this.commandProcessor = Agent.get().getCommandProcessor();
 	}
 
 	private static final Logger LOG = LoggerFactory.getLogger(TelnetServerHandler.class); 	

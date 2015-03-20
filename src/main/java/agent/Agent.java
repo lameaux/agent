@@ -2,10 +2,13 @@ package agent;
 
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Slf4JLoggerFactory;
+import model.AgentId;
+import ping.PingSender;
 import processor.CommandProcessor;
 import rest.RestServer;
 import service.ServiceManager;
 import telnet.TelnetServer;
+import utils.NetUtils;
 
 public class Agent {
 
@@ -14,7 +17,10 @@ public class Agent {
 	private static final Agent instance = new Agent();
 
 	private Configuration config = new Configuration();
-	private ServiceManager serviceManager = new ServiceManager();
+	private ServiceManager serviceManager;
+	private PingSender pingSender;
+	// CommandProcessor should be the last
+	private CommandProcessor commandProcessor;
 
 	public void init(Configuration config) {
 		this.config = config;
@@ -24,13 +30,16 @@ public class Agent {
 	private void initServices() {
 
 		InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
-		
-		CommandProcessor commandProcessor = new CommandProcessor(serviceManager);
 
-		TelnetServer telnet = new TelnetServer(config, commandProcessor);
+		serviceManager = new ServiceManager();
+		pingSender = new PingSender();
+		// CommandProcessor should be the last
+		commandProcessor = new CommandProcessor();
+
+		TelnetServer telnet = new TelnetServer();
 		serviceManager.registerService(telnet);
 
-		RestServer rest = new RestServer(config, commandProcessor);
+		RestServer rest = new RestServer();
 		serviceManager.registerService(rest);
 
 		for (String serviceName : config.getAutorunServices()) {
@@ -42,12 +51,24 @@ public class Agent {
 		return instance;
 	}
 
+	public AgentId getAgentId() {
+		return new AgentId(NetUtils.getHostname(), Agent.VERSION, config.getBasePort());
+	}
+
 	public Configuration getConfig() {
 		return config;
 	}
 
+	public PingSender getPingSender() {
+		return pingSender;
+	}
+
 	public ServiceManager getServiceManager() {
 		return serviceManager;
+	}
+
+	public CommandProcessor getCommandProcessor() {
+		return commandProcessor;
 	}
 
 	public static void main(String[] args) {
