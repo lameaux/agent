@@ -1,21 +1,12 @@
 package processor;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import utils.NetUtils;
 
 public class HostnameCommand extends CommandBase implements Command {
 
 	@Override
 	public String execute(String request) {
-		return executeInternal();
-	}
-
-	private String executeInternal() {
-		try {
-			return InetAddress.getLocalHost().getHostName();
-		} catch (UnknownHostException e) {
-			return e.getMessage();
-		}
+		return NetUtils.getHostname();
 	}
 
 	@Override

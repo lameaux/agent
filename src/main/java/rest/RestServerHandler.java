@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import processor.CommandProcessor;
 import rest.handler.RestHandler;
 import rest.handler.cli.CliHandler;
+import rest.handler.ping.PingHandler;
 import rest.handler.upload.UploadHandler;
 import rest.handler.welcome.WelcomeHandler;
 import agent.Configuration;
@@ -74,6 +75,8 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 			return null;
 		}
 		
+		// TODO create mapping
+		
 		if (uri.getPath().equals(WelcomeHandler.URL)) {
 			return new WelcomeHandler();
 		}
@@ -83,7 +86,11 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 		if (uri.getPath().equals(UploadHandler.URL)) {
 			return new UploadHandler(config.getRestUploadPath());
 		}
-
+		if (uri.getPath().equals(PingHandler.URL)) {
+			return new PingHandler();
+		}
+		
+		
 		return null;
 	}
 
