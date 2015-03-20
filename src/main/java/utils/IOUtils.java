@@ -21,7 +21,7 @@ public class IOUtils {
 		try {
 			return s.useDelimiter("\\A").next();
 		} finally {
-			closeQuietly(s);
+			s.close();
 		}
 	}
 
