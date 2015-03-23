@@ -7,6 +7,7 @@ import ping.PingSender;
 import processor.CommandProcessor;
 import rest.RestServer;
 import service.ServiceManager;
+import storage.ping.PingStatusStorage;
 import telnet.TelnetServer;
 import utils.NetUtils;
 
@@ -19,6 +20,7 @@ public class Agent {
 	private Configuration config = new Configuration();
 	private ServiceManager serviceManager;
 	private PingSender pingSender;
+	private PingStatusStorage pingStatusStorage;
 	// CommandProcessor should be the last
 	private CommandProcessor commandProcessor;
 
@@ -32,6 +34,7 @@ public class Agent {
 		InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
 
 		serviceManager = new ServiceManager();
+		pingStatusStorage = new PingStatusStorage();
 		pingSender = new PingSender();
 		// CommandProcessor should be the last
 		commandProcessor = new CommandProcessor();
@@ -63,6 +66,10 @@ public class Agent {
 		return pingSender;
 	}
 
+	public PingStatusStorage getPingStatusStorage() {
+		return pingStatusStorage;
+	}
+	
 	public ServiceManager getServiceManager() {
 		return serviceManager;
 	}

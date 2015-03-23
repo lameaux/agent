@@ -3,12 +3,14 @@ package processor;
 import model.AgentId;
 import ping.PingSender;
 import storage.ping.PingStatus;
+import storage.ping.PingStatusStorage;
 import utils.StringUtils;
 import agent.Agent;
 
 public class PingCommand extends CommandBase implements Command {
 
-	private PingSender pingSender = Agent.get().getPingSender(); 
+	private PingSender pingSender = Agent.get().getPingSender();
+	private PingStatusStorage pingStatusStorage = Agent.get().getPingStatusStorage();
 	
 	public String execute(String request) {
 		String[] params = parameters(request);
@@ -30,15 +32,15 @@ public class PingCommand extends CommandBase implements Command {
 		long start = System.currentTimeMillis();
 		try {
 			targetAgent = pingSender.ping(hostname, restPort);
-			pingStatus.setError(false);
+			pingStatusStorage.setPingStatus(targetAgent, pingStatus);
 		} catch (Exception e) {
 			pingStatus.setError(true);
 			pingStatus.setMessage(e.getMessage());
 		} finally {
-			pingStatus.setTime(System.currentTimeMillis() - start);			
+			pingStatus.setTime(System.currentTimeMillis());
 		}
 		
-		return targetAgent.toString() + "\r\n" + pingStatus.toString();
+		return targetAgent.toString() + "\r\n" + pingStatus.toString() + "\r\nResponse time:" + (pingStatus.getTime() - start);
 		
 	}
 

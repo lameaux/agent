@@ -2,15 +2,18 @@ package storage.ping;
 
 public class PingStatus {
 
+	private static final long ACTIVE_TIME_LIMIT = 10 * 60 * 1000; // 10 minutes
+
 	private boolean error = false;
 	private long time = 0;
 	private String message;
 
 	public PingStatus() {
-
+		time = System.currentTimeMillis();
 	}
 
 	public PingStatus(boolean error) {
+		this();
 		this.error = error;
 	}
 
@@ -36,6 +39,14 @@ public class PingStatus {
 
 	public void setMessage(String message) {
 		this.message = message;
+	}
+
+	public boolean isActive() {
+		if (error) {
+			return false;
+		}
+
+		return System.currentTimeMillis() - time < ACTIVE_TIME_LIMIT;
 	}
 
 	@Override

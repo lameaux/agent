@@ -19,6 +19,7 @@ public class CommandProcessor {
 		commands.add(new HostnameCommand());
 		commands.add(new ServiceCommand());
 		commands.add(new PingCommand());
+		commands.add(new FriendCommand());
 	}
 
 	public String process(String request) {
