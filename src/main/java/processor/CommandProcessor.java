@@ -19,7 +19,7 @@ public class CommandProcessor {
 		commands.add(new HostnameCommand());
 		commands.add(new ServiceCommand());
 		commands.add(new PingCommand());
-		commands.add(new FriendCommand());
+		commands.add(new AgentsCommand());
 		commands.add(new DownloadCommand());		
 	}
 

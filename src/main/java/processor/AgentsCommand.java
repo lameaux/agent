@@ -9,11 +9,12 @@ import storage.ping.PingStatusStorage;
 import utils.StringUtils;
 import agent.Agent;
 
-public class FriendCommand extends CommandBase implements Command {
+public class AgentsCommand extends CommandBase implements Command {
 
 	private static final String PARAM_ACTIVE = "active";
 	private static final String PARAM_ALL = "all";
 
+	@Override
 	public String execute(String request) {
 
 		PingStatusStorage pingStatusStorage = Agent.get().getPingStatusStorage();
@@ -57,12 +58,12 @@ public class FriendCommand extends CommandBase implements Command {
 
 	@Override
 	public String help() {
-		return "friend [all|active]";
+		return "agents [all|active]";
 	}
 
 	@Override
 	public String name() {
-		return "friend";
+		return "agents";
 	}
 
 }
