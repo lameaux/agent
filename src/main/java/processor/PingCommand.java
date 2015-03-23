@@ -9,30 +9,28 @@ import agent.Agent;
 
 public class PingCommand extends CommandBase implements Command {
 
+	private static final String NO_PROXY = "noproxy"; 
+	
 	private PingSender pingSender = Agent.get().getPingSender();
 	private PingStatusStorage pingStatusStorage = Agent.get().getPingStatusStorage();
 	
 	public String execute(String request) {
 		String[] params = parameters(request);
-		if (params.length < 2 || StringUtils.nullOrEmpty(params[0]) || StringUtils.nullOrEmpty(params[1])) {
+		if (params.length < 1 || StringUtils.nullOrEmpty(params[0])) {
 			return syntaxError();
 		}
 
-		String hostname = params[0].toLowerCase();		
-		int restPort;
-		try {
-			restPort = Integer.parseInt(params[1].toLowerCase());
-		} catch (NumberFormatException e) {
-			return syntaxError();			
-		}
+		String url = params[0];
+		boolean noProxy = (params.length == 2 && NO_PROXY.equals(params[1]));
 
-		AgentId targetAgent = new AgentId(hostname, null, 0);		
+		AgentId targetAgent = null;		
 		
 		PingStatus pingStatus = new PingStatus();
 		long start = System.currentTimeMillis();
 		try {
-			targetAgent = pingSender.ping(hostname, restPort);
-			pingStatusStorage.setPingStatus(targetAgent, pingStatus);
+			targetAgent = pingSender.ping(url, noProxy);
+			pingStatusStorage.set(targetAgent, pingStatus);
+			return targetAgent.toString() + "\r\n" + pingStatus.toString() + "\r\nResponse time:" + (pingStatus.getTime() - start);
 		} catch (Exception e) {
 			pingStatus.setError(true);
 			pingStatus.setMessage(e.getMessage());
@@ -40,13 +38,13 @@ public class PingCommand extends CommandBase implements Command {
 			pingStatus.setTime(System.currentTimeMillis());
 		}
 		
-		return targetAgent.toString() + "\r\n" + pingStatus.toString() + "\r\nResponse time:" + (pingStatus.getTime() - start);
+		return url + "\r\n" + pingStatus.toString() + "\r\nResponse time:" + (pingStatus.getTime() - start);
 		
 	}
 
 	@Override
 	public String help() {
-		return "ping hostname rest.port, Example: ping localhost 21080";
+		return "ping url [noproxy], Example: ping http://localhost:21080/ping noproxy";
 	}	
 	
 	@Override

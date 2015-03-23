@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import utils.StringUtils;
+import utils.SystemUtils;
 
 public class Configuration {
 
@@ -40,6 +41,13 @@ public class Configuration {
 	public static final String REST_UPLOAD_PATH = "agent.rest.upload.path";
 	public static final String DEFAULT_REST_UPLOAD_PATH = null; // home directory;	
 
+	public static final String DOWNLOAD_PATH = "agent.download.path";
+	public static final String DEFAULT_DOWNLOAD_PATH = null; // home directory;	
+	
+	
+	public static final String HTTP_PROXY_HOST = "agent.http.proxy.host";
+	public static final String HTTP_PROXY_PORT = "agent.http.proxy.port";	
+	
 	public int getBasePort() {
 		return Integer.parseInt(properties.getProperty(AGENT_BASE_PORT, DEFAULT_AGENT_BASE_PORT));
 	}	
@@ -56,6 +64,18 @@ public class Configuration {
 		return false;
 	}
 	
+	public String getHttpProxyHost() {
+		return properties.getProperty(HTTP_PROXY_HOST);
+	}
+	
+	public int getHttpProxyPort() {
+		return Integer.parseInt(properties.getProperty(HTTP_PROXY_PORT, "0"));
+	}
+	
+	public boolean isHttpProxy() {
+		return !StringUtils.nullOrEmpty(getHttpProxyHost());
+	}
+	
 	public String get(String key) {
 		return properties.getProperty(key);
 	}
@@ -68,9 +88,17 @@ public class Configuration {
 	public String getRestUploadPath() {
 		String uploadPath = properties.getProperty(REST_UPLOAD_PATH, DEFAULT_REST_UPLOAD_PATH);
 		if (StringUtils.nullOrEmpty(uploadPath)) {
-			uploadPath = System.getProperty("user.home");
+			uploadPath = SystemUtils.getUserHome();
 		}
 		return uploadPath;
+	}
+	
+	public String getDownloadPath() {
+		String downloadPath = properties.getProperty(DOWNLOAD_PATH, DEFAULT_DOWNLOAD_PATH);
+		if (StringUtils.nullOrEmpty(downloadPath)) {
+			downloadPath = SystemUtils.getUserHome();
+		}
+		return downloadPath;		
 	}
 	
 	@Override

@@ -20,6 +20,7 @@ public class CommandProcessor {
 		commands.add(new ServiceCommand());
 		commands.add(new PingCommand());
 		commands.add(new FriendCommand());
+		commands.add(new DownloadCommand());		
 	}
 
 	public String process(String request) {

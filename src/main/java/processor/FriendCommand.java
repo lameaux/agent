@@ -29,7 +29,7 @@ public class FriendCommand extends CommandBase implements Command {
 
 			boolean activeOnly = PARAM_ACTIVE.equals(param);
 
-			Map<AgentId, PingStatus> pingStatuses = pingStatusStorage.getAllPingStatuses();
+			Map<AgentId, PingStatus> pingStatuses = pingStatusStorage.getSnapshot();
 			StringBuffer sb = new StringBuffer();
 			for (AgentId agentId : pingStatuses.keySet()) {
 				PingStatus pingStatus = pingStatuses.get(agentId);
