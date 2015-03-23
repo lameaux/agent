@@ -14,6 +14,10 @@ public class Configuration {
 		loadDefaultProperties();
 	}
 
+	public Configuration(Properties properties) {
+		this.properties = properties;
+	}
+	
 	private void loadDefaultProperties() {
 		try {
 			properties.load(Configuration.class.getResourceAsStream("default.properties"));
