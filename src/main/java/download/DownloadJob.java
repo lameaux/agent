@@ -1,6 +1,7 @@
 package download;
 
 import job.Job;
+import job.JobState;
 import job.JobStatus;
 
 public class DownloadJob extends Job {
@@ -8,7 +9,7 @@ public class DownloadJob extends Job {
 	private String url;
 	private String location;
 	private boolean noProxy;
-	
+
 	public DownloadJob(String url, String location, boolean noProxy) {
 		this(url, location, noProxy, System.currentTimeMillis());
 	}
@@ -23,8 +24,24 @@ public class DownloadJob extends Job {
 	@Override
 	public JobStatus call() throws Exception {
 		DownloadClient dc = new DownloadClient();
-		dc.download(url, location, noProxy);
-		return new JobStatus();
+		JobStatus jobStatus = createJobStatus();
+		jobStatus.setStartTime(System.currentTimeMillis());
+		try {
+			dc.download(url, location, noProxy);
+		} catch (Exception e) {
+			jobStatus.setError(true);
+			jobStatus.setMessage(e.getMessage());
+		} finally {
+			jobStatus.setFinishTime(System.currentTimeMillis());
+			jobStatus.setState(JobState.FINISHED);
+		}
+		return jobStatus;
 	}
 
+	@Override
+	public JobStatus createJobStatus() {
+		JobStatus jobStatus = new JobStatus(this.getClass().getCanonicalName() , getUuid());
+		return jobStatus;
+	}
+	
 }

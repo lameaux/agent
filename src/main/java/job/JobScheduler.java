@@ -26,18 +26,16 @@ public class JobScheduler implements Service {
 	private volatile ServiceState serviceState = ServiceState.STOPPED;
 	private volatile boolean interrupted = false;
 
-	private JobQueue jobQueue;
-	private JobStatusNotifier jobStatusNotifier;
+	private JobManager jobManager;
 	
 	private Configuration config;	
 	private ExecutorService executor;
 	private ExecutorCompletionService<JobStatus> completionService;
 	
-	public JobScheduler(JobQueue jobQueue, JobStatusNotifier jobStatusNotifier) {
-		this.jobQueue = jobQueue;
-		this.jobStatusNotifier = jobStatusNotifier;
-		
+	public JobScheduler() {
 		config = Agent.get().getConfig();
+		jobManager = Agent.get().getJobManager();
+		
 		executor = Executors.newFixedThreadPool(config.getJobPoolSize());
 		completionService = new ExecutorCompletionService<JobStatus>(executor);
 	}	
@@ -46,7 +44,7 @@ public class JobScheduler implements Service {
 	public void run() {
 
 		interrupted = false;
-		LOG.info("JobService started");	
+		LOG.info("JobScheduler started");	
 		
 		while (!interrupted) {
 			
@@ -54,7 +52,7 @@ public class JobScheduler implements Service {
 			Future<JobStatus> jobStatusFuture = completionService.poll();
 			if (jobStatusFuture != null) {
 				try {
-					jobStatusNotifier.notify(jobStatusFuture.get());
+					jobManager.notify(jobStatusFuture.get());
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 					interrupted = true;
@@ -65,8 +63,8 @@ public class JobScheduler implements Service {
 			}
 			
 			// check for new job
-			if (jobQueue.hasNextJob()) {
-				Job job = jobQueue.pollJob();
+			if (jobManager.hasNewJob()) {
+				Job job = jobManager.getNextJob();
 				completionService.submit(job);
 				LOG.debug("{} started at {}", job.name(), DateUtils.iso(System.currentTimeMillis()));
 			}
@@ -82,7 +80,7 @@ public class JobScheduler implements Service {
 			
 		}
 		serviceState = ServiceState.STOPPED;
-		LOG.info("JobService stopped");		
+		LOG.info("JobScheduler stopped");		
 	}	
 	
 	@Override
@@ -110,7 +108,5 @@ public class JobScheduler implements Service {
 	public ServiceState getServiceState() {
 		return serviceState;
 	}
-
-	
 	
 }

@@ -40,5 +40,5 @@ public abstract class Job implements Callable<JobStatus>, Comparable<Job> {
 		return this.getClass().getSimpleName() + "(" + uuid.toString() + ")";
 	}
 	
-	
+	public abstract JobStatus createJobStatus();
 }
