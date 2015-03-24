@@ -6,6 +6,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.util.Properties;
 
 import org.junit.Before;
@@ -59,23 +60,44 @@ public class ConfigurationTest {
 	}
 
 	@Test
+	public void testGetAgentRootPath() {
+		// empty - default
+		assertEquals(SystemUtils.getUserHome(), config.getAgentRootPath());		
+		//changed
+		String agentRootPath = "/home/agent";
+		properties.put(Configuration.AGENT_ROOT_PATH, agentRootPath);
+		assertEquals(agentRootPath, config.getAgentRootPath());		
+	}
+
+	@Test
+	public void testGetAgentAppPath() {
+		// empty - default
+		assertEquals(config.getAgentRootPath() + File.separatorChar + Configuration.DEFAULT_AGENT_APP_PATH , config.getAgentAppPath());		
+		//changed
+		String agentAppPath = "agentapp";
+		properties.put(Configuration.AGENT_APP_PATH, agentAppPath);
+		assertEquals(config.getAgentRootPath() + File.separatorChar + agentAppPath, config.getAgentAppPath());		
+	}
+	
+	
+	@Test
 	public void testGetDownloadPath() {
 		// empty - default
-		assertEquals(SystemUtils.getUserHome(), config.getDownloadPath());
+		assertEquals(config.getAgentAppPath() + File.separatorChar + Configuration.DEFAULT_DOWNLOAD_PATH, config.getDownloadPath());
 		// changed
-		String downloadPath = "/home/agent";
+		String downloadPath = "download";
 		properties.put(Configuration.DOWNLOAD_PATH, downloadPath);
-		assertEquals(downloadPath, config.getDownloadPath());
+		assertEquals(config.getAgentAppPath() + File.separatorChar + downloadPath, config.getDownloadPath());
 	}
 
 	@Test
 	public void testGetRestUploadPath() {
 		// empty - default
-		assertEquals(SystemUtils.getUserHome(), config.getRestUploadPath());
+		assertEquals(config.getAgentAppPath() + File.separatorChar + Configuration.DEFAULT_REST_UPLOAD_PATH, config.getRestUploadPath());
 		// changed
-		String restUploadPath = "/home/agent";
+		String restUploadPath = "upload";
 		properties.put(Configuration.REST_UPLOAD_PATH, restUploadPath);
-		assertEquals(restUploadPath, config.getRestUploadPath());
+		assertEquals(config.getAgentAppPath() + File.separatorChar + restUploadPath, config.getRestUploadPath());
 	}
 
 	@Test

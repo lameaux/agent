@@ -1,5 +1,6 @@
 package agent;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
@@ -42,11 +43,16 @@ public class Configuration {
 	public static final String AUTORUN = "agent.autorun";
 	public static final String DEFAULT_AUTORUN = "telnet";
 
+	public static final String AGENT_ROOT_PATH = "agent.root.path";
+
+	public static final String AGENT_APP_PATH = "agent.app.path";
+	public static final String DEFAULT_AGENT_APP_PATH = "agent";	
+	
 	public static final String REST_UPLOAD_PATH = "agent.rest.upload.path";
-	public static final String DEFAULT_REST_UPLOAD_PATH = null; // home directory;	
+	public static final String DEFAULT_REST_UPLOAD_PATH = "files";	
 
 	public static final String DOWNLOAD_PATH = "agent.download.path";
-	public static final String DEFAULT_DOWNLOAD_PATH = null; // home directory;	
+	public static final String DEFAULT_DOWNLOAD_PATH = "files";	
 	
 	
 	public static final String HTTP_PROXY_HOST = "agent.http.proxy.host";
@@ -89,20 +95,28 @@ public class Configuration {
 		return autorun.split(",");
 	}
 
+	public String getAgentRootPath() {
+		String agentRootPath = properties.getProperty(AGENT_ROOT_PATH);
+		if (StringUtils.nullOrEmpty(agentRootPath)) {
+			agentRootPath = SystemUtils.getUserHome();
+		}
+		return agentRootPath;
+	}
+	
+	public String getAgentAppPath() {
+		String agentAppPath = properties.getProperty(AGENT_APP_PATH, DEFAULT_AGENT_APP_PATH);
+		return getAgentRootPath() + File.separatorChar + agentAppPath;
+	}
+	
+	
 	public String getRestUploadPath() {
 		String uploadPath = properties.getProperty(REST_UPLOAD_PATH, DEFAULT_REST_UPLOAD_PATH);
-		if (StringUtils.nullOrEmpty(uploadPath)) {
-			uploadPath = SystemUtils.getUserHome();
-		}
-		return uploadPath;
+		return getAgentAppPath() + File.separatorChar + uploadPath;
 	}
 	
 	public String getDownloadPath() {
 		String downloadPath = properties.getProperty(DOWNLOAD_PATH, DEFAULT_DOWNLOAD_PATH);
-		if (StringUtils.nullOrEmpty(downloadPath)) {
-			downloadPath = SystemUtils.getUserHome();
-		}
-		return downloadPath;		
+		return getAgentAppPath() + File.separatorChar + downloadPath;		
 	}
 	
 	@Override
