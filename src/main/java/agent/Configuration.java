@@ -41,7 +41,7 @@ public class Configuration {
 	public static final String DEFAULT_REST_PORT = "80";
 
 	public static final String AUTORUN = "agent.autorun";
-	public static final String DEFAULT_AUTORUN = "telnet";
+	public static final String DEFAULT_AUTORUN = "rest,job";
 
 	public static final String AGENT_ROOT_PATH = "agent.root.path";
 

@@ -1,6 +1,7 @@
 package service;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -72,4 +73,13 @@ public class ServiceManager {
 		}
 	}
 
+	public synchronized Map<String, ServiceState> getAllStates() {
+		Map<String, ServiceState> map = new HashMap<String, ServiceState>();
+		for (String serviceName : services.keySet()) {
+			Service service = services.get(serviceName);
+			map.put(serviceName, service.getServiceState());
+		}
+		return map;
+	}
+	
 }

@@ -1,5 +1,7 @@
 package processor;
 
+import java.util.Map;
+
 import service.ServiceManager;
 import service.ServiceState;
 import utils.StringUtils;
@@ -7,6 +9,7 @@ import agent.Agent;
 
 public class ServiceCommand extends CommandBase implements Command {
 
+	
 	public ServiceCommand() {
 		this.serviceManager = Agent.get().getServiceManager();
 	}
@@ -17,6 +20,19 @@ public class ServiceCommand extends CommandBase implements Command {
 	public String execute(String request) {
 
 		String[] params = parameters(request);
+		
+		// get all states
+		if (params.length == 0) {
+			Map<String, ServiceState> allStates = serviceManager.getAllStates();
+			StringBuffer sb = new StringBuffer();
+			for (String serviceName : allStates.keySet()) {
+				ServiceState serviceState = allStates.get(serviceName);
+				sb.append(serviceName).append(": ").append(serviceState.toString()).append("\r\n");
+			}
+			sb.append("\r\nHelp: ").append(help());
+			return sb.toString();
+		}
+		
 		if (params.length < 2 || StringUtils.nullOrEmpty(params[0]) || StringUtils.nullOrEmpty(params[1])) {
 			return syntaxError();
 		}
@@ -40,7 +56,7 @@ public class ServiceCommand extends CommandBase implements Command {
 
 	@Override
 	public String help() {
-		return "service rest status|start|stop|restart";
+		return "service name status|start|stop|restart";
 	}
 
 	@Override

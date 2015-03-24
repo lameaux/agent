@@ -2,6 +2,7 @@ package agent;
 
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Slf4JLoggerFactory;
+import job.JobService;
 import model.AgentId;
 import ping.PingSender;
 import processor.CommandProcessor;
@@ -44,6 +45,9 @@ public class Agent {
 
 		RestServer rest = new RestServer();
 		serviceManager.registerService(rest);
+		
+		JobService job = new JobService();
+		serviceManager.registerService(job);
 
 		for (String serviceName : config.getAutorunServices()) {
 			serviceManager.executeAction(serviceName, ServiceManager.ACTION_START);
