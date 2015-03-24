@@ -20,8 +20,8 @@ public class JobManager {
 		return q.poll();
 	}
 
-	public void submit(JobDetail job) {
-		q.offer(job);
+	public void submit(JobDetail jobDetail) {
+		q.offer(jobDetail);
 	}	
 	
 	public void notify(JobDetail jobDetail) {

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Agent JobManager - Add Job</title>
+<script src="http://code.jquery.com/jquery.js"></script>
+<style>
+
+</style>
+<script>
+	$(function() {
+
+	});
+</script>
+</head>
+<body>
+	<div>Add Job</div>
+	<form method="post">
+	
+		Job Class:<br> 
+		<select name="job_class">
+			<option value="download.DownloadJob">download.DownloadJob</option>
+		</select>
+		<br>
+		Parameters:<br>
+		<textarea name="parameters" rows=5 cols=60>url=http://google.com
+location=google_home.html</textarea>
+		<br>
+		<input type="submit" value="Create Job">
+	</form>
+</body>
+</html>

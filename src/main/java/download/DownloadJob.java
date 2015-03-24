@@ -31,7 +31,7 @@ public class DownloadJob extends Job {
 			dc.download(url, location, noProxy);
 		} catch (Exception e) {
 			jobDetail.setError(true);
-			jobDetail.setMessage(e.getMessage());
+			jobDetail.setMessage(e.getCause() != null ? e.getCause().getMessage() : e.getMessage());
 			jobDetail.setState(JobState.FAILED);
 		} finally {
 			jobDetail.setFinishTime(System.currentTimeMillis());

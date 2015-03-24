@@ -136,7 +136,7 @@ public class JobDetail implements Comparable<JobDetail> {
 	@Override
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
-		sb.append(jobClass).append("(").append(uuid).append(") is scheduled for ").append(DateUtils.iso(scheduleTime)).append(". ");
+		sb.append(jobClass).append("(").append(uuid).append(") was scheduled for ").append(DateUtils.iso(scheduleTime)).append(". ");
 		sb.append("State: ").append(state).append(". ");
 		if (state == JobState.RUNNING || state == JobState.FINISHED) {
 			sb.append("Started at ").append(DateUtils.iso(startTime)).append(". ");
