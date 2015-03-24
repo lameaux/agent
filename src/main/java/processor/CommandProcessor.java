@@ -16,7 +16,7 @@ public class CommandProcessor {
 		commands.add(new VersionCommand());
 		commands.add(new ConfigCommand());
 		commands.add(new SysInfoCommand());
-		commands.add(new HostnameCommand());
+		commands.add(new InetAddressCommand());
 		commands.add(new ServiceCommand());
 		commands.add(new PingCommand());
 		commands.add(new AgentsCommand());

@@ -52,7 +52,9 @@ public class PingSender {
 				HttpEntity entity = response.getEntity();
 				String content = EntityUtils.toString(entity);
 				EntityUtils.consumeQuietly(entity);
-				return gson.fromJson(content, AgentId.class);
+				AgentId targetAgent = gson.fromJson(content, AgentId.class);
+				targetAgent.setHost(ping.getURI().getHost());
+				return targetAgent;
 			} finally {
 				response.close();
 			}

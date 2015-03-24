@@ -1,31 +1,21 @@
 package model;
 
 public class AgentId {
-	private String hostname;
-	private String version;
+	private String host;
 	private int basePort;
 
-	public AgentId(String hostname, String version, int baseport) {
+	public AgentId(String host, int basePort) {
 		super();
-		this.hostname = hostname;
-		this.version = version;
-		this.basePort = baseport;
+		this.host = host;
+		this.basePort = basePort;
 	}
 
-	public String getHostname() {
-		return hostname;
+	public String getHost() {
+		return host;
 	}
 
-	public void setHostname(String hostname) {
-		this.hostname = hostname;
-	}
-
-	public String getVersion() {
-		return version;
-	}
-
-	public void setVersion(String version) {
-		this.version = version;
+	public void setHost(String host) {
+		this.host = host;
 	}
 
 	public int getBasePort() {
@@ -41,7 +31,7 @@ public class AgentId {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + basePort;
-		result = prime * result + ((hostname == null) ? 0 : hostname.hashCode());
+		result = prime * result + ((host == null) ? 0 : host.hashCode());
 		return result;
 	}
 
@@ -56,17 +46,17 @@ public class AgentId {
 		AgentId other = (AgentId) obj;
 		if (basePort != other.basePort)
 			return false;
-		if (hostname == null) {
-			if (other.hostname != null)
+		if (host == null) {
+			if (other.host != null)
 				return false;
-		} else if (!hostname.equals(other.hostname))
+		} else if (!host.equals(other.host))
 			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "AgentId [hostname=" + hostname + ", version=" + version + ", basePort=" + basePort + "]";
+		return host + ":" + basePort;
 	}
 
 }

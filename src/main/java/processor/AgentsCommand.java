@@ -46,7 +46,7 @@ public class AgentsCommand extends CommandBase implements Command {
 
 	private void appendAgentStatusLine(StringBuffer sb, AgentId agentId, PingStatus pingStatus) {
 
-		sb.append(agentId.getHostname()).append(":").append(agentId.getBasePort()).append(" v").append(agentId.getVersion());
+		sb.append(agentId);
 		if (pingStatus.isError()) {
 			sb.append(" Error: ").append(pingStatus.getMessage());
 		} else {

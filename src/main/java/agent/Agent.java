@@ -55,7 +55,7 @@ public class Agent {
 	}
 
 	public AgentId getAgentId() {
-		return new AgentId(NetUtils.getHostname(), Agent.VERSION, config.getBasePort());
+		return new AgentId(NetUtils.getHostname(), config.getBasePort());
 	}
 
 	public Configuration getConfig() {
