@@ -1,7 +1,9 @@
 package processor;
 
+import job.JobQueue;
 import utils.StringUtils;
-import download.Downloader;
+import agent.Agent;
+import download.DownloadJob;
 
 public class DownloadCommand extends CommandBase implements Command {
 
@@ -14,17 +16,16 @@ public class DownloadCommand extends CommandBase implements Command {
 			return syntaxError();
 		}
 
+		JobQueue jobQueue = Agent.get().getJobQueue();		
+		
 		String url = params[0];		
 		String location = params[1];
 		boolean noProxy = (params.length == 3 && NO_PROXY.equals(params[2]));
 		
-		Downloader downloader = new Downloader();
-		try {
-			downloader.download(url, location, noProxy);
-			return "OK";
-		} catch (Exception e) {
-			return e.getMessage();
-		}
+		DownloadJob downloadJob = new DownloadJob(url, location, noProxy);
+		jobQueue.pushJob(downloadJob);
+
+		return downloadJob.description();
 		
 	}
 

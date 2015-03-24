@@ -2,13 +2,14 @@ package agent;
 
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Slf4JLoggerFactory;
+import job.JobQueue;
 import job.JobScheduler;
+import job.JobStatusNotifier;
 import model.AgentId;
 import ping.PingSender;
 import processor.CommandProcessor;
 import rest.RestServer;
 import service.ServiceManager;
-import storage.job.JobQueue;
 import storage.ping.PingStatusStorage;
 import telnet.TelnetServer;
 import utils.NetUtils;
@@ -23,7 +24,9 @@ public class Agent {
 	private ServiceManager serviceManager;
 	private PingSender pingSender;
 	private PingStatusStorage pingStatusStorage;
-	// CommandProcessor should be the last
+	private JobQueue jobQueue;
+	
+
 	private CommandProcessor commandProcessor;
 
 	public void init(Configuration config) {
@@ -35,9 +38,12 @@ public class Agent {
 
 		InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
 
-		serviceManager = new ServiceManager();
+		// storages
 		pingStatusStorage = new PingStatusStorage();
 		pingSender = new PingSender();
+		jobQueue = new JobQueue();
+		
+		serviceManager = new ServiceManager();
 		// CommandProcessor should be the last
 		commandProcessor = new CommandProcessor();
 
@@ -47,8 +53,9 @@ public class Agent {
 		RestServer rest = new RestServer();
 		serviceManager.registerService(rest);
 		
-		JobQueue jobQueue = new JobQueue();
-		JobScheduler job = new JobScheduler(jobQueue);
+		// job scheduler
+		JobStatusNotifier jobStatusNotifier = new JobStatusNotifier();
+		JobScheduler job = new JobScheduler(jobQueue, jobStatusNotifier);
 		serviceManager.registerService(job);
 
 		for (String serviceName : config.getAutorunServices()) {
@@ -84,6 +91,10 @@ public class Agent {
 		return commandProcessor;
 	}
 
+	public JobQueue getJobQueue() {
+		return jobQueue;
+	}
+	
 	public static void main(String[] args) {
 		instance.init(new Configuration());
 

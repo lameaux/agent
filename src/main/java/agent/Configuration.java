@@ -83,7 +83,7 @@ public class Configuration {
 	}
 	
 	public int getHttpProxyPort() {
-		return Integer.parseInt(properties.getProperty(HTTP_PROXY_PORT, "0"));
+		return Integer.parseInt(properties.getProperty(HTTP_PROXY_PORT, "3128"));
 	}
 	
 	public boolean isHttpProxy() {

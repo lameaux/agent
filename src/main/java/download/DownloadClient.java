@@ -19,13 +19,13 @@ import org.slf4j.LoggerFactory;
 import agent.Agent;
 import agent.Configuration;
 
-public class Downloader {
+public class DownloadClient {
 
-	private static final Logger LOG = LoggerFactory.getLogger(Downloader.class);
+	private static final Logger LOG = LoggerFactory.getLogger(DownloadClient.class);
 
 	private Configuration config;
 
-	public Downloader() {
+	public DownloadClient() {
 		config = Agent.get().getConfig();
 	}
 

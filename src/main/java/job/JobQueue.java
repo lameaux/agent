@@ -1,4 +1,4 @@
-package storage.job;
+package job;
 
 import java.util.PriorityQueue;
 
