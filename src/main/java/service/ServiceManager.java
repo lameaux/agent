@@ -30,7 +30,9 @@ public class ServiceManager {
 		}
 
 		if (ACTION_START.equals(action)) {
-			service.startService();
+			if (service.getServiceState() != ServiceState.RUNNING) {
+				service.startService();
+			}
 			return service.getServiceState();
 		}
 		if (ACTION_STOP.equals(action)) {

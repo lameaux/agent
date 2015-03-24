@@ -57,6 +57,10 @@ public class Configuration {
 	
 	public static final String HTTP_PROXY_HOST = "agent.http.proxy.host";
 	public static final String HTTP_PROXY_PORT = "agent.http.proxy.port";	
+
+	public static final String JOB_POOL_SIZE = "agent.job.pool.size";
+	public static final String DEFAULT_JOB_POOL_SIZE = "2";	
+	
 	
 	public int getBasePort() {
 		return Integer.parseInt(properties.getProperty(AGENT_BASE_PORT, DEFAULT_AGENT_BASE_PORT));
@@ -117,6 +121,10 @@ public class Configuration {
 	public String getDownloadPath() {
 		String downloadPath = properties.getProperty(DOWNLOAD_PATH, DEFAULT_DOWNLOAD_PATH);
 		return getAgentAppPath() + File.separatorChar + downloadPath;		
+	}
+	
+	public int getJobPoolSize() {
+		return Integer.parseInt(properties.getProperty(JOB_POOL_SIZE, DEFAULT_JOB_POOL_SIZE));
 	}
 	
 	@Override

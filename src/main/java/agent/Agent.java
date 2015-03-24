@@ -2,12 +2,13 @@ package agent;
 
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Slf4JLoggerFactory;
-import job.JobService;
+import job.JobScheduler;
 import model.AgentId;
 import ping.PingSender;
 import processor.CommandProcessor;
 import rest.RestServer;
 import service.ServiceManager;
+import storage.job.JobQueue;
 import storage.ping.PingStatusStorage;
 import telnet.TelnetServer;
 import utils.NetUtils;
@@ -46,7 +47,8 @@ public class Agent {
 		RestServer rest = new RestServer();
 		serviceManager.registerService(rest);
 		
-		JobService job = new JobService();
+		JobQueue jobQueue = new JobQueue();
+		JobScheduler job = new JobScheduler(jobQueue);
 		serviceManager.registerService(job);
 
 		for (String serviceName : config.getAutorunServices()) {
