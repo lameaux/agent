@@ -36,7 +36,7 @@ public class ShellCommandTest {
 	public void testGoodRequest() {
 		String params = "java -version";
 		String result = shell.execute(shell.name() + ShellCommand.COMMAND_SEPARATOR + params);
-		assertTrue(result.contains("java"));
+		assertTrue(result.toLowerCase().contains("java"));
 	}
 
 }

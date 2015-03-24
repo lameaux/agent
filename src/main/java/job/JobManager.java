@@ -5,38 +5,27 @@ import java.util.PriorityQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import utils.DateUtils;
-
 public class JobManager {
 
 	private static final Logger LOG = LoggerFactory.getLogger(JobManager.class);
 
-	private PriorityQueue<Job> q = new PriorityQueue<Job>();
+	private PriorityQueue<JobDetail> q = new PriorityQueue<JobDetail>();
 
 	public boolean hasNewJob() {
-		Job job = q.peek();
+		JobDetail job = q.peek();
 		return job != null && job.canStartNow();
 	}
 
-	public Job getNextJob() {
+	public JobDetail getNextJob() {
 		return q.poll();
 	}
 
-	public void submit(Job job) {
+	public void submit(JobDetail job) {
 		q.offer(job);
 	}	
 	
-	public void notify(JobDetail jobStatus) {
-		StringBuffer sb = new StringBuffer();
-		sb.append(jobStatus.getJobClass()).append(" | ");
-		sb.append(jobStatus.getUuid()).append(" | ");
-		sb.append(DateUtils.iso(jobStatus.getStartTime())).append(" | ");		
-		sb.append(DateUtils.iso(jobStatus.getFinishTime())).append(" | ");
-		sb.append(jobStatus.getState().toString());
-		if (jobStatus.isError()) {
-			sb.append(" | Error: ").append(jobStatus.getMessage());
-		}
-		LOG.info(sb.toString());
+	public void notify(JobDetail jobDetail) {
+		LOG.info(jobDetail.toString());
 	}
 
 }

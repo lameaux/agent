@@ -1,5 +1,9 @@
 package processor;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import job.JobDetail;
 import job.JobManager;
 import utils.StringUtils;
 import agent.Agent;
@@ -22,10 +26,15 @@ public class DownloadCommand extends CommandBase implements Command {
 		String location = params[1];
 		boolean noProxy = (params.length == 3 && NO_PROXY.equals(params[2]));
 		
-		DownloadJob downloadJob = new DownloadJob(url, location, noProxy);
-		jobManager.submit(downloadJob);
+		Map<String, String> parameters = new HashMap<String, String>();
+		parameters.put(DownloadJob.PARAM_URL, url);
+		parameters.put(DownloadJob.PARAM_LOCATION, location);
+		parameters.put(DownloadJob.PARAM_NOPROXY, String.valueOf(noProxy));
+		
+		JobDetail jobDetail = new JobDetail(DownloadJob.class, parameters);
+		jobManager.submit(jobDetail);
 
-		return downloadJob.description();
+		return jobDetail.toString();
 		
 	}
 

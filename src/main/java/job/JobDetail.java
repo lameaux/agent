@@ -2,13 +2,16 @@ package job;
 
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
-public class JobDetail {
+import utils.DateUtils;
+
+public class JobDetail implements Comparable<JobDetail> {
 
 	private String jobClass;
-	private UUID uuid;
-	private long scheduleTime;
-	private Map<String, String> parameters;
+	private UUID uuid = UUID.randomUUID();
+	private long scheduleTime = System.currentTimeMillis();
+	private Map<String, String> parameters = null;
 
 	private JobState state = JobState.NEW;
 	private long startTime = 0;
@@ -18,12 +21,14 @@ public class JobDetail {
 
 	public JobDetail() {
 	}
-
-	public JobDetail(String jobClass, UUID uuid, long scheduleTime, Map<String, String> parameters) {
-		this.jobClass = jobClass;
-		this.uuid = uuid;
-		this.scheduleTime = scheduleTime;
+	
+	public JobDetail(Class<? extends Job> jobClass, Map<String, String> parameters) {
+		this.jobClass = jobClass.getCanonicalName();
 		this.parameters = parameters;
+	}
+
+	public boolean canStartNow() {
+		return scheduleTime < System.currentTimeMillis();
 	}
 
 	public String getJobClass() {
@@ -99,6 +104,11 @@ public class JobDetail {
 	}
 
 	@Override
+	public int compareTo(JobDetail o) {
+		return this.scheduleTime < o.scheduleTime ? -1 : this.scheduleTime > o.scheduleTime ? 1 : 0;
+	}
+
+	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
@@ -121,6 +131,31 @@ public class JobDetail {
 		} else if (!uuid.equals(other.uuid))
 			return false;
 		return true;
+	}
+
+	@Override
+	public String toString() {
+		StringBuffer sb = new StringBuffer();
+		sb.append(jobClass).append("(").append(uuid).append(") is scheduled for ").append(DateUtils.iso(scheduleTime)).append(". ");
+		sb.append("State: ").append(state).append(". ");
+		if (state == JobState.RUNNING || state == JobState.FINISHED) {
+			sb.append("Started at ").append(DateUtils.iso(startTime)).append(". ");
+		}
+		if (state == JobState.FINISHED) {
+			sb.append("Finished at ").append(DateUtils.iso(finishTime)).append(". ");
+			sb.append("Runtime: ").append(TimeUnit.MILLISECONDS.toSeconds(finishTime-startTime)).append(" sec. ");
+		}
+		if (error) {
+			sb.append("Error: ").append(message).append(". ");
+		}
+		if (parameters != null && !parameters.isEmpty()) {
+			sb.append("Parameters: ");
+			for (Map.Entry<String, String> entry : parameters.entrySet()) {
+				sb.append(entry.getKey()).append("=").append(entry.getValue()).append(" ");
+			}
+		}
+
+		return sb.toString();
 	}
 
 }

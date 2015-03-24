@@ -1,5 +1,6 @@
 package job;
 
+import java.lang.reflect.Constructor;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
@@ -11,43 +12,42 @@ import org.slf4j.LoggerFactory;
 
 import service.Service;
 import service.ServiceState;
-import utils.DateUtils;
 import agent.Agent;
 import agent.Configuration;
 
 public class JobScheduler implements Service {
-	
+
 	public static final String SERVICE_NAME = "job";
-	
+
 	private static final int SLEEP_TIME = 1000;
-	
-	private static final Logger LOG = LoggerFactory.getLogger(JobScheduler.class); 	
+
+	private static final Logger LOG = LoggerFactory.getLogger(JobScheduler.class);
 
 	private volatile ServiceState serviceState = ServiceState.STOPPED;
 	private volatile boolean interrupted = false;
 
 	private JobManager jobManager;
-	
-	private Configuration config;	
+
+	private Configuration config;
 	private ExecutorService executor;
 	private ExecutorCompletionService<JobDetail> completionService;
-	
+
 	public JobScheduler() {
 		config = Agent.get().getConfig();
 		jobManager = Agent.get().getJobManager();
-		
+
 		executor = Executors.newFixedThreadPool(config.getJobPoolSize());
 		completionService = new ExecutorCompletionService<JobDetail>(executor);
-	}	
+	}
 
 	@Override
 	public void run() {
 
 		interrupted = false;
-		LOG.info("JobScheduler started");	
-		
+		LOG.info("JobScheduler started");
+
 		while (!interrupted) {
-			
+
 			// check for completed jobs
 			Future<JobDetail> jobStatusFuture = completionService.poll();
 			if (jobStatusFuture != null) {
@@ -61,14 +61,24 @@ public class JobScheduler implements Service {
 					LOG.warn("Job terminated with error", e.getCause());
 				}
 			}
-			
+
 			// check for new job
 			if (jobManager.hasNewJob()) {
-				Job job = jobManager.getNextJob();
-				completionService.submit(job);
-				LOG.debug("{} started at {}", job.name(), DateUtils.iso(System.currentTimeMillis()));
+				JobDetail jobDetail = jobManager.getNextJob();
+				jobManager.notify(jobDetail);				
+				try {
+					Job job = createJob(jobDetail);
+					completionService.submit(job);
+					jobDetail.setState(JobState.WAITING);
+				} catch (Exception e) {
+					jobDetail.setError(true);
+					jobDetail.setMessage(e.getMessage());
+					jobDetail.setState(JobState.FAILED);
+				} finally {
+					jobManager.notify(jobDetail);
+				}
 			}
-			
+
 			// sleep
 			try {
 				Thread.sleep(SLEEP_TIME);
@@ -77,15 +87,23 @@ public class JobScheduler implements Service {
 				interrupted = true;
 				break;
 			}
-			
+
 		}
 		serviceState = ServiceState.STOPPED;
-		LOG.info("JobScheduler stopped");		
-	}	
-	
+		LOG.info("JobScheduler stopped");
+	}
+
+	private Job createJob(JobDetail jobDetail) throws Exception {
+		Class<?> clazz = Class.forName(jobDetail.getJobClass());
+		Constructor<?> ctor = clazz.getConstructor(JobDetail.class);
+		Job job = (Job) ctor.newInstance(jobDetail);
+		return job;
+
+	}
+
 	@Override
 	public void startService() {
-		serviceState = ServiceState.RUNNING;		
+		serviceState = ServiceState.RUNNING;
 		new Thread(this).start();
 	}
 
@@ -96,7 +114,7 @@ public class JobScheduler implements Service {
 			Thread.sleep(SLEEP_TIME);
 		} catch (InterruptedException ie) {
 			Thread.currentThread().interrupt();
-		}		
+		}
 	}
 
 	@Override
@@ -108,5 +126,5 @@ public class JobScheduler implements Service {
 	public ServiceState getServiceState() {
 		return serviceState;
 	}
-	
+
 }
