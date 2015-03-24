@@ -5,40 +5,40 @@ import java.util.concurrent.Callable;
 
 import utils.DateUtils;
 
-public abstract class Job implements Callable<JobStatus>, Comparable<Job> {
+public abstract class Job implements Callable<JobDetail>, Comparable<Job> {
 
 	protected UUID uuid;
-	private long startTime;
+	private long scheduleTime;
 
-	public Job(long startTime) {
+	public Job(long scheduleTime) {
 		uuid = UUID.randomUUID();
-		this.startTime = startTime;
+		this.scheduleTime = scheduleTime;
 	}
 
 	@Override
 	public int compareTo(Job o) {
-		return this.startTime < o.startTime ? -1 : this.startTime > o.startTime ? 1 : 0;
+		return this.scheduleTime < o.scheduleTime ? -1 : this.scheduleTime > o.scheduleTime ? 1 : 0;
 	}
 
 	public boolean canStartNow() {
-		return startTime < System.currentTimeMillis();
+		return scheduleTime < System.currentTimeMillis();
 	}
 
 	public UUID getUuid() {
 		return uuid;
 	}
 	
-	public long getStartTime() {
-		return startTime;
+	public long getScheduleTime() {
+		return scheduleTime;
 	}
 	
 	public String description() {
-		return this.getClass().getSimpleName() + "(" + uuid.toString() + ") is scheduled for " + DateUtils.iso(startTime);
+		return this.getClass().getSimpleName() + "(" + uuid.toString() + ") is scheduled for " + DateUtils.iso(scheduleTime);
 	}
 
 	public String name() {
 		return this.getClass().getSimpleName() + "(" + uuid.toString() + ")";
 	}
 	
-	public abstract JobStatus createJobStatus();
+	public abstract JobDetail createJobStatus();
 }

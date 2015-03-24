@@ -1,8 +1,8 @@
 package storage.job;
 
-import job.JobStatus;
+import job.JobDetail;
 import storage.ListValueStorage;
 
-public class JobStatusStorage extends ListValueStorage<JobStatus> {
+public class JobStatusStorage extends ListValueStorage<JobDetail> {
 
 }

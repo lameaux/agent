@@ -1,8 +1,8 @@
 package download;
 
 import job.Job;
+import job.JobDetail;
 import job.JobState;
-import job.JobStatus;
 
 public class DownloadJob extends Job {
 
@@ -22,9 +22,9 @@ public class DownloadJob extends Job {
 	}
 
 	@Override
-	public JobStatus call() throws Exception {
+	public JobDetail call() throws Exception {
 		DownloadClient dc = new DownloadClient();
-		JobStatus jobStatus = createJobStatus();
+		JobDetail jobStatus = createJobStatus();
 		jobStatus.setStartTime(System.currentTimeMillis());
 		try {
 			dc.download(url, location, noProxy);
@@ -39,8 +39,8 @@ public class DownloadJob extends Job {
 	}
 
 	@Override
-	public JobStatus createJobStatus() {
-		JobStatus jobStatus = new JobStatus(this.getClass().getCanonicalName() , getUuid());
+	public JobDetail createJobStatus() {
+		JobDetail jobStatus = new JobDetail(this.getClass().getCanonicalName(), getUuid(), getScheduleTime(), null);
 		return jobStatus;
 	}
 	

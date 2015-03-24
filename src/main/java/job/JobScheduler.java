@@ -30,14 +30,14 @@ public class JobScheduler implements Service {
 	
 	private Configuration config;	
 	private ExecutorService executor;
-	private ExecutorCompletionService<JobStatus> completionService;
+	private ExecutorCompletionService<JobDetail> completionService;
 	
 	public JobScheduler() {
 		config = Agent.get().getConfig();
 		jobManager = Agent.get().getJobManager();
 		
 		executor = Executors.newFixedThreadPool(config.getJobPoolSize());
-		completionService = new ExecutorCompletionService<JobStatus>(executor);
+		completionService = new ExecutorCompletionService<JobDetail>(executor);
 	}	
 
 	@Override
@@ -49,7 +49,7 @@ public class JobScheduler implements Service {
 		while (!interrupted) {
 			
 			// check for completed jobs
-			Future<JobStatus> jobStatusFuture = completionService.poll();
+			Future<JobDetail> jobStatusFuture = completionService.poll();
 			if (jobStatusFuture != null) {
 				try {
 					jobManager.notify(jobStatusFuture.get());

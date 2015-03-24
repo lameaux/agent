@@ -26,7 +26,7 @@ public class JobManager {
 		q.offer(job);
 	}	
 	
-	public void notify(JobStatus jobStatus) {
+	public void notify(JobDetail jobStatus) {
 		StringBuffer sb = new StringBuffer();
 		sb.append(jobStatus.getJobClass()).append(" | ");
 		sb.append(jobStatus.getUuid()).append(" | ");
