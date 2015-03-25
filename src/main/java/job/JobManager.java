@@ -1,6 +1,12 @@
 package job;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,21 +17,32 @@ public class JobManager {
 
 	private PriorityQueue<JobDetail> q = new PriorityQueue<JobDetail>();
 
-	public boolean hasNewJob() {
+	private Map<UUID, JobDetail> jobDetails = new HashMap<>();
+	
+	public synchronized boolean hasNewJob() {
 		JobDetail job = q.peek();
 		return job != null && job.canStartNow();
 	}
 
-	public JobDetail getNextJob() {
+	public synchronized JobDetail getNextJob() {
 		return q.poll();
 	}
 
-	public void submit(JobDetail jobDetail) {
+	public synchronized void submit(JobDetail jobDetail) {
+		jobDetails.put(jobDetail.getUuid(), jobDetail);
 		q.offer(jobDetail);
 	}	
 	
-	public void notify(JobDetail jobDetail) {
+	public synchronized void notify(JobDetail jobDetail) {
 		LOG.info(jobDetail.toString());
 	}
 
+	public synchronized Set<JobDetail> getSnapshot() {
+		Set<JobDetail> set = new TreeSet<JobDetail>(Collections.reverseOrder());
+		for (JobDetail jobDetail : jobDetails.values()) {
+			set.add(new JobDetail(jobDetail));
+		}
+		return set;
+	}
+	
 }

@@ -29,13 +29,13 @@ public class DownloadJob extends Job {
 			boolean noProxy = Boolean.valueOf(parameters.get(PARAM_NOPROXY));			
 
 			dc.download(url, location, noProxy);
+			jobDetail.setState(JobState.FINISHED);
 		} catch (Exception e) {
 			jobDetail.setError(true);
 			jobDetail.setMessage(e.getCause() != null ? e.getCause().getMessage() : e.getMessage());
 			jobDetail.setState(JobState.FAILED);
 		} finally {
 			jobDetail.setFinishTime(System.currentTimeMillis());
-			jobDetail.setState(JobState.FINISHED);
 		}
 		return jobDetail;
 	}

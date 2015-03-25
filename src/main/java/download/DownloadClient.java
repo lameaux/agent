@@ -8,6 +8,8 @@ import java.io.OutputStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpStatus;
+import org.apache.http.StatusLine;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -43,6 +45,11 @@ public class DownloadClient {
 			request.setConfig(requestConfigBuilder.build());
 
 			CloseableHttpResponse response = httpclient.execute(request);
+			StatusLine statusLine = response.getStatusLine();
+			if (statusLine.getStatusCode() != HttpStatus.SC_OK) {
+				throw new Exception(statusLine.getStatusCode() + " " + statusLine.getReasonPhrase());
+			}
+			
 			try {
 				HttpEntity entity = response.getEntity();
 				if (entity != null) {

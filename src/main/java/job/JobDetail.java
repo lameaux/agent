@@ -8,8 +8,8 @@ import utils.DateUtils;
 
 public class JobDetail implements Comparable<JobDetail> {
 
+	private UUID uuid = UUID.randomUUID();	
 	private String jobClass;
-	private UUID uuid = UUID.randomUUID();
 	private long scheduleTime = System.currentTimeMillis();
 	private Map<String, String> parameters = null;
 
@@ -27,6 +27,27 @@ public class JobDetail implements Comparable<JobDetail> {
 		this.parameters = parameters;
 	}
 
+	public JobDetail(JobDetail that) {
+		this.uuid = that.uuid;
+		this.jobClass = that.jobClass;
+		this.scheduleTime = that.scheduleTime;
+		this.parameters = that.parameters;
+		this.state = that.state;
+		this.startTime = that.startTime;
+		this.finishTime = that.finishTime;
+		this.error = that.error;
+		this.message = that.message;
+	}
+	
+	
+	public void merge(JobDetail that) {
+		this.state = that.state;
+		this.startTime = that.startTime;
+		this.finishTime = that.finishTime;
+		this.error = that.error;
+		this.message = that.message;
+	}
+	
 	public boolean canStartNow() {
 		return scheduleTime < System.currentTimeMillis();
 	}
@@ -138,10 +159,10 @@ public class JobDetail implements Comparable<JobDetail> {
 		StringBuffer sb = new StringBuffer();
 		sb.append(jobClass).append("(").append(uuid).append(") was scheduled for ").append(DateUtils.iso(scheduleTime)).append(". ");
 		sb.append("State: ").append(state).append(". ");
-		if (state == JobState.RUNNING || state == JobState.FINISHED) {
+		if (state == JobState.RUNNING || state == JobState.FINISHED || state == JobState.FAILED) {
 			sb.append("Started at ").append(DateUtils.iso(startTime)).append(". ");
 		}
-		if (state == JobState.FINISHED) {
+		if (state == JobState.FINISHED || state == JobState.FAILED) {
 			sb.append("Finished at ").append(DateUtils.iso(finishTime)).append(". ");
 			sb.append("Runtime: ").append(TimeUnit.MILLISECONDS.toSeconds(finishTime-startTime)).append(" sec. ");
 		}
