@@ -34,7 +34,6 @@ public class UploadHandler extends RestHandlerBase {
 		this.uploadPath = uploadPath;
 	}
 
-	// GET show input form
 	@Override
 	public FullHttpResponse doGet() {
 		InputStream is = UploadHandler.class.getResourceAsStream("upload.html");
@@ -45,7 +44,6 @@ public class UploadHandler extends RestHandlerBase {
 		return createHttpResponse(HttpResponseStatus.OK, content);
 	}
 
-	// POST
 	@Override
 	public FullHttpResponse doPost() throws IOException {
 
@@ -56,29 +54,24 @@ public class UploadHandler extends RestHandlerBase {
 		File tempUploadedFile = requestFiles.get(REQUEST_INPUT_FILE);
 
 		if (StringUtils.nullOrEmpty(location)) {
-			return redirectResponse(URL + "?result=error_location");
+			return createRedirectResponse(URL + "?result=error_" + REQUEST_INPUT_LOCATION);
 		}
 
 		if (tempUploadedFile == null) {
-			return redirectResponse(URL + "?result=error_file");
+			return createRedirectResponse(URL + "?result=error_" + REQUEST_INPUT_FILE);
 		}
 
 		File targetFile = new File(new File(uploadPath), location);
 		File parentDir = targetFile.getParentFile();
 		if (!parentDir.exists() && !parentDir.mkdirs()) {
-			return redirectResponse(URL + "?result=error_server");
+			return createRedirectResponse(URL + "?result=error_server");
 		}
 
 		FileUtils.copyFile(tempUploadedFile, targetFile);
 		LOG.info("Uploaded file " + targetFile.getPath());
 
-		return redirectResponse(URL + "?result=success");
+		return createRedirectResponse(URL + "?result=success");
 	}
 
-	private FullHttpResponse redirectResponse(String location) {
-		FullHttpResponse response = createHttpResponse(HttpResponseStatus.FOUND);
-		response.headers().add("Location", location);
-		return response;
-	}
 
 }

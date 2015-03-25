@@ -8,12 +8,14 @@
 		background:red;
 		color:white;
 		padding: 10px;
+		margin-bottom:15px;
 	}
 
 	div.success {
 		background:green;
 		color:white;
 		padding: 10px;
+		margin-bottom:15px;		
 	}
 	
 	.hidden {
@@ -38,11 +40,11 @@
 </script>
 </head>
 <body>
+	<h1>Upload File</h1>
 	<div id="error_location" class="error hidden">Location is not specified</div>
 	<div id="error_file" class="error hidden">File is not selected</div>
-	<div id="error_server" class="error hidden">Upload failed due to server error</div>
+	<div id="error_server" class="error hidden">Failed due to server error</div>
 	<div id="success" class="success hidden">File successfully uploaded</div>
-	<br>
 	<form method="post" enctype="multipart/form-data" action="/upload">
 		Location: %UPLOAD_PATH%%FILE_SEPARATOR%<input required="required" name="location"
 			value="filename.txt" /> <br>

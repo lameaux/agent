@@ -41,10 +41,12 @@ public class RestHandlerBase implements RestHandler {
 	protected Map<String, String> requestParameters = new HashMap<String, String>();
 	protected Map<String, File> requestFiles = new HashMap<String, File>();
 
+	@Override
 	public void setHttpRequest(HttpRequest request) {
 		this.request = request;
 	}
 
+	@Override
 	public void setHttpPostRequestDecoder(HttpPostRequestDecoder decoder) {
 		this.decoder = decoder;
 	}
@@ -57,6 +59,7 @@ public class RestHandlerBase implements RestHandler {
 		return requestFiles;
 	}
 
+	@Override
 	public void process(ChannelHandlerContext ctx) {
 		if (request == null) {
 			throw new RuntimeException("No HttpRequest");
@@ -130,6 +133,12 @@ public class RestHandlerBase implements RestHandler {
 		return response;
 	}
 
+	protected FullHttpResponse createRedirectResponse(String location) {
+		FullHttpResponse response = createHttpResponse(HttpResponseStatus.FOUND);
+		response.headers().add(HttpHeaders.Names.LOCATION, location);
+		return response;
+	}	
+	
 	private void writeResponse(Channel channel, FullHttpResponse response) {
 
 		Set<Cookie> cookies;

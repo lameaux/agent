@@ -18,7 +18,7 @@ import agent.Agent;
 
 public class JobListHandler extends RestHandlerBase {
 
-	public static final String URL = "/joblist";
+	public static final String URL = "/jobs";
 
 	@Override
 	public FullHttpResponse doGet() {

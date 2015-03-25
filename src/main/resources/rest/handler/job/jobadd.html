@@ -4,22 +4,54 @@
 <title>Agent JobManager - Add Job</title>
 <script src="http://code.jquery.com/jquery.js"></script>
 <style>
+	div.error {
+		background:red;
+		color:white;
+		padding: 10px;
+		margin-bottom:15px;
+	}
 
+	div.success {
+		background:green;
+		color:white;
+		padding: 10px;
+		margin-bottom:15px;		
+	}
+	
+	.hidden {
+		display:none;
+	}
 </style>
 <script>
-	$(function() {
+function getParameterByName(name) {
+	name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+	var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"), results = regex
+			.exec(location.search);
+	return results === null ? "" : decodeURIComponent(results[1].replace(
+			/\+/g, " "));
+}
 
-	});
+$(function() {
+	var result = getParameterByName('result');
+	if (result !== null) {
+		$('#'+result).removeClass('hidden');
+	}
+});
 </script>
 </head>
 <body>
-	<div>Add Job</div>
+	<h1>Add Job</h1>
+	<div id="error_class" class="error hidden">Job Class is invalid</div>
+	<div id="error_schedule_time" class="error hidden">Schedule time is invalid</div>
+	<div id="error_server" class="error hidden">Failed due to server error</div>
+	<div id="success" class="success hidden">Job successfully created</div>
 	<form method="post">
-	
 		Job Class:<br> 
 		<select name="job_class">
 			<option value="download.DownloadJob">download.DownloadJob</option>
-		</select>
+		</select><br>
+		Schedule Time:<br>
+		<input type="text" name="schedule_time" placeholder="YYYY-MM-DD HH:mm:ss" title="Format: YYYY-MM-DD HH:mm:ss" value="%NOW%">
 		<br>
 		Parameters:<br>
 		<textarea name="parameters" rows=5 cols=60>url=http://google.com

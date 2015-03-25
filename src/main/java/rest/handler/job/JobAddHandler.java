@@ -8,32 +8,30 @@ import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
 
 import job.JobDetail;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import rest.handler.RestHandlerBase;
+import utils.DateUtils;
 import utils.IOUtils;
 import utils.StringUtils;
 import agent.Agent;
 
 public class JobAddHandler extends RestHandlerBase {
 
-	public static final String URL = "/jobadd";
+	public static final String URL = "/jobs/add";
 
 	private static final String REQUEST_INPUT_JOB_CLASS = "job_class";
+	private static final String REQUEST_INPUT_SCHEDULE_TIME = "schedule_time";
 	private static final String REQUEST_INPUT_PARAMETERS = "parameters";
-	
-	private static final Logger LOG = LoggerFactory.getLogger(JobAddHandler.class);
 
 	@Override
 	public FullHttpResponse doGet() {
 		InputStream is = JobAddHandler.class.getResourceAsStream("jobadd.html");
 		String pageContent = IOUtils.streamToString(is);
+		pageContent = pageContent.replace("%NOW%", DateUtils.iso(System.currentTimeMillis()));
 		ByteBuf content = Unpooled.copiedBuffer(pageContent, CharsetUtil.UTF_8);
 		return createHttpResponse(HttpResponseStatus.OK, content);
 	}
@@ -45,41 +43,44 @@ public class JobAddHandler extends RestHandlerBase {
 
 		String jobClass = requestParameters.get(REQUEST_INPUT_JOB_CLASS);
 		String parameters = requestParameters.get(REQUEST_INPUT_PARAMETERS);
-		
+		String scheduleTimeString = requestParameters.get(REQUEST_INPUT_SCHEDULE_TIME);
+
 		if (StringUtils.nullOrEmpty(jobClass)) {
-			return redirectResponse(URL + "?result=error_job_class");
+			return createRedirectResponse(URL + "?result=error_" + REQUEST_INPUT_JOB_CLASS);
 		}
 
-		if (StringUtils.nullOrEmpty(parameters)) {
-			return redirectResponse(URL + "?result=error_parameters");
+		long scheduleTime = System.currentTimeMillis();
+		if (!StringUtils.nullOrEmpty(scheduleTimeString)) {
+			try {
+				scheduleTime = DateUtils.fromIso(scheduleTimeString);
+			} catch (ParseException e) {
+				return createRedirectResponse(URL + "?result=error_" + REQUEST_INPUT_SCHEDULE_TIME);
+			}
 		}
 
 		JobDetail jobDetail = new JobDetail();
 		jobDetail.setJobClass(jobClass);
 		jobDetail.setParameters(parseParameters(parameters));
-		
+		jobDetail.setScheduleTime(scheduleTime);
+
 		Agent.get().getJobManager().submit(jobDetail);
 
-		return redirectResponse(URL + "?result=success");
+		return createRedirectResponse(URL + "?result=success");
 	}
 
 	private Map<String, String> parseParameters(String parameters) {
 		Map<String, String> map = new HashMap<>();
+		if (parameters == null) {
+			return map;
+		}
 		String[] lines = parameters.trim().split("\r\n");
 		for (String line : lines) {
-			String[] keyValue = line.split("=", 2);
+			String[] keyValue = line.trim().split("=", 2);
 			if (keyValue.length == 2) {
-				map.put(keyValue[0], keyValue[1]);
+				map.put(keyValue[0].trim(), keyValue[1].trim());
 			}
 		}
-		
 		return map;
-	}
-	
-	private FullHttpResponse redirectResponse(String location) {
-		FullHttpResponse response = createHttpResponse(HttpResponseStatus.FOUND);
-		response.headers().add("Location", location);
-		return response;
 	}
 
 }
