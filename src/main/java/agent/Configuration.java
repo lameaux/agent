@@ -48,12 +48,8 @@ public class Configuration {
 	public static final String AGENT_APP_PATH = "agent.app.path";
 	public static final String DEFAULT_AGENT_APP_PATH = "agent";	
 	
-	public static final String REST_UPLOAD_PATH = "agent.rest.upload.path";
-	public static final String DEFAULT_REST_UPLOAD_PATH = "files";	
-
-	public static final String DOWNLOAD_PATH = "agent.download.path";
-	public static final String DEFAULT_DOWNLOAD_PATH = "files";	
-	
+	public static final String AGENT_FILES_PATH = "agent.files.path";
+	public static final String DEFAULT_AGENT_FILES_PATH = "files";	
 	
 	public static final String HTTP_PROXY_HOST = "agent.http.proxy.host";
 	public static final String HTTP_PROXY_PORT = "agent.http.proxy.port";	
@@ -113,14 +109,9 @@ public class Configuration {
 	}
 	
 	
-	public String getRestUploadPath() {
-		String uploadPath = properties.getProperty(REST_UPLOAD_PATH, DEFAULT_REST_UPLOAD_PATH);
-		return getAgentAppPath() + File.separatorChar + uploadPath;
-	}
-	
-	public String getDownloadPath() {
-		String downloadPath = properties.getProperty(DOWNLOAD_PATH, DEFAULT_DOWNLOAD_PATH);
-		return getAgentAppPath() + File.separatorChar + downloadPath;		
+	public String getAgentFilesPath() {
+		String agentFilesPath = properties.getProperty(AGENT_FILES_PATH, DEFAULT_AGENT_FILES_PATH);
+		return getAgentAppPath() + File.separatorChar + agentFilesPath;		
 	}
 	
 	public int getJobPoolSize() {

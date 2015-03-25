@@ -84,7 +84,7 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 			return new CliHandler();
 		}
 		if (uri.getPath().equals(UploadHandler.URL)) {
-			return new UploadHandler(config.getRestUploadPath());
+			return new UploadHandler(config.getAgentFilesPath());
 		}
 		if (uri.getPath().equals(PingHandler.URL)) {
 			return new PingHandler();

@@ -39,7 +39,7 @@ public class ConfigurationTest {
 	@Test
 	public void testGetAutorunServices() {
 		// empty - default
-		assertArrayEquals(new String[] { Configuration.DEFAULT_AUTORUN }, config.getAutorunServices());
+		assertArrayEquals(Configuration.DEFAULT_AUTORUN.split(",") , config.getAutorunServices());
 
 		// changed
 		String autorun = "telnet,rest";
@@ -81,23 +81,13 @@ public class ConfigurationTest {
 	
 	
 	@Test
-	public void testGetDownloadPath() {
+	public void testGetAgentFilesPath() {
 		// empty - default
-		assertEquals(config.getAgentAppPath() + File.separatorChar + Configuration.DEFAULT_DOWNLOAD_PATH, config.getDownloadPath());
+		assertEquals(config.getAgentAppPath() + File.separatorChar + Configuration.DEFAULT_AGENT_FILES_PATH, config.getAgentFilesPath());
 		// changed
-		String downloadPath = "download";
-		properties.put(Configuration.DOWNLOAD_PATH, downloadPath);
-		assertEquals(config.getAgentAppPath() + File.separatorChar + downloadPath, config.getDownloadPath());
-	}
-
-	@Test
-	public void testGetRestUploadPath() {
-		// empty - default
-		assertEquals(config.getAgentAppPath() + File.separatorChar + Configuration.DEFAULT_REST_UPLOAD_PATH, config.getRestUploadPath());
-		// changed
-		String restUploadPath = "upload";
-		properties.put(Configuration.REST_UPLOAD_PATH, restUploadPath);
-		assertEquals(config.getAgentAppPath() + File.separatorChar + restUploadPath, config.getRestUploadPath());
+		String filesPath = "cdnfiles";
+		properties.put(Configuration.AGENT_FILES_PATH, filesPath);
+		assertEquals(config.getAgentAppPath() + File.separatorChar + filesPath, config.getAgentFilesPath());
 	}
 
 	@Test
@@ -115,9 +105,9 @@ public class ConfigurationTest {
 	@Test
 	public void testGetHttpProxyPort() {
 		// default
-		assertEquals(0, config.getHttpProxyPort());
+		assertEquals(3128, config.getHttpProxyPort());
 		// changed
-		int proxyPort = 3128;
+		int proxyPort = 8080;
 		properties.put(Configuration.HTTP_PROXY_PORT, String.valueOf(proxyPort));
 		assertEquals(proxyPort, config.getHttpProxyPort());
 	}

@@ -73,7 +73,7 @@ public class DownloadClient {
 	}
 
 	private File getTargetFile(String location) throws Exception {
-		File targetFile = new File(new File(config.getDownloadPath()), location);
+		File targetFile = new File(new File(config.getAgentFilesPath()), location);
 		File parentDir = targetFile.getParentFile();
 		if (!parentDir.exists() && !parentDir.mkdirs()) {
 			throw new Exception("Error saving file to " + location);
