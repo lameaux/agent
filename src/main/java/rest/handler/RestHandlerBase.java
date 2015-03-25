@@ -27,6 +27,8 @@ import io.netty.util.CharsetUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -37,7 +39,8 @@ public class RestHandlerBase implements RestHandler {
 
 	protected HttpRequest request;
 	protected HttpPostRequestDecoder decoder;
-
+	protected InetAddress clientInetAddress;
+	
 	protected Map<String, String> requestParameters = new HashMap<String, String>();
 	protected Map<String, File> requestFiles = new HashMap<String, File>();
 
@@ -64,6 +67,9 @@ public class RestHandlerBase implements RestHandler {
 		if (request == null) {
 			throw new RuntimeException("No HttpRequest");
 		}
+		
+		clientInetAddress = ((InetSocketAddress)ctx.channel().remoteAddress()).getAddress();
+		
 		FullHttpResponse response;
 		try {
 			if (request.getMethod().equals(HttpMethod.POST)) {
@@ -103,6 +109,10 @@ public class RestHandlerBase implements RestHandler {
 		}
 	}
 
+	public InetAddress getClientInetAddress() {
+		return clientInetAddress;
+	}
+	
 	public Map<String, List<String>> getUriAttributes() {
 		QueryStringDecoder decoderQuery = new QueryStringDecoder(request.getUri());
 		return decoderQuery.parameters();

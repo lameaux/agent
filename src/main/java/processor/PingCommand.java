@@ -3,7 +3,6 @@ package processor;
 import model.AgentId;
 import ping.PingSender;
 import storage.ping.PingStatus;
-import storage.ping.PingStatusStorage;
 import utils.StringUtils;
 import agent.Agent;
 
@@ -12,8 +11,8 @@ public class PingCommand extends CommandBase implements Command {
 	private static final String NO_PROXY = "noproxy"; 
 	
 	private PingSender pingSender = Agent.get().getPingSender();
-	private PingStatusStorage pingStatusStorage = Agent.get().getPingStatusStorage();
 	
+	@Override
 	public String execute(String request) {
 		String[] params = parameters(request);
 		if (params.length < 1 || StringUtils.nullOrEmpty(params[0])) {
@@ -29,7 +28,6 @@ public class PingCommand extends CommandBase implements Command {
 		long start = System.currentTimeMillis();
 		try {
 			targetAgent = pingSender.ping(url, noProxy);
-			pingStatusStorage.set(targetAgent, pingStatus);
 			return targetAgent.toString() + "\r\n" + pingStatus.toString() + "\r\nResponse time:" + (pingStatus.getTime() - start);
 		} catch (Exception e) {
 			pingStatus.setError(true);

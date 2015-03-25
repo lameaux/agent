@@ -38,7 +38,7 @@ public class PingHandler extends RestHandlerBase {
 		if (agentId == null) {
 			return createHttpResponse(HttpResponseStatus.BAD_REQUEST);
 		}
-		LOG.debug("Received Ping message {}", agentId);
+		LOG.debug("Received Ping message {} from {}", agentId, getClientInetAddress().getHostAddress());
 		
 		return createPingResponse();
 	}
