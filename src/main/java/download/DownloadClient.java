@@ -15,6 +15,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,12 +46,15 @@ public class DownloadClient {
 			request.setConfig(requestConfigBuilder.build());
 
 			CloseableHttpResponse response = httpclient.execute(request);
-			StatusLine statusLine = response.getStatusLine();
-			if (statusLine.getStatusCode() != HttpStatus.SC_OK) {
-				throw new Exception(statusLine.getStatusCode() + " " + statusLine.getReasonPhrase());
-			}
 			
 			try {
+
+				StatusLine statusLine = response.getStatusLine();
+				if (statusLine.getStatusCode() != HttpStatus.SC_OK) {
+					EntityUtils.consumeQuietly(response.getEntity());					
+					throw new Exception(statusLine.getStatusCode() + " " + statusLine.getReasonPhrase());
+				}
+				
 				HttpEntity entity = response.getEntity();
 				if (entity != null) {
 					InputStream inputStream = entity.getContent();
@@ -76,7 +80,7 @@ public class DownloadClient {
 		File targetFile = new File(new File(config.getAgentFilesPath()), location);
 		File parentDir = targetFile.getParentFile();
 		if (!parentDir.exists() && !parentDir.mkdirs()) {
-			throw new Exception("Error saving file to " + location);
+			throw new Exception("Error saving file to " + targetFile.getAbsolutePath());
 		}
 		return targetFile;
 	}
