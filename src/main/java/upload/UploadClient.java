@@ -12,8 +12,6 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import agent.Agent;
 import agent.Configuration;
@@ -22,8 +20,6 @@ public class UploadClient {
 
 	private static final String REQUEST_INPUT_LOCATION = "location";
 	private static final String REQUEST_INPUT_FILE = "file";
-
-	private static final Logger LOG = LoggerFactory.getLogger(UploadClient.class);
 
 	private Configuration config;
 
@@ -66,7 +62,7 @@ public class UploadClient {
 
 	private File getLocalFile(String location) throws Exception {
 		File targetFile = new File(new File(config.getAgentFilesPath()), location);
-		if (!targetFile.exists() || !targetFile.isDirectory()) {
+		if (!targetFile.exists() || targetFile.isDirectory()) {
 			throw new Exception("Could not find " + targetFile.getAbsolutePath());
 		}
 		return targetFile;

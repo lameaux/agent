@@ -4,60 +4,60 @@
 <title>Agent JobManager - Add Job</title>
 <script src="http://code.jquery.com/jquery.js"></script>
 <style>
-	div.error {
-		background:red;
-		color:white;
-		padding: 10px;
-		margin-bottom:15px;
-	}
-
-	div.success {
-		background:green;
-		color:white;
-		padding: 10px;
-		margin-bottom:15px;		
-	}
-	
-	.hidden {
-		display:none;
-	}
-</style>
-<script>
-function getParameterByName(name) {
-	name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-	var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"), results = regex
-			.exec(location.search);
-	return results === null ? "" : decodeURIComponent(results[1].replace(
-			/\+/g, " "));
+div.error {
+	background: red;
+	color: white;
+	padding: 10px;
+	margin-bottom: 15px;
 }
 
-$(function() {
-	var result = getParameterByName('result');
-	if (result !== null) {
-		$('#'+result).removeClass('hidden');
-	}
-});
+div.success {
+	background: green;
+	color: white;
+	padding: 10px;
+	margin-bottom: 15px;
+}
+
+.hidden {
+	display: none;
+}
+</style>
+<script>
+	$(function() {
+		$('#job_form').submit(function(event) {
+			$('div#error, div#success').addClass('hidden');
+		});
+		
+		$('#job_iframe').load(function(event){
+			var result = $(this).contents().find('body').html().trim();
+			if (result == 'OK') {
+				$('div#success').removeClass('hidden');
+			} else {
+				$('div#error').html(result);
+				$('div#error').removeClass('hidden');
+			}
+		});
+	});
 </script>
 </head>
 <body>
 	<h1>Add Job</h1>
-	<div id="error_class" class="error hidden">Job Class is invalid</div>
-	<div id="error_schedule_time" class="error hidden">Schedule time is invalid</div>
-	<div id="error_server" class="error hidden">Failed due to server error</div>
+	<div id="error" class="error hidden">Upload failed</div>
 	<div id="success" class="success hidden">Job successfully created</div>
-	<form method="post">
+	<form id="job_form" target="job_iframe" method="post" action="/jobs/add">
 		Job Class:<br> 
 		<select name="job_class">
 			<option value="download.DownloadJob">download.DownloadJob</option>
-		</select><br>
-		Schedule Time:<br>
-		<input type="text" name="schedule_time" placeholder="YYYY-MM-DD HH:mm:ss" title="Format: YYYY-MM-DD HH:mm:ss" value="%NOW%">
-		<br>
+			<option value="upload.UploadJob">upload.UploadJob</option>
+		</select><br> Schedule Time:<br> 
+		<input type="text" name="schedule_time" placeholder="YYYY-MM-DD HH:mm:ss"
+			title="Format: YYYY-MM-DD HH:mm:ss" value="%NOW%"> <br>
 		Parameters:<br>
 		<textarea name="parameters" rows=5 cols=60>url=http://google.com
 location=google_home.html</textarea>
-		<br>
+		<br> 
 		<input type="submit" value="Create Job">
 	</form>
+	<iframe name="job_iframe" id="job_iframe" class="hidden"></iframe>	
 </body>
 </html>

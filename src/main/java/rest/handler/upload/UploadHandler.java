@@ -19,6 +19,7 @@ import rest.RestException;
 import rest.handler.RestHandlerBase;
 import utils.IOUtils;
 import utils.StringUtils;
+import agent.Agent;
 
 public class UploadHandler extends RestHandlerBase {
 
@@ -31,8 +32,8 @@ public class UploadHandler extends RestHandlerBase {
 
 	private static final Logger LOG = LoggerFactory.getLogger(UploadHandler.class);
 
-	public UploadHandler(String uploadPath) {
-		this.uploadPath = uploadPath;
+	public UploadHandler() {
+		this.uploadPath = Agent.get().getConfig().getAgentFilesPath();
 	}
 
 	@Override

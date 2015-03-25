@@ -21,6 +21,7 @@ public class CommandProcessor {
 		commands.add(new PingCommand());
 		commands.add(new AgentsCommand());
 		commands.add(new DownloadCommand());		
+		commands.add(new UploadCommand());
 	}
 
 	public String process(String request) {

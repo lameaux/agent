@@ -38,13 +38,9 @@ import rest.handler.job.JobListHandler;
 import rest.handler.ping.PingHandler;
 import rest.handler.upload.UploadHandler;
 import rest.handler.welcome.WelcomeHandler;
-import agent.Agent;
-import agent.Configuration;
 
 public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 
-	private Configuration config;
-	
 	private RestHandler handler;
 	private HttpRequest request;
 
@@ -61,10 +57,6 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 	private HttpPostRequestDecoder decoder;
 
 	private static final Logger LOG = LoggerFactory.getLogger(RestServerHandler.class); 		
-
-	public RestServerHandler() {
-		this.config = Agent.get().getConfig();
-	}
 
 	private RestHandler getRestHandler() {
 		String uriString = request.getUri();
@@ -84,7 +76,7 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 			return new CliHandler();
 		}
 		if (uri.getPath().equals(UploadHandler.URL)) {
-			return new UploadHandler(config.getAgentFilesPath());
+			return new UploadHandler();
 		}
 		if (uri.getPath().equals(PingHandler.URL)) {
 			return new PingHandler();

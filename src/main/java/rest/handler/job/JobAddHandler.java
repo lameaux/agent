@@ -6,13 +6,13 @@ import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.CharsetUtil;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
 
 import job.JobDetail;
+import rest.RestException;
 import rest.handler.RestHandlerBase;
 import utils.DateUtils;
 import utils.IOUtils;
@@ -37,7 +37,7 @@ public class JobAddHandler extends RestHandlerBase {
 	}
 
 	@Override
-	public FullHttpResponse doPost() throws IOException {
+	public FullHttpResponse doPost() throws RestException {
 
 		Map<String, String> requestParameters = getRequestParameters();
 
@@ -46,7 +46,7 @@ public class JobAddHandler extends RestHandlerBase {
 		String scheduleTimeString = requestParameters.get(REQUEST_INPUT_SCHEDULE_TIME);
 
 		if (StringUtils.nullOrEmpty(jobClass)) {
-			return createRedirectResponse(URL + "?result=error_" + REQUEST_INPUT_JOB_CLASS);
+			throw new RestException("Parameter is missing: " + REQUEST_INPUT_JOB_CLASS);
 		}
 
 		long scheduleTime = System.currentTimeMillis();
@@ -54,7 +54,7 @@ public class JobAddHandler extends RestHandlerBase {
 			try {
 				scheduleTime = DateUtils.fromIso(scheduleTimeString);
 			} catch (ParseException e) {
-				return createRedirectResponse(URL + "?result=error_" + REQUEST_INPUT_SCHEDULE_TIME);
+				throw new RestException("Wrong format: " + REQUEST_INPUT_SCHEDULE_TIME);
 			}
 		}
 
@@ -65,7 +65,7 @@ public class JobAddHandler extends RestHandlerBase {
 
 		Agent.get().getJobManager().submit(jobDetail);
 
-		return createRedirectResponse(URL + "?result=success");
+		return createHttpResponse(HttpResponseStatus.OK, fromString("OK"));
 	}
 
 	private Map<String, String> parseParameters(String parameters) {

@@ -23,21 +23,21 @@
 	}
 </style>
 <script>
-$(function() {
-	$('#upload_form').submit(function(event) {
-		$('div#error, div#success').addClass('hidden');
+	$(function() {
+		$('#upload_form').submit(function(event) {
+			$('div#error, div#success').addClass('hidden');
+		});
+		
+		$('#upload_iframe').load(function(event){
+			var result = $(this).contents().find('body').html().trim();
+			if (result == 'OK') {
+				$('div#success').removeClass('hidden');
+			} else {
+				$('div#error').html(result);
+				$('div#error').removeClass('hidden');
+			}
+		});
 	});
-	
-	$('#upload_iframe').load(function(event){
-		var result = $(this).contents().find('body').html().trim();
-		if (result == 'OK') {
-			$('div#success').removeClass('hidden');
-		} else {
-			$('div#error').html(result);
-			$('div#error').removeClass('hidden');
-		}
-	});
-});
 </script>
 </head>
 <body>
