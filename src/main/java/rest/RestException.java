@@ -12,6 +12,10 @@ public class RestException extends Exception {
 		super();
 	}
 
+	public RestException(String message) {
+		super(message);
+	}	
+	
 	public RestException(Exception e) {
 		super(e);
 	}
@@ -21,6 +25,11 @@ public class RestException extends Exception {
 		this.status = status;
 	}
 
+	public RestException(HttpResponseStatus status, Exception e) {
+		super(e);
+		this.status = status;
+	}	
+	
 	public HttpResponseStatus getStatus() {
 		return status;
 	}

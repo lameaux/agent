@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Agent Upload</title>
+<title>Agent File Upload</title>
 <script src="http://code.jquery.com/jquery.js"></script>
 <style>
 	div.error {
@@ -23,33 +23,34 @@
 	}
 </style>
 <script>
-	function getParameterByName(name) {
-		name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-		var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"), results = regex
-				.exec(location.search);
-		return results === null ? "" : decodeURIComponent(results[1].replace(
-				/\+/g, " "));
-	}
-
-	$(function() {
-		var result = getParameterByName('result');
-		if (result !== null) {
-			$('#'+result).removeClass('hidden');
+$(function() {
+	$('#upload_form').submit(function(event) {
+		$('div#error, div#success').addClass('hidden');
+	});
+	
+	$('#upload_iframe').load(function(event){
+		var result = $(this).contents().find('body').html().trim();
+		if (result == 'OK') {
+			$('div#success').removeClass('hidden');
+		} else {
+			$('div#error').html(result);
+			$('div#error').removeClass('hidden');
 		}
 	});
+});
 </script>
 </head>
 <body>
 	<h1>Upload File</h1>
-	<div id="error_location" class="error hidden">Location is not specified</div>
-	<div id="error_file" class="error hidden">File is not selected</div>
-	<div id="error_server" class="error hidden">Failed due to server error</div>
+	<div id="error" class="error hidden">Upload failed</div>
 	<div id="success" class="success hidden">File successfully uploaded</div>
-	<form method="post" enctype="multipart/form-data" action="/upload">
+	<form id="upload_form" target="upload_iframe" method="post" enctype="multipart/form-data" action="/upload">
 		Location: %UPLOAD_PATH%%FILE_SEPARATOR%<input required="required" name="location"
 			value="filename.txt" /> <br>
-		<br> File: <input type="file" name="file" required="required" /> <br>
+		<br> File: <input type="file" name="file" required="required" /><br>
 		<br> <input type="submit" value="Upload" />
 	</form>
+	<br>
+	<iframe name="upload_iframe" id="upload_iframe" class="hidden"></iframe>
 </body>
 </html>

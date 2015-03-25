@@ -15,6 +15,7 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import rest.RestException;
 import rest.handler.RestHandlerBase;
 import utils.IOUtils;
 import utils.StringUtils;
@@ -45,7 +46,7 @@ public class UploadHandler extends RestHandlerBase {
 	}
 
 	@Override
-	public FullHttpResponse doPost() throws IOException {
+	public FullHttpResponse doPost() throws RestException, IOException {
 
 		Map<String, String> requestParameters = getRequestParameters();
 		Map<String, File> requestFiles = getRequestFiles();
@@ -54,23 +55,23 @@ public class UploadHandler extends RestHandlerBase {
 		File tempUploadedFile = requestFiles.get(REQUEST_INPUT_FILE);
 
 		if (StringUtils.nullOrEmpty(location)) {
-			return createRedirectResponse(URL + "?result=error_" + REQUEST_INPUT_LOCATION);
+			throw new RestException("Parameter is missing: " + REQUEST_INPUT_LOCATION);
 		}
 
 		if (tempUploadedFile == null) {
-			return createRedirectResponse(URL + "?result=error_" + REQUEST_INPUT_FILE);
+			throw new RestException("Parameter is missing: " + REQUEST_INPUT_FILE);
 		}
 
 		File targetFile = new File(new File(uploadPath), location);
 		File parentDir = targetFile.getParentFile();
 		if (!parentDir.exists() && !parentDir.mkdirs()) {
-			return createRedirectResponse(URL + "?result=error_server");
+			throw new RestException("Unable to store file");
 		}
 
 		FileUtils.copyFile(tempUploadedFile, targetFile);
 		LOG.info("Uploaded file " + targetFile.getPath());
 
-		return createRedirectResponse(URL + "?result=success");
+		return createHttpResponse(HttpResponseStatus.OK, fromString("OK"));
 	}
 
 

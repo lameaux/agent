@@ -35,12 +35,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import rest.RestException;
+
 public class RestHandlerBase implements RestHandler {
 
 	protected HttpRequest request;
 	protected HttpPostRequestDecoder decoder;
 	protected InetAddress clientInetAddress;
-	
+
 	protected Map<String, String> requestParameters = new HashMap<String, String>();
 	protected Map<String, File> requestFiles = new HashMap<String, File>();
 
@@ -67,9 +69,9 @@ public class RestHandlerBase implements RestHandler {
 		if (request == null) {
 			throw new RuntimeException("No HttpRequest");
 		}
-		
-		clientInetAddress = ((InetSocketAddress)ctx.channel().remoteAddress()).getAddress();
-		
+
+		clientInetAddress = ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress();
+
 		FullHttpResponse response;
 		try {
 			if (request.getMethod().equals(HttpMethod.POST)) {
@@ -78,8 +80,10 @@ public class RestHandlerBase implements RestHandler {
 			} else {
 				response = doGet();
 			}
-		} catch (IOException e) {
+		} catch (RestException e) {
 			response = errorResponse(e);
+		} catch (Exception e) {
+			response = errorResponse(new RestException(HttpResponseStatus.BAD_REQUEST, e));
 		} finally {
 			if (request.getMethod().equals(HttpMethod.POST)) {
 				deleteTempFiles();
@@ -92,7 +96,7 @@ public class RestHandlerBase implements RestHandler {
 		return createHttpResponse(HttpResponseStatus.NOT_IMPLEMENTED);
 	}
 
-	public FullHttpResponse doPost() throws IOException {
+	public FullHttpResponse doPost() throws Exception {
 		return createHttpResponse(HttpResponseStatus.NOT_IMPLEMENTED);
 	}
 
@@ -112,7 +116,7 @@ public class RestHandlerBase implements RestHandler {
 	public InetAddress getClientInetAddress() {
 		return clientInetAddress;
 	}
-	
+
 	public Map<String, List<String>> getUriAttributes() {
 		QueryStringDecoder decoderQuery = new QueryStringDecoder(request.getUri());
 		return decoderQuery.parameters();
@@ -124,6 +128,10 @@ public class RestHandlerBase implements RestHandler {
 
 	protected FullHttpResponse createHttpResponse(HttpResponseStatus status) {
 		return createHttpResponse(status, Unpooled.buffer(0));
+	}
+
+	protected ByteBuf fromString(String s) {
+		return Unpooled.copiedBuffer(s, CharsetUtil.UTF_8);
 	}
 	
 	protected FullHttpResponse createHttpResponse(HttpResponseStatus status, ByteBuf buf) {
@@ -147,8 +155,8 @@ public class RestHandlerBase implements RestHandler {
 		FullHttpResponse response = createHttpResponse(HttpResponseStatus.FOUND);
 		response.headers().add(HttpHeaders.Names.LOCATION, location);
 		return response;
-	}	
-	
+	}
+
 	private void writeResponse(Channel channel, FullHttpResponse response) {
 
 		Set<Cookie> cookies;
@@ -173,7 +181,7 @@ public class RestHandlerBase implements RestHandler {
 		}
 	}
 
-	protected FullHttpResponse errorResponse(Exception e) {
+	protected FullHttpResponse errorResponse(RestException e) {
 		FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST, Unpooled.copiedBuffer(e.getMessage(),
 				CharsetUtil.UTF_8));
 		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html; charset=UTF-8");
