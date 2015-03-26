@@ -2,6 +2,7 @@ package com.euromoby.processor;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.utils.StringUtils;
@@ -11,10 +12,11 @@ public class HelpCommand extends CommandBase implements Command {
 
 	private List<Command> commands;
 
-	public HelpCommand(List<Command> commands) {
+	@Autowired
+	public void setCommands(List<Command> commands) {
 		this.commands = commands;
 	}
-
+	
 	@Override
 	public String execute(String request) {
 		

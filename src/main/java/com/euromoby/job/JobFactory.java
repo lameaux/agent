@@ -14,6 +14,16 @@ public class JobFactory {
 	private UploadClient uploadClient;
 	private DownloadClient downloadClient;
 	
+	@SuppressWarnings("rawtypes")
+	private Class[] jobClasses = new Class[]{
+			DownloadJob.class, UploadJob.class
+	};
+	
+	@SuppressWarnings("rawtypes")
+	public Class[] getJobClasses() {
+		return jobClasses;
+	}
+	
 	@Autowired
 	public void setUploadClient(UploadClient uploadClient) {
 		this.uploadClient = uploadClient;

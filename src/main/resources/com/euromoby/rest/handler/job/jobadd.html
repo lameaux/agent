@@ -47,8 +47,7 @@ div.success {
 	<form id="job_form" target="job_iframe" method="post" action="/jobs/add">
 		Job Class:<br> 
 		<select name="job_class">
-			<option value="download.DownloadJob">download.DownloadJob</option>
-			<option value="upload.UploadJob">upload.UploadJob</option>
+			%JOB_CLASSES%
 		</select><br> Schedule Time:<br> 
 		<input type="text" name="schedule_time" placeholder="YYYY-MM-DD HH:mm:ss"
 			title="Format: YYYY-MM-DD HH:mm:ss" value="%NOW%"> <br>

@@ -13,10 +13,10 @@ import com.euromoby.utils.StringUtils;
 @Component
 public class ServiceCommand extends CommandBase implements Command {
 
-	private final ServiceManager serviceManager;	
+	private ServiceManager serviceManager;	
 
 	@Autowired
-	public ServiceCommand(ServiceManager serviceManager) {
+	public void setServiceManager(ServiceManager serviceManager) {
 		this.serviceManager = serviceManager;
 	}
 

@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.job.JobDetail;
+import com.euromoby.job.JobFactory;
 import com.euromoby.job.JobManager;
 import com.euromoby.rest.RestException;
 import com.euromoby.rest.handler.RestHandlerBase;
@@ -32,10 +33,12 @@ public class JobAddHandler extends RestHandlerBase {
 	private static final String REQUEST_INPUT_PARAMETERS = "parameters";
 
 	private JobManager jobManager;
+	private JobFactory jobFactory;
 	
 	@Autowired
-	public JobAddHandler(JobManager jobManager) {
+	public JobAddHandler(JobManager jobManager, JobFactory jobFactory) {
 		this.jobManager = jobManager;
+		this.jobFactory = jobFactory;
 	}
 	
 	@Override
@@ -48,6 +51,15 @@ public class JobAddHandler extends RestHandlerBase {
 		InputStream is = JobAddHandler.class.getResourceAsStream("jobadd.html");
 		String pageContent = IOUtils.streamToString(is);
 		pageContent = pageContent.replace("%NOW%", DateUtils.iso(System.currentTimeMillis()));
+		
+		StringBuffer sb = new StringBuffer();
+
+		for (@SuppressWarnings("rawtypes") Class jobClass : jobFactory.getJobClasses()) {
+			sb.append("<option value=\"").append(jobClass.getCanonicalName()).append("\">")
+			.append(jobClass.getSimpleName()).append("</option>").append(StringUtils.CRLF);
+		}
+		pageContent = pageContent.replace("%JOB_CLASSES%", sb.toString());
+		
 		ByteBuf content = Unpooled.copiedBuffer(pageContent, CharsetUtil.UTF_8);
 		return createHttpResponse(HttpResponseStatus.OK, content);
 	}
