@@ -10,6 +10,8 @@ import io.netty.util.CharsetUtil;
 import java.io.IOException;
 import java.util.Map;
 
+import model.PingInfo;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +23,7 @@ import com.google.gson.Gson;
 public class PingHandler extends RestHandlerBase {
 
 	public static final String URL = "/ping";
-	private static final String AGENT_ID_INPUT_NAME = "agentId";
+	private static final String PING_INFO_INPUT_NAME = "pingInfo";
 
 	private static final Logger LOG = LoggerFactory.getLogger(PingHandler.class);
 	private static final Gson gson = new Gson();
@@ -34,17 +36,17 @@ public class PingHandler extends RestHandlerBase {
 	@Override
 	public FullHttpResponse doPost() throws IOException {
 		Map<String, String> requestParameters = getRequestParameters();
-		String agentId = requestParameters.get(AGENT_ID_INPUT_NAME);
-		if (agentId == null) {
+		String pingInfo = requestParameters.get(PING_INFO_INPUT_NAME);
+		if (pingInfo == null) {
 			return createHttpResponse(HttpResponseStatus.BAD_REQUEST);
 		}
-		LOG.debug("Received Ping message {} from {}", agentId, getClientInetAddress().getHostAddress());
+		LOG.debug("Received Ping message {} from {}", pingInfo, getClientInetAddress().getHostAddress());
 		
 		return createPingResponse();
 	}
 
 	private FullHttpResponse createPingResponse() {
-		String jsonResponse = gson.toJson(Agent.get().getAgentId());
+		String jsonResponse = gson.toJson(new PingInfo(Agent.get().getAgentId()));
 		ByteBuf content = Unpooled.copiedBuffer(jsonResponse, CharsetUtil.UTF_8);
 		FullHttpResponse response = createHttpResponse(HttpResponseStatus.OK, content);
 		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/json; charset=UTF-8");

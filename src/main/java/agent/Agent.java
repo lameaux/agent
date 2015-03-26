@@ -31,14 +31,10 @@ public class Agent {
 	public void init(Configuration config) {
 		this.config = config;
 		
-		
-		
 		initServices();
 	}
 
 	private void initServices() {
-
-
 
 		// storages
 		pingStatusStorage = new PingStatusStorage();

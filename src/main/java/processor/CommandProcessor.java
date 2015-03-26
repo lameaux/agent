@@ -19,7 +19,7 @@ public class CommandProcessor {
 		commands.add(new InetAddressCommand());
 		commands.add(new ServiceCommand());
 		commands.add(new PingCommand());
-		commands.add(new AgentsCommand());
+		commands.add(new AgentCommand());
 		commands.add(new DownloadCommand());		
 		commands.add(new UploadCommand());
 	}

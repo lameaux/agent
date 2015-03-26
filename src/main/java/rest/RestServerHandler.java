@@ -32,12 +32,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import rest.handler.RestHandler;
-import rest.handler.cli.CliHandler;
-import rest.handler.job.JobAddHandler;
-import rest.handler.job.JobListHandler;
-import rest.handler.ping.PingHandler;
-import rest.handler.upload.UploadHandler;
-import rest.handler.welcome.WelcomeHandler;
 
 public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 
@@ -67,28 +61,7 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 			return null;
 		}
 		
-		// TODO create mapping
-		
-		if (uri.getPath().equals(WelcomeHandler.URL)) {
-			return new WelcomeHandler();
-		}
-		if (uri.getPath().equals(CliHandler.URL)) {
-			return new CliHandler();
-		}
-		if (uri.getPath().equals(UploadHandler.URL)) {
-			return new UploadHandler();
-		}
-		if (uri.getPath().equals(PingHandler.URL)) {
-			return new PingHandler();
-		}
-		if (uri.getPath().equals(JobListHandler.URL)) {
-			return new JobListHandler();
-		}
-		if (uri.getPath().equals(JobAddHandler.URL)) {
-			return new JobAddHandler();
-		}
-		
-		return null;
+		return RestMapper.getHandler(uri);
 	}
 
 	@Override

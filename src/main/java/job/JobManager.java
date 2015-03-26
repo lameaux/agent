@@ -34,6 +34,7 @@ public class JobManager {
 	}	
 	
 	public synchronized void notify(JobDetail jobDetail) {
+		// TODO
 		LOG.info(jobDetail.toString());
 	}
 

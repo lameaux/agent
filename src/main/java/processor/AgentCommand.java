@@ -9,7 +9,7 @@ import storage.ping.PingStatusStorage;
 import utils.StringUtils;
 import agent.Agent;
 
-public class AgentsCommand extends CommandBase implements Command {
+public class AgentCommand extends CommandBase implements Command {
 
 	private static final String PARAM_ACTIVE = "active";
 	private static final String PARAM_ALL = "all";
@@ -58,12 +58,12 @@ public class AgentsCommand extends CommandBase implements Command {
 
 	@Override
 	public String help() {
-		return "agents [all|active]";
+		return "agent [active|all]";
 	}
 
 	@Override
 	public String name() {
-		return "agents";
+		return "agent";
 	}
 
 }

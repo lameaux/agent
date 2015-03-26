@@ -1,6 +1,6 @@
 package processor;
 
-import model.AgentId;
+import model.PingInfo;
 import ping.PingSender;
 import storage.ping.PingStatus;
 import utils.StringUtils;
@@ -22,13 +22,11 @@ public class PingCommand extends CommandBase implements Command {
 		String url = params[0];
 		boolean noProxy = (params.length == 2 && NO_PROXY.equals(params[1]));
 
-		AgentId targetAgent = null;		
-		
 		PingStatus pingStatus = new PingStatus();
 		long start = System.currentTimeMillis();
 		try {
-			targetAgent = pingSender.ping(url, noProxy);
-			return targetAgent.toString() + "\r\n" + pingStatus.toString() + "\r\nResponse time:" + (pingStatus.getTime() - start);
+			PingInfo pingInfo = pingSender.ping(url, noProxy);
+			return pingInfo.getAgentId().toString() + "\r\n" + pingStatus.toString() + "\r\nResponse time:" + (pingStatus.getTime() - start);
 		} catch (Exception e) {
 			pingStatus.setError(true);
 			pingStatus.setMessage(e.getMessage());

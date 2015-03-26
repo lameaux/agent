@@ -1,6 +1,6 @@
 package ping;
 
-import model.AgentId;
+import model.PingInfo;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -19,7 +19,7 @@ import com.google.gson.Gson;
 
 public class PingSender {
 
-	private static final String AGENT_ID_INPUT_NAME = "agentId";
+	private static final String PING_INFO_INPUT_NAME = "pingInfo";
 
 	private static final Gson gson = new Gson();
 
@@ -29,10 +29,10 @@ public class PingSender {
 		config = Agent.get().getConfig();
 	}
 
-	public AgentId ping(String url, boolean noProxy) throws Exception {
+	public PingInfo ping(String url, boolean noProxy) throws Exception {
 		CloseableHttpClient httpclient = HttpClients.createDefault();
 
-		AgentId myAgentId = Agent.get().getAgentId();
+		PingInfo myPingInfo = new PingInfo(Agent.get().getAgentId());
 
 		try {
 
@@ -44,7 +44,7 @@ public class PingSender {
 
 			HttpUriRequest ping = RequestBuilder.post(url)
 					.setConfig(requestConfigBuilder.build())
-					.addParameter(AGENT_ID_INPUT_NAME, gson.toJson(myAgentId))
+					.addParameter(PING_INFO_INPUT_NAME, gson.toJson(myPingInfo))
 					.build();
 
 			CloseableHttpResponse response = httpclient.execute(ping);
@@ -52,9 +52,9 @@ public class PingSender {
 				HttpEntity entity = response.getEntity();
 				String content = EntityUtils.toString(entity);
 				EntityUtils.consumeQuietly(entity);
-				AgentId targetAgent = gson.fromJson(content, AgentId.class);
-				targetAgent.setHost(ping.getURI().getHost());
-				return targetAgent;
+				PingInfo receivedPingInfo = gson.fromJson(content, PingInfo.class);
+				receivedPingInfo.getAgentId().setHost(ping.getURI().getHost());
+				return receivedPingInfo;
 			} finally {
 				response.close();
 			}
