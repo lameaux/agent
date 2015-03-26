@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
+import rest.RestServer;
+import telnet.TelnetServer;
 import utils.StringUtils;
 import utils.SystemUtils;
 
@@ -34,12 +36,6 @@ public class Configuration {
 	public static final String AGENT_BASE_PORT = "agent.base.port";
 	public static final String DEFAULT_AGENT_BASE_PORT = "21000";	
 	
-	public static final String TELNET_PORT = "agent.telnet.port";
-	public static final String DEFAULT_TELNET_PORT = "23";
-
-	public static final String REST_PORT = "agent.rest.port";
-	public static final String DEFAULT_REST_PORT = "80";
-
 	public static final String AUTORUN = "agent.autorun";
 	public static final String DEFAULT_AUTORUN = "rest,job";
 
@@ -55,19 +51,22 @@ public class Configuration {
 	public static final String HTTP_PROXY_PORT = "agent.http.proxy.port";	
 
 	public static final String JOB_POOL_SIZE = "agent.job.pool.size";
-	public static final String DEFAULT_JOB_POOL_SIZE = "2";	
+	public static final String DEFAULT_JOB_POOL_SIZE = "4";	
 	
+	public static final String PING_POOL_SIZE = "agent.ping.pool.size";
+	public static final String DEFAULT_PING_POOL_SIZE = "2";	
+
 	
 	public int getBasePort() {
 		return Integer.parseInt(properties.getProperty(AGENT_BASE_PORT, DEFAULT_AGENT_BASE_PORT));
 	}	
 	
 	public int getTelnetPort() {
-		return getBasePort() + Integer.parseInt(properties.getProperty(TELNET_PORT, DEFAULT_TELNET_PORT));
+		return getBasePort() + TelnetServer.TELNET_PORT;
 	}
 
 	public int getRestPort() {
-		return getBasePort() + Integer.parseInt(properties.getProperty(REST_PORT, DEFAULT_REST_PORT));
+		return getBasePort() + RestServer.REST_PORT;
 	}
 
 	public boolean isRestSsl() {
@@ -117,6 +116,10 @@ public class Configuration {
 	public int getJobPoolSize() {
 		return Integer.parseInt(properties.getProperty(JOB_POOL_SIZE, DEFAULT_JOB_POOL_SIZE));
 	}
+
+	public int getPingPoolSize() {
+		return Integer.parseInt(properties.getProperty(PING_POOL_SIZE, DEFAULT_PING_POOL_SIZE));
+	}	
 	
 	@Override
 	public String toString() {

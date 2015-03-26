@@ -19,7 +19,8 @@ import agent.Configuration;
 public class TelnetServer implements Service {
 
 	public static final String SERVICE_NAME = "telnet";
-
+	public static final int TELNET_PORT = 23;
+	
 	private EventLoopGroup bossGroup;
 	private EventLoopGroup workerGroup;
 	private volatile ServiceState serviceState = ServiceState.STOPPED;
@@ -33,6 +34,7 @@ public class TelnetServer implements Service {
 		this.config = Agent.get().getConfig();
 	}
 
+	@Override
 	public void run() {
 
 		try {
@@ -81,18 +83,22 @@ public class TelnetServer implements Service {
 		}
 	}
 
+	@Override
 	public void startService() {
 		new Thread(this).start();
 	}
 
+	@Override
 	public void stopService() {
 		shutdown();
 	}
 
+	@Override
 	public String getServiceName() {
 		return SERVICE_NAME;
 	}
 
+	@Override
 	public ServiceState getServiceState() {
 		return serviceState;
 	}

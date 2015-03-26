@@ -5,7 +5,7 @@ import io.netty.util.internal.logging.Slf4JLoggerFactory;
 import job.JobManager;
 import job.JobScheduler;
 import model.AgentId;
-import ping.PingSender;
+import ping.PingScheduler;
 import processor.CommandProcessor;
 import rest.RestServer;
 import service.ServiceManager;
@@ -21,7 +21,6 @@ public class Agent {
 
 	private Configuration config = new Configuration();
 	private ServiceManager serviceManager;
-	private PingSender pingSender;
 	private PingStatusStorage pingStatusStorage;
 	private JobManager jobManager;
 	private AgentManager agentManager;
@@ -39,7 +38,6 @@ public class Agent {
 
 		// storages
 		pingStatusStorage = new PingStatusStorage();
-		pingSender = new PingSender();
 		// managers
 		agentManager = new AgentManager();
 		jobManager = new JobManager();
@@ -54,11 +52,13 @@ public class Agent {
 		RestServer restServer = new RestServer();
 		serviceManager.registerService(restServer);
 		
-		// job scheduler
-
+		// Schedulers
 		JobScheduler jobScheduler = new JobScheduler();
 		serviceManager.registerService(jobScheduler);
 
+		PingScheduler pingScheduler = new PingScheduler();
+		serviceManager.registerService(pingScheduler);
+		
 		for (String serviceName : config.getAutorunServices()) {
 			serviceManager.executeAction(serviceName, ServiceManager.ACTION_START);
 		}
@@ -74,10 +74,6 @@ public class Agent {
 
 	public Configuration getConfig() {
 		return config;
-	}
-
-	public PingSender getPingSender() {
-		return pingSender;
 	}
 
 	public PingStatusStorage getPingStatusStorage() {

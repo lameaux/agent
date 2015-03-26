@@ -29,7 +29,6 @@ public class ServiceCommand extends CommandBase implements Command {
 				ServiceState serviceState = allStates.get(serviceName);
 				sb.append(serviceName).append(": ").append(serviceState.toString()).append(StringUtils.CRLF);
 			}
-			sb.append(StringUtils.CRLF).append("Help: ").append(StringUtils.CRLF).append(help());
 			return sb.toString();
 		}
 		

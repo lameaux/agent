@@ -21,7 +21,8 @@ import agent.Configuration;
 public class RestServer implements Service {
 
 	public static final String SERVICE_NAME = "rest";
-
+	public static final int REST_PORT = 80;
+	
 	private final Configuration config;
 	private EventLoopGroup bossGroup;
 	private EventLoopGroup workerGroup;
@@ -48,6 +49,7 @@ public class RestServer implements Service {
 
 	}
 
+	@Override
 	public void run() {
 
 		try {
@@ -96,18 +98,22 @@ public class RestServer implements Service {
 		}
 	}
 
+	@Override
 	public void startService() {
 		new Thread(this).start();
 	}
 
+	@Override
 	public void stopService() {
 		shutdown();
 	}
 
+	@Override
 	public String getServiceName() {
 		return SERVICE_NAME;
 	}
 
+	@Override
 	public ServiceState getServiceState() {
 		return serviceState;
 	}

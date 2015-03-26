@@ -7,7 +7,6 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.CharsetUtil;
 
-import java.io.IOException;
 import java.util.Map;
 
 import model.PingInfo;
@@ -15,6 +14,7 @@ import model.PingInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import rest.RestException;
 import rest.handler.RestHandlerBase;
 import agent.Agent;
 
@@ -34,13 +34,24 @@ public class PingHandler extends RestHandlerBase {
 	}
 
 	@Override
-	public FullHttpResponse doPost() throws IOException {
+	public FullHttpResponse doPost() throws RestException {
 		Map<String, String> requestParameters = getRequestParameters();
-		String pingInfo = requestParameters.get(PING_INFO_INPUT_NAME);
-		if (pingInfo == null) {
-			return createHttpResponse(HttpResponseStatus.BAD_REQUEST);
+		String pingInfoString = requestParameters.get(PING_INFO_INPUT_NAME);
+		if (pingInfoString == null) {
+			throw new RestException("Parameter is missing: " + PING_INFO_INPUT_NAME);
 		}
-		LOG.debug("Received Ping message {} from {}", pingInfo, getClientInetAddress().getHostAddress());
+		
+		PingInfo pingInfo = gson.fromJson(pingInfoString, PingInfo.class);
+		if (pingInfo.getAgentId() == null) {
+			throw new RestException("AgentId is missing");
+		}
+		
+		// set real host address
+		pingInfo.getAgentId().setHost(getClientInetAddress().getHostAddress());
+		// notify received ping
+		Agent.get().getAgentManager().notifyPingReceive(pingInfo);
+		
+		LOG.debug("Received Ping message from {}", pingInfo.getAgentId());
 		
 		return createPingResponse();
 	}

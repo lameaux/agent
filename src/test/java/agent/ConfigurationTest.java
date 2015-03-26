@@ -12,6 +12,8 @@ import java.util.Properties;
 import org.junit.Before;
 import org.junit.Test;
 
+import rest.RestServer;
+import telnet.TelnetServer;
 import utils.SystemUtils;
 
 public class ConfigurationTest {
@@ -119,22 +121,12 @@ public class ConfigurationTest {
 
 	@Test
 	public void testGetRestPort() {
-		// default
-		assertEquals(Integer.parseInt(Configuration.DEFAULT_AGENT_BASE_PORT) + Integer.parseInt(Configuration.DEFAULT_REST_PORT), config.getRestPort());
-		// changed
-		int restPort = 8080;
-		properties.put(Configuration.REST_PORT, String.valueOf(restPort));
-		assertEquals(Integer.parseInt(Configuration.DEFAULT_AGENT_BASE_PORT) + restPort, config.getRestPort());
+		assertEquals(Integer.parseInt(Configuration.DEFAULT_AGENT_BASE_PORT) + RestServer.REST_PORT, config.getRestPort());
 	}
 
 	@Test
 	public void testGetTelnetPort() {
-		// default
-		assertEquals(Integer.parseInt(Configuration.DEFAULT_AGENT_BASE_PORT) + Integer.parseInt(Configuration.DEFAULT_TELNET_PORT), config.getTelnetPort());
-		// changed
-		int telnetPort = 8023;
-		properties.put(Configuration.TELNET_PORT, String.valueOf(telnetPort));
-		assertEquals(Integer.parseInt(Configuration.DEFAULT_AGENT_BASE_PORT) + telnetPort, config.getTelnetPort());
+		assertEquals(Integer.parseInt(Configuration.DEFAULT_AGENT_BASE_PORT) + TelnetServer.TELNET_PORT, config.getTelnetPort());
 	}
 
 	@Test

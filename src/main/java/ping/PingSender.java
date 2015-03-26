@@ -11,6 +11,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
+import rest.handler.ping.PingHandler;
 import utils.HttpUtils;
 import agent.Agent;
 import agent.Configuration;
@@ -29,7 +30,7 @@ public class PingSender {
 		config = Agent.get().getConfig();
 	}
 
-	public PingInfo ping(String url, boolean noProxy) throws Exception {
+	public PingInfo ping(String host, int restPort, boolean noProxy) throws Exception {
 		CloseableHttpClient httpclient = HttpClients.createDefault();
 
 		PingInfo myPingInfo = new PingInfo(Agent.get().getAgentId());
@@ -37,6 +38,7 @@ public class PingSender {
 		try {
 			RequestConfig.Builder requestConfigBuilder = HttpUtils.createRequestConfigBuilder(config, noProxy);
 
+			String url = "http://" + host + ":" + restPort + PingHandler.URL;
 			HttpUriRequest ping = RequestBuilder.post(url)
 					.setConfig(requestConfigBuilder.build())
 					.addParameter(PING_INFO_INPUT_NAME, gson.toJson(myPingInfo))
