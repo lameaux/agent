@@ -4,6 +4,8 @@ import java.util.Properties;
 
 public class StringUtils {
 
+	public static final String CRLF = "\r\n";	
+	
 	public static boolean nullOrEmpty(String value) {
 		return value == null || value.trim().isEmpty();
 	}	
@@ -15,7 +17,7 @@ public class StringUtils {
 				continue;
 			}
 			String value = p.getProperty(propertyName);
-			sb.append(propertyName).append("=").append(value).append("\r\n");
+			sb.append(propertyName).append("=").append(value).append(CRLF);
 		}
 		return sb.toString();
 	}

@@ -2,9 +2,9 @@ package processor;
 
 import java.util.List;
 
-public class HelpCommand extends CommandBase implements Command {
+import utils.StringUtils;
 
-	private static final String CRLF = "\r\n";
+public class HelpCommand extends CommandBase implements Command {
 
 	private List<Command> commands;
 
@@ -12,15 +12,34 @@ public class HelpCommand extends CommandBase implements Command {
 		this.commands = commands;
 	}
 
+	@Override
 	public String execute(String request) {
-		StringBuffer sb = new StringBuffer();
-		sb.append("Supported commands:" + CRLF);
-		for (Command command : commands) {
-			sb.append(command.help()).append(CRLF);
+		
+		String[] params = parameters(request);
+		if (params.length == 1 && !StringUtils.nullOrEmpty(params[0])) {
+			for (Command command : commands) {
+				if (command.name().equalsIgnoreCase(params[0])) {
+					return command.help();
+				}
+			}
+			return "Command not found";
+		} else {		
+			StringBuffer sb = new StringBuffer();
+			sb.append("Supported commands:" + StringUtils.CRLF);
+			for (Command command : commands) {
+				sb.append(command.name()).append(StringUtils.CRLF);
+			}
+			sb.append(StringUtils.CRLF + "Type \"help <command name>\" for the list of parameters" + StringUtils.CRLF);			
+			return sb.toString();
 		}
-		return sb.toString();
+		
 	}
 
+	@Override
+	public String help() {
+		return "help [command name]";
+	}	
+	
 	@Override
 	public String name() {
 		return "help";

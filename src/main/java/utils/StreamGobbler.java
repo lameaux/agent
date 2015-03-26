@@ -26,7 +26,7 @@ public class StreamGobbler extends Thread {
 			String line = null;
 			while (!finished && (line = br.readLine()) != null) {
 				if (!finished) {
-					caw.append(line).append("\r\n");
+					caw.append(line).append(StringUtils.CRLF);
 				}
 			}
 		} catch (IOException ioe) {

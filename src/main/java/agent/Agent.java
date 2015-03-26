@@ -24,6 +24,7 @@ public class Agent {
 	private PingSender pingSender;
 	private PingStatusStorage pingStatusStorage;
 	private JobManager jobManager;
+	private AgentManager agentManager;
 	
 
 	private CommandProcessor commandProcessor;
@@ -40,6 +41,7 @@ public class Agent {
 		pingStatusStorage = new PingStatusStorage();
 		pingSender = new PingSender();
 		// managers
+		agentManager = new AgentManager();
 		jobManager = new JobManager();
 		serviceManager = new ServiceManager();
 
@@ -94,6 +96,10 @@ public class Agent {
 		return jobManager;
 	}
 	
+	public AgentManager getAgentManager() {
+		return agentManager;
+	}
+
 	public static void main(String[] args) {
 		// setup netty logger
 		InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());		

@@ -26,7 +26,7 @@ public class PingCommand extends CommandBase implements Command {
 		long start = System.currentTimeMillis();
 		try {
 			PingInfo pingInfo = pingSender.ping(url, noProxy);
-			return pingInfo.getAgentId().toString() + "\r\n" + pingStatus.toString() + "\r\nResponse time:" + (pingStatus.getTime() - start);
+			return pingInfo.getAgentId().toString() + StringUtils.CRLF + pingStatus.toString() + StringUtils.CRLF +"Response time:" + (pingStatus.getTime() - start);
 		} catch (Exception e) {
 			pingStatus.setError(true);
 			pingStatus.setMessage(e.getMessage());
@@ -34,7 +34,7 @@ public class PingCommand extends CommandBase implements Command {
 			pingStatus.setTime(System.currentTimeMillis());
 		}
 		
-		return url + "\r\n" + pingStatus.toString() + "\r\nResponse time:" + (pingStatus.getTime() - start);
+		return url + StringUtils.CRLF + pingStatus.toString() + StringUtils.CRLF + "Response time:" + (pingStatus.getTime() - start);
 		
 	}
 

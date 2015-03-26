@@ -73,7 +73,7 @@ public class JobAddHandler extends RestHandlerBase {
 		if (parameters == null) {
 			return map;
 		}
-		String[] lines = parameters.trim().split("\r\n");
+		String[] lines = parameters.trim().split(StringUtils.CRLF);
 		for (String line : lines) {
 			String[] keyValue = line.trim().split("=", 2);
 			if (keyValue.length == 2) {

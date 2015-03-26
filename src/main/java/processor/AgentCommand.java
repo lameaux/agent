@@ -1,13 +1,11 @@
 package processor;
 
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import java.util.List;
 
 import model.AgentId;
-import storage.ping.PingStatus;
-import storage.ping.PingStatusStorage;
 import utils.StringUtils;
 import agent.Agent;
+import agent.AgentManager;
 
 public class AgentCommand extends CommandBase implements Command {
 
@@ -17,48 +15,35 @@ public class AgentCommand extends CommandBase implements Command {
 	@Override
 	public String execute(String request) {
 
-		PingStatusStorage pingStatusStorage = Agent.get().getPingStatusStorage();
-
-		String param = PARAM_ACTIVE;
-
+		AgentManager agentManager = Agent.get().getAgentManager();
+		
 		String[] params = parameters(request);
-		if (params.length == 1 && !StringUtils.nullOrEmpty(params[0])) {
-			param = params[0];
-		}
-
-		if (PARAM_ACTIVE.equals(param) || PARAM_ALL.equals(param)) {
-
-			boolean activeOnly = PARAM_ACTIVE.equals(param);
-
-			Map<AgentId, PingStatus> pingStatuses = pingStatusStorage.getSnapshot();
-			StringBuffer sb = new StringBuffer();
-			for (AgentId agentId : pingStatuses.keySet()) {
-				PingStatus pingStatus = pingStatuses.get(agentId);
-				if (!activeOnly || pingStatus.isActive()) {
-					appendAgentStatusLine(sb, agentId, pingStatus);
+		
+		if (params.length == 1) {
+			String param = StringUtils.nullOrEmpty(params[0]) ? PARAM_ACTIVE : params[0];
+			
+			if (PARAM_ACTIVE.equals(param) || PARAM_ALL.equals(param)) {
+				List<AgentId> agentList;
+				if (PARAM_ACTIVE.equals(param)) {
+					agentList = agentManager.getActive();
+				} else {
+					agentList = agentManager.getAll();
 				}
-			}
-			return sb.toString();
+
+				StringBuffer sb = new StringBuffer();
+				for (AgentId agentId : agentList) {
+					sb.append(agentId.toString()).append(StringUtils.CRLF);
+				}
+				return sb.toString();
+			}		
 		}
+
 		return syntaxError();
-
-	}
-
-	private void appendAgentStatusLine(StringBuffer sb, AgentId agentId, PingStatus pingStatus) {
-
-		sb.append(agentId);
-		if (pingStatus.isError()) {
-			sb.append(" Error: ").append(pingStatus.getMessage());
-		} else {
-			sb.append(" Ping: ").append(TimeUnit.MILLISECONDS.toMinutes(System.currentTimeMillis() - pingStatus.getTime())).append(" min ago");
-		}
-
-		sb.append("\r\n");
 	}
 
 	@Override
 	public String help() {
-		return "agent [active|all]";
+		return "agent [active|all|add host:port]";
 	}
 
 	@Override

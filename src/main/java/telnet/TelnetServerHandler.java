@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import processor.CommandProcessor;
+import utils.StringUtils;
 import agent.Agent;
 
 @Sharable
@@ -28,7 +29,7 @@ public class TelnetServerHandler extends SimpleChannelInboundHandler<String> {
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
 		// Send greeting for a new connection.
-		ctx.write("Agent on " + InetAddress.getLocalHost().getHostName() + "\r\n");
+		ctx.write("Agent on " + InetAddress.getLocalHost().getHostName() + StringUtils.CRLF);
 		ctx.flush();
 	}
 
@@ -38,12 +39,12 @@ public class TelnetServerHandler extends SimpleChannelInboundHandler<String> {
 		String response;
 		boolean close = false;
 		if (request.isEmpty()) {
-			response = "\r\n";
+			response = StringUtils.CRLF;
 		} else if ("exit".equals(request.toLowerCase())) {
-			response = "Bye!\r\n";
+			response = "Bye!" + StringUtils.CRLF;
 			close = true;
 		} else {
-			response = commandProcessor.process(request) + "\r\n";
+			response = commandProcessor.process(request) + StringUtils.CRLF;
 		}
 
 		ChannelFuture future = ctx.write(response);

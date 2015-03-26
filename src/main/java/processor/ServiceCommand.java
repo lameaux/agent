@@ -27,9 +27,9 @@ public class ServiceCommand extends CommandBase implements Command {
 			StringBuffer sb = new StringBuffer();
 			for (String serviceName : allStates.keySet()) {
 				ServiceState serviceState = allStates.get(serviceName);
-				sb.append(serviceName).append(": ").append(serviceState.toString()).append("\r\n");
+				sb.append(serviceName).append(": ").append(serviceState.toString()).append(StringUtils.CRLF);
 			}
-			sb.append("\r\nHelp: ").append(help());
+			sb.append(StringUtils.CRLF).append("Help: ").append(help());
 			return sb.toString();
 		}
 		
