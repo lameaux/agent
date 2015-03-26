@@ -7,7 +7,6 @@ import java.io.OutputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
 import org.apache.http.client.config.RequestConfig;
@@ -19,6 +18,7 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import utils.HttpUtils;
 import agent.Agent;
 import agent.Configuration;
 
@@ -36,11 +36,7 @@ public class DownloadClient {
 		CloseableHttpClient httpclient = HttpClients.createDefault();
 		try {
 
-			RequestConfig.Builder requestConfigBuilder = RequestConfig.custom().setSocketTimeout(3000).setConnectTimeout(3000);
-
-			if (!noProxy && config.isHttpProxy()) {
-				requestConfigBuilder.setProxy(new HttpHost(config.getHttpProxyHost(), config.getHttpProxyPort()));
-			}
+			RequestConfig.Builder requestConfigBuilder = HttpUtils.createRequestConfigBuilder(config, noProxy);
 
 			HttpGet request = new HttpGet(url);
 			request.setConfig(requestConfigBuilder.build());
