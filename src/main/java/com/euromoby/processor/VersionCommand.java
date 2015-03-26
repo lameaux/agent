@@ -1,7 +1,10 @@
 package com.euromoby.processor;
 
+import org.springframework.stereotype.Component;
+
 import com.euromoby.agent.Agent;
 
+@Component
 public class VersionCommand extends CommandBase implements Command {
 
 	@Override

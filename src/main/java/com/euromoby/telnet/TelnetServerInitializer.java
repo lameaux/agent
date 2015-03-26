@@ -8,6 +8,8 @@ import io.netty.handler.codec.Delimiters;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 
+import com.euromoby.processor.CommandProcessor;
+
 public class TelnetServerInitializer extends ChannelInitializer<SocketChannel> {
 
 	private static final StringDecoder DECODER = new StringDecoder();
@@ -15,8 +17,8 @@ public class TelnetServerInitializer extends ChannelInitializer<SocketChannel> {
 
 	private final TelnetServerHandler serverHandler;
 
-	public TelnetServerInitializer() {
-		serverHandler = new TelnetServerHandler();
+	public TelnetServerInitializer(CommandProcessor commandProcessor) {
+		serverHandler = new TelnetServerHandler(commandProcessor);
 	}
 
 	@Override

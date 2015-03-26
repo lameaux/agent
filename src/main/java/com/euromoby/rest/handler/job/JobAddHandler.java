@@ -11,15 +11,18 @@ import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.euromoby.agent.Agent;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.euromoby.job.JobDetail;
+import com.euromoby.job.JobManager;
 import com.euromoby.rest.RestException;
 import com.euromoby.rest.handler.RestHandlerBase;
 import com.euromoby.utils.DateUtils;
 import com.euromoby.utils.IOUtils;
 import com.euromoby.utils.StringUtils;
 
-
+@Component
 public class JobAddHandler extends RestHandlerBase {
 
 	public static final String URL = "/jobs/add";
@@ -28,6 +31,18 @@ public class JobAddHandler extends RestHandlerBase {
 	private static final String REQUEST_INPUT_SCHEDULE_TIME = "schedule_time";
 	private static final String REQUEST_INPUT_PARAMETERS = "parameters";
 
+	private JobManager jobManager;
+	
+	@Autowired
+	public JobAddHandler(JobManager jobManager) {
+		this.jobManager = jobManager;
+	}
+	
+	@Override
+	public String getUrl() {
+		return URL;
+	}	
+	
 	@Override
 	public FullHttpResponse doGet() {
 		InputStream is = JobAddHandler.class.getResourceAsStream("jobadd.html");
@@ -64,7 +79,7 @@ public class JobAddHandler extends RestHandlerBase {
 		jobDetail.setParameters(parseParameters(parameters));
 		jobDetail.setScheduleTime(scheduleTime);
 
-		Agent.get().getJobManager().submit(jobDetail);
+		jobManager.submit(jobDetail);
 
 		return createHttpResponse(HttpResponseStatus.OK, fromString("OK"));
 	}

@@ -14,14 +14,16 @@ import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import com.euromoby.agent.Agent;
+import com.euromoby.agent.Config;
 import com.euromoby.rest.RestException;
 import com.euromoby.rest.handler.RestHandlerBase;
 import com.euromoby.utils.IOUtils;
 import com.euromoby.utils.StringUtils;
 
-
+@Component
 public class UploadHandler extends RestHandlerBase {
 
 	public static final String URL = "/upload";
@@ -33,8 +35,14 @@ public class UploadHandler extends RestHandlerBase {
 
 	private static final Logger LOG = LoggerFactory.getLogger(UploadHandler.class);
 
-	public UploadHandler() {
-		this.uploadPath = Agent.get().getConfig().getAgentFilesPath();
+	@Override
+	public String getUrl() {
+		return URL;
+	}	
+	
+	@Autowired
+	public UploadHandler(Config config) {
+		this.uploadPath = config.getAgentFilesPath();
 	}
 
 	@Override

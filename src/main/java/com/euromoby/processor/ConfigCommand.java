@@ -1,15 +1,23 @@
 package com.euromoby.processor;
 
-import com.euromoby.agent.Agent;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.euromoby.agent.Config;
 import com.euromoby.utils.StringUtils;
 
-
+@Component
 public class ConfigCommand extends CommandBase implements Command {
 
+	private Config config;
+	
+	@Autowired
+	public ConfigCommand(Config config) {
+		this.config = config;
+	}
+	
 	@Override
 	public String execute(String request) {
-		Config config = Agent.get().getConfig();
 		
 		String[] params = parameters(request);
 		if (params.length == 1 && !StringUtils.nullOrEmpty(params[0])) {

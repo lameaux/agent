@@ -2,10 +2,12 @@ package com.euromoby.processor;
 
 import java.util.Arrays;
 
+import org.springframework.stereotype.Component;
+
 import com.euromoby.utils.NetUtils;
 import com.euromoby.utils.StringUtils;
 
-
+@Component
 public class InetAddrCommand extends CommandBase implements Command {
 
 	@Override

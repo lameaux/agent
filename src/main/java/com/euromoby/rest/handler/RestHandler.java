@@ -11,5 +11,7 @@ public interface RestHandler {
 	void setHttpRequest(HttpRequest request);
 
 	void setHttpPostRequestDecoder(HttpPostRequestDecoder decoder);
+	
+	String getUrl();
 
 }

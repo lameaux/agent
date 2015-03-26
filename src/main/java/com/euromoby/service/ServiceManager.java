@@ -7,8 +7,14 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-public class ServiceManager implements DisposableBean {
+import com.euromoby.agent.Config;
+
+@Component
+public class ServiceManager implements InitializingBean, DisposableBean {
 
 	public static final String ACTION_STATUS = "status";
 	public static final String ACTION_START = "start";
@@ -20,8 +26,14 @@ public class ServiceManager implements DisposableBean {
 
 	private final Map<String, Service> services = new ConcurrentHashMap<String, Service>();
 
-	public void registerService(Service service) {
-		services.put(service.getServiceName(), service);
+	private Config config;
+	
+	@Autowired
+	public ServiceManager(Config config, List<Service> serviceList) {
+		this.config = config;
+		for (Service service : serviceList) {
+			services.put(service.getServiceName(), service);
+		}
 	}
 
 	public ServiceState executeAction(final String serviceName, final String action) {
@@ -90,5 +102,14 @@ public class ServiceManager implements DisposableBean {
 	public void destroy() throws Exception {
 		shutdownAll();
 	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		for (String serviceName : config.getAutorunServices()) {
+			executeAction(serviceName, ServiceManager.ACTION_START);
+		}
+		
+	}
 	
+
 }

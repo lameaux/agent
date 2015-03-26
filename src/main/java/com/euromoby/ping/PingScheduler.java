@@ -7,11 +7,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import com.euromoby.agent.Agent;
 import com.euromoby.agent.AgentManager;
 import com.euromoby.agent.Config;
 import com.euromoby.model.AgentId;
@@ -19,7 +19,7 @@ import com.euromoby.model.PingInfo;
 import com.euromoby.service.Service;
 import com.euromoby.service.ServiceState;
 
-
+@Component
 public class PingScheduler implements Service {
 
 	public static final String SERVICE_NAME = "ping";
@@ -32,16 +32,19 @@ public class PingScheduler implements Service {
 	private volatile boolean interrupted = false;
 
 	private AgentManager agentManager;
-
 	private Config config;
+	private PingSender pingSender;
+
 	private ExecutorService executor;
 	private ExecutorCompletionService<PingInfo> completionService;
 
-	public PingScheduler() {
-		config = Agent.get().getConfig();
-		agentManager = Agent.get().getAgentManager();
+	@Autowired
+	public PingScheduler(Config config, AgentManager agentManager, PingSender pingSender) {
+		this.config = config;
+		this.agentManager = agentManager;
+		this.pingSender = pingSender;
 
-		executor = Executors.newFixedThreadPool(config.getJobPoolSize());
+		executor = Executors.newFixedThreadPool(this.config.getPingPoolSize());
 		completionService = new ExecutorCompletionService<PingInfo>(executor);
 	}
 
@@ -70,7 +73,7 @@ public class PingScheduler implements Service {
 			// check for new pings
 			List<AgentId> agentsToPing = agentManager.getAllForPing();
 			for (AgentId agentId : agentsToPing) {
-				completionService.submit(new PingWorker(agentId));
+				completionService.submit(new PingWorker(agentId, pingSender));
 				agentManager.notifyPingSendAttempt(agentId);
 			}
 

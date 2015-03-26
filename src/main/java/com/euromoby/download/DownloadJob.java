@@ -13,13 +13,15 @@ public class DownloadJob extends Job {
 	public static final String PARAM_LOCATION = "location";
 	public static final String PARAM_NOPROXY = "noproxy";
 	
-	public DownloadJob(JobDetail jobDetail) {
+	private DownloadClient downloadClient;
+	
+	public DownloadJob(JobDetail jobDetail, DownloadClient downloadClient) {
 		super(jobDetail);
+		this.downloadClient = downloadClient;
 	}
 
 	@Override
 	public JobDetail call() throws Exception {
-		DownloadClient dc = new DownloadClient();
 		jobDetail.setState(JobState.RUNNING);
 		jobDetail.setStartTime(System.currentTimeMillis());
 		try {
@@ -29,7 +31,7 @@ public class DownloadJob extends Job {
 			String location = parameters.get(PARAM_LOCATION);
 			boolean noProxy = Boolean.valueOf(parameters.get(PARAM_NOPROXY));			
 
-			dc.download(url, location, noProxy);
+			downloadClient.download(url, location, noProxy);
 			jobDetail.setState(JobState.FINISHED);
 		} catch (Exception e) {
 			jobDetail.setError(true);

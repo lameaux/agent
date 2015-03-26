@@ -5,10 +5,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.stereotype.Component;
+
 import com.euromoby.model.AgentId;
 import com.euromoby.model.PingInfo;
 
-
+@Component
 public class AgentManager {
 
 	private Map<AgentId, AgentStatus> agents = new HashMap<AgentId, AgentStatus>();

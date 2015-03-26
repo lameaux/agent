@@ -1,8 +1,11 @@
 package com.euromoby.processor;
 
+import org.springframework.stereotype.Component;
+
 import com.euromoby.utils.ShellExecutor;
 import com.euromoby.utils.StringUtils;
 
+@Component
 public class ShellCommand extends CommandBase implements Command {
 
 	private static final long TIMEOUT = 60 * 1000; // 1 minute

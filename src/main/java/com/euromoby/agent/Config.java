@@ -4,8 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
+import com.euromoby.model.AgentId;
 import com.euromoby.rest.RestServer;
 import com.euromoby.telnet.TelnetServer;
+import com.euromoby.utils.NetUtils;
 import com.euromoby.utils.StringUtils;
 import com.euromoby.utils.SystemUtils;
 
@@ -57,6 +59,9 @@ public class Config {
 	public static final String PING_POOL_SIZE = "agent.ping.pool.size";
 	public static final String DEFAULT_PING_POOL_SIZE = "2";	
 
+	public AgentId getAgentId() {
+		return new AgentId(NetUtils.getHostname(), getBasePort());
+	}	
 	
 	public int getBasePort() {
 		return Integer.parseInt(properties.getProperty(AGENT_BASE_PORT, DEFAULT_AGENT_BASE_PORT));

@@ -38,7 +38,7 @@ import java.util.Set;
 import com.euromoby.rest.RestException;
 
 
-public class RestHandlerBase implements RestHandler {
+public abstract class RestHandlerBase implements RestHandler {
 
 	protected HttpRequest request;
 	protected HttpPostRequestDecoder decoder;
@@ -225,4 +225,7 @@ public class RestHandlerBase implements RestHandler {
 		}
 	}
 
+	@Override
+	public abstract String getUrl();
+	
 }

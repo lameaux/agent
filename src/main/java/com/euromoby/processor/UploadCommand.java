@@ -3,25 +3,32 @@ package com.euromoby.processor;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.euromoby.agent.Agent;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.euromoby.job.JobDetail;
 import com.euromoby.job.JobManager;
 import com.euromoby.upload.UploadJob;
 import com.euromoby.utils.StringUtils;
 
-
+@Component
 public class UploadCommand extends CommandBase implements Command {
 
 	private static final String NO_PROXY = "noproxy";
 
+	private JobManager jobManager;
+	
+	@Autowired
+	public UploadCommand(JobManager jobManager) {
+		this.jobManager = jobManager;
+	}
+	
 	@Override
 	public String execute(String request) {
 		String[] params = parameters(request);
 		if (params.length < 2 || StringUtils.nullOrEmpty(params[0]) || StringUtils.nullOrEmpty(params[1])) {
 			return syntaxError();
 		}
-
-		JobManager jobManager = Agent.get().getJobManager();
 
 		String location = params[0];
 		String url = params[1];

@@ -1,8 +1,11 @@
 package com.euromoby.processor;
 
+import org.springframework.stereotype.Component;
+
 import com.euromoby.utils.NetUtils;
 import com.euromoby.utils.StringUtils;
 
+@Component
 public class HostAddrCommand extends CommandBase implements Command {
 
 	@Override

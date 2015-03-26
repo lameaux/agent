@@ -1,17 +1,25 @@
 package com.euromoby.rest.handler.welcome;
 
-import com.euromoby.agent.Agent;
-import com.euromoby.rest.handler.RestHandlerBase;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.CharsetUtil;
 
+import org.springframework.stereotype.Component;
+
+import com.euromoby.agent.Agent;
+import com.euromoby.rest.handler.RestHandlerBase;
+
+@Component
 public class WelcomeHandler extends RestHandlerBase {
 
 	public static final String URL = "/";	
+
+	@Override
+	public String getUrl() {
+		return URL;
+	}	
 	
 	@Override
 	public FullHttpResponse doGet() {

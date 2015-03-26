@@ -11,12 +11,13 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import com.euromoby.agent.Agent;
 import com.euromoby.agent.Config;
 import com.euromoby.utils.HttpUtils;
 
-
+@Component
 public class UploadClient {
 
 	private static final String REQUEST_INPUT_LOCATION = "location";
@@ -24,8 +25,9 @@ public class UploadClient {
 
 	private Config config;
 
-	public UploadClient() {
-		config = Agent.get().getConfig();
+	@Autowired
+	public UploadClient(Config config) {
+		this.config = config;
 	}
 
 	public void upload(String location, String targetUrl, boolean noProxy) throws Exception {

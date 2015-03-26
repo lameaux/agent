@@ -12,19 +12,21 @@ import io.netty.handler.ssl.util.SelfSignedCertificate;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import com.euromoby.agent.Agent;
 import com.euromoby.agent.Config;
 import com.euromoby.service.Service;
 import com.euromoby.service.ServiceState;
 
-
+@Component
 public class RestServer implements Service {
 
 	public static final String SERVICE_NAME = "rest";
 	public static final int REST_PORT = 80;
 	
-	private final Config config;
+	private Config config;
+	private RestMapper restMapper; 
 	private EventLoopGroup bossGroup;
 	private EventLoopGroup workerGroup;
 	private volatile ServiceState serviceState = ServiceState.STOPPED;
@@ -34,8 +36,10 @@ public class RestServer implements Service {
 
 	private static final Logger LOG = LoggerFactory.getLogger(RestServer.class); 
 	
-	public RestServer() {
-		this.config = Agent.get().getConfig();
+	@Autowired
+	public RestServer(Config config, RestMapper restMapper) {
+		this.config = config;
+		this.restMapper = restMapper;
 
 		if (config.isRestSsl()) {
 			try {
@@ -62,7 +66,7 @@ public class RestServer implements Service {
 			b.group(bossGroup, workerGroup);
 			b.channel(NioServerSocketChannel.class);
 			b.handler(new LoggingHandler(LogLevel.INFO));
-			b.childHandler(new RestServerInitializer(sslCtx));
+			b.childHandler(new RestServerInitializer(sslCtx, restMapper));
 
 			serverChannel = b.bind(config.getRestPort()).sync().channel();
 

@@ -2,22 +2,29 @@ package com.euromoby.processor;
 
 import java.util.List;
 
-import com.euromoby.agent.Agent;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.euromoby.agent.AgentManager;
 import com.euromoby.model.AgentId;
 import com.euromoby.utils.StringUtils;
 
-
+@Component
 public class AgentCommand extends CommandBase implements Command {
 
 	private static final String PARAM_ACTIVE = "active";
 	private static final String PARAM_ALL = "all";
 	private static final String PARAM_ADD = "add";
 
+	private AgentManager agentManager; 
+	
+	@Autowired
+	public AgentCommand(AgentManager agentManager) {
+		this.agentManager = agentManager;
+	}
+	
 	@Override
 	public String execute(String request) {
-
-		AgentManager agentManager = Agent.get().getAgentManager();
 
 		String[] parameters = parameters(request);
 

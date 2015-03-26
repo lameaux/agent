@@ -1,6 +1,5 @@
 package com.euromoby.processor;
 
-
 public interface Command {
 
 	String execute(String request);

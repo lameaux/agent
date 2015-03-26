@@ -1,14 +1,24 @@
 package com.euromoby.processor;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.euromoby.model.PingInfo;
 import com.euromoby.ping.PingSender;
 import com.euromoby.storage.ping.PingStatus;
 import com.euromoby.utils.StringUtils;
 
-
+@Component
 public class PingCommand extends CommandBase implements Command {
 
 	private static final String NO_PROXY = "noproxy"; 
+	
+	private PingSender pingSender;
+	
+	@Autowired
+	public PingCommand(PingSender pingSender) {
+		this.pingSender = pingSender;
+	}
 	
 	@Override
 	public String execute(String request) {
@@ -24,7 +34,6 @@ public class PingCommand extends CommandBase implements Command {
 		PingStatus pingStatus = new PingStatus();
 		long start = System.currentTimeMillis();
 		try {
-			PingSender pingSender = new PingSender();
 			PingInfo pingInfo = pingSender.ping(host, Integer.parseInt(restPort), noProxy);
 			return pingInfo.getAgentId().toString() + StringUtils.CRLF + pingStatus.toString() + StringUtils.CRLF +"Response time:" + (pingStatus.getTime() - start);
 		} catch (Exception e) {

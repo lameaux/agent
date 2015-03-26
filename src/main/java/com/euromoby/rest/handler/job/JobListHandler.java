@@ -9,24 +9,39 @@ import io.netty.util.CharsetUtil;
 import java.io.InputStream;
 import java.util.Set;
 
-import com.euromoby.agent.Agent;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.euromoby.job.JobDetail;
+import com.euromoby.job.JobManager;
 import com.euromoby.job.JobState;
 import com.euromoby.rest.handler.RestHandlerBase;
 import com.euromoby.utils.DateUtils;
 import com.euromoby.utils.IOUtils;
 
-
+@Component
 public class JobListHandler extends RestHandlerBase {
 
 	public static final String URL = "/jobs";
 
+	private JobManager jobManager;
+	
+	@Autowired
+	public JobListHandler(JobManager jobManager) {
+		this.jobManager = jobManager;
+	}	
+	
+	@Override
+	public String getUrl() {
+		return URL;
+	}	
+	
 	@Override
 	public FullHttpResponse doGet() {
 		InputStream is = JobListHandler.class.getResourceAsStream("joblist.html");
 		String pageContent = IOUtils.streamToString(is);
 
-		Set<JobDetail> jobs = Agent.get().getJobManager().getSnapshot();
+		Set<JobDetail> jobs = jobManager.getSnapshot();
 		StringBuffer sb = new StringBuffer();
 
 		for (JobDetail job : jobs) {

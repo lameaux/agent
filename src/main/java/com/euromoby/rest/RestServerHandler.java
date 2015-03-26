@@ -33,12 +33,17 @@ import org.slf4j.LoggerFactory;
 
 import com.euromoby.rest.handler.RestHandler;
 
-
 public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 
 	private RestHandler handler;
 	private HttpRequest request;
 
+	private RestMapper restMapper;
+	
+	public RestServerHandler(RestMapper restMapper) {
+		this.restMapper = restMapper;
+	}
+	
 	// store on disk if > 16k
 	private static final HttpDataFactory factory = new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);
 
@@ -62,7 +67,7 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 			return null;
 		}
 		
-		return RestMapper.getHandler(uri);
+		return restMapper.getHandler(uri);
 	}
 
 	@Override

@@ -10,13 +10,15 @@ import io.netty.handler.logging.LoggingHandler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import com.euromoby.agent.Agent;
 import com.euromoby.agent.Config;
+import com.euromoby.processor.CommandProcessor;
 import com.euromoby.service.Service;
 import com.euromoby.service.ServiceState;
 
-
+@Component
 public class TelnetServer implements Service {
 
 	public static final String SERVICE_NAME = "telnet";
@@ -24,15 +26,18 @@ public class TelnetServer implements Service {
 	
 	private EventLoopGroup bossGroup;
 	private EventLoopGroup workerGroup;
-	private volatile ServiceState serviceState = ServiceState.STOPPED;
-
 	private Channel serverChannel;
+
+	private volatile ServiceState serviceState = ServiceState.STOPPED;
 	private Config config;
+	private CommandProcessor commandProcessor;
 
 	private static final Logger LOG = LoggerFactory.getLogger(TelnetServer.class); 	
 	
-	public TelnetServer() {
-		this.config = Agent.get().getConfig();
+	@Autowired
+	public TelnetServer(Config config, CommandProcessor commandProcessor) {
+		this.config = config;
+		this.commandProcessor = commandProcessor;
 	}
 
 	@Override
@@ -47,7 +52,7 @@ public class TelnetServer implements Service {
 			b.group(bossGroup, workerGroup);
 			b.channel(NioServerSocketChannel.class);
 			b.handler(new LoggingHandler(LogLevel.INFO));
-			b.childHandler(new TelnetServerInitializer());
+			b.childHandler(new TelnetServerInitializer(commandProcessor));
 
 			serverChannel = b.bind(config.getTelnetPort()).sync().channel();
 

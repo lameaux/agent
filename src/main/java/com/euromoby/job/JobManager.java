@@ -10,7 +10,9 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
+@Component
 public class JobManager {
 
 	private static final Logger LOG = LoggerFactory.getLogger(JobManager.class);

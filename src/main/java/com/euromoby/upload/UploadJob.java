@@ -12,8 +12,11 @@ public class UploadJob extends Job {
 	public static final String PARAM_LOCATION = "location";
 	public static final String PARAM_NOPROXY = "noproxy";
 	
-	public UploadJob(JobDetail jobDetail) {
+	private UploadClient uploadClient;
+	
+	public UploadJob(JobDetail jobDetail, UploadClient uploadClient) {
 		super(jobDetail);
+		this.uploadClient = uploadClient;
 	}
 
 	@Override
@@ -28,8 +31,7 @@ public class UploadJob extends Job {
 			String location = parameters.get(PARAM_LOCATION);
 			boolean noProxy = Boolean.valueOf(parameters.get(PARAM_NOPROXY));			
 
-			UploadClient uc = new UploadClient();
-			uc.upload(location, url, noProxy);
+			uploadClient.upload(location, url, noProxy);
 			jobDetail.setState(JobState.FINISHED);
 		} catch (Exception e) {
 			jobDetail.setError(true);

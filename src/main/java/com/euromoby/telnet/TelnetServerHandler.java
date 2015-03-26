@@ -2,7 +2,6 @@ package com.euromoby.telnet;
 
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
@@ -11,18 +10,15 @@ import java.net.InetAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.euromoby.agent.Agent;
 import com.euromoby.processor.CommandProcessor;
 import com.euromoby.utils.StringUtils;
 
-
-@Sharable
 public class TelnetServerHandler extends SimpleChannelInboundHandler<String> {
 
 	private CommandProcessor commandProcessor;
 
-	public TelnetServerHandler() {
-		this.commandProcessor = Agent.get().getCommandProcessor();
+	public TelnetServerHandler(CommandProcessor commandProcessor) {
+		this.commandProcessor = commandProcessor;
 	}
 
 	private static final Logger LOG = LoggerFactory.getLogger(TelnetServerHandler.class); 	

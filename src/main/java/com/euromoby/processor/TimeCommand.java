@@ -1,7 +1,10 @@
 package com.euromoby.processor;
 
+import org.springframework.stereotype.Component;
+
 import com.euromoby.utils.DateUtils;
 
+@Component
 public class TimeCommand extends CommandBase implements Command {
 
 	@Override

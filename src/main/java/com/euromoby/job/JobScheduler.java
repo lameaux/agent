@@ -1,6 +1,5 @@
 package com.euromoby.job;
 
-import java.lang.reflect.Constructor;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
@@ -9,13 +8,14 @@ import java.util.concurrent.Future;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import com.euromoby.agent.Agent;
 import com.euromoby.agent.Config;
 import com.euromoby.service.Service;
 import com.euromoby.service.ServiceState;
 
-
+@Component
 public class JobScheduler implements Service {
 
 	public static final String SERVICE_NAME = "job";
@@ -28,16 +28,19 @@ public class JobScheduler implements Service {
 	private volatile boolean interrupted = false;
 
 	private JobManager jobManager;
+	private JobFactory jobFactory;
 
 	private Config config;
 	private ExecutorService executor;
 	private ExecutorCompletionService<JobDetail> completionService;
 
-	public JobScheduler() {
-		config = Agent.get().getConfig();
-		jobManager = Agent.get().getJobManager();
+	@Autowired
+	public JobScheduler(Config config, JobManager jobManager, JobFactory jobFactory) {
+		this.config = config;
+		this.jobManager = jobManager;
+		this.jobFactory = jobFactory;
 
-		executor = Executors.newFixedThreadPool(config.getJobPoolSize());
+		executor = Executors.newFixedThreadPool(this.config.getJobPoolSize());
 		completionService = new ExecutorCompletionService<JobDetail>(executor);
 	}
 
@@ -68,7 +71,7 @@ public class JobScheduler implements Service {
 				JobDetail jobDetail = jobManager.getNextJob();
 				jobManager.notify(jobDetail);				
 				try {
-					Job job = createJob(jobDetail);
+					Job job = jobFactory.createJob(jobDetail);
 					completionService.submit(job);
 					jobDetail.setState(JobState.WAITING);
 				} catch (Exception e) {
@@ -94,13 +97,7 @@ public class JobScheduler implements Service {
 		LOG.info("JobScheduler stopped");
 	}
 
-	private Job createJob(JobDetail jobDetail) throws Exception {
-		Class<?> clazz = Class.forName(jobDetail.getJobClass());
-		Constructor<?> ctor = clazz.getConstructor(JobDetail.class);
-		Job job = (Job) ctor.newInstance(jobDetail);
-		return job;
 
-	}
 
 	@Override
 	public void startService() {

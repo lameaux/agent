@@ -9,15 +9,16 @@ import com.euromoby.rest.RestServer;
 
 public class PingWorker implements Callable<PingInfo> {
 
-	protected AgentId agentId;
+	private AgentId agentId;
+	private PingSender pingSender;
 
-	public PingWorker(AgentId agentId) {
+	public PingWorker(AgentId agentId, PingSender pingSender) {
 		this.agentId = agentId;
+		this.pingSender = pingSender;
 	}
 
 	@Override
 	public PingInfo call() throws Exception {
-		PingSender pingSender = new PingSender();
 		PingInfo pingInfo = pingSender.ping(agentId.getHost(), agentId.getBasePort() + RestServer.REST_PORT, false);
 		pingInfo.setAgentId(agentId);
 		return pingInfo;

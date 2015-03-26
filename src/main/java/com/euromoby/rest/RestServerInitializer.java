@@ -9,9 +9,11 @@ import io.netty.handler.ssl.SslContext;
 public class RestServerInitializer extends ChannelInitializer<SocketChannel> {
 
 	private final SslContext sslCtx;
+	private final RestMapper restMapper;
 
-	public RestServerInitializer(SslContext sslCtx) {
+	public RestServerInitializer(SslContext sslCtx, RestMapper restMapper) {
 		this.sslCtx = sslCtx;
+		this.restMapper = restMapper;
 
 	}
 
@@ -22,12 +24,7 @@ public class RestServerInitializer extends ChannelInitializer<SocketChannel> {
 			p.addLast(sslCtx.newHandler(ch.alloc()));
 		}
 		p.addLast(new HttpRequestDecoder());
-		// Uncomment the following line if you don't want to handle HttpChunks.
-		// p.addLast(new HttpObjectAggregator(1048576));
 		p.addLast(new AgentHttpResponseEncoder());
-		// Remove the following line if you don't want automatic content
-		// compression.
-		// p.addLast(new HttpContentCompressor());
-		p.addLast(new RestServerHandler());
+		p.addLast(new RestServerHandler(restMapper));
 	}
 }

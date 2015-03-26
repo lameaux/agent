@@ -9,17 +9,19 @@ import io.netty.util.CharsetUtil;
 
 import java.util.Map;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-
-import com.euromoby.agent.Agent;
+import com.euromoby.agent.AgentManager;
+import com.euromoby.agent.Config;
 import com.euromoby.model.PingInfo;
 import com.euromoby.rest.RestException;
 import com.euromoby.rest.handler.RestHandlerBase;
 import com.google.gson.Gson;
 
+@Component
 public class PingHandler extends RestHandlerBase {
 
 	public static final String URL = "/ping";
@@ -27,6 +29,20 @@ public class PingHandler extends RestHandlerBase {
 
 	private static final Logger LOG = LoggerFactory.getLogger(PingHandler.class);
 	private static final Gson gson = new Gson();
+
+	private Config config;
+	private AgentManager agentManager;
+	
+	@Autowired
+	public PingHandler(Config config, AgentManager agentManager) {
+		this.config = config;
+		this.agentManager = agentManager;
+	}
+	
+	@Override
+	public String getUrl() {
+		return URL;
+	}	
 	
 	@Override
 	public FullHttpResponse doGet() {
@@ -49,7 +65,7 @@ public class PingHandler extends RestHandlerBase {
 		// set real host address
 		pingInfo.getAgentId().setHost(getClientInetAddress().getHostAddress());
 		// notify received ping
-		Agent.get().getAgentManager().notifyPingReceive(pingInfo);
+		agentManager.notifyPingReceive(pingInfo);
 		
 		LOG.debug("Received Ping message from {}", pingInfo.getAgentId());
 		
@@ -57,7 +73,7 @@ public class PingHandler extends RestHandlerBase {
 	}
 
 	private FullHttpResponse createPingResponse() {
-		String jsonResponse = gson.toJson(new PingInfo(Agent.get().getAgentId()));
+		String jsonResponse = gson.toJson(new PingInfo(config.getAgentId()));
 		ByteBuf content = Unpooled.copiedBuffer(jsonResponse, CharsetUtil.UTF_8);
 		FullHttpResponse response = createHttpResponse(HttpResponseStatus.OK, content);
 		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/json; charset=UTF-8");

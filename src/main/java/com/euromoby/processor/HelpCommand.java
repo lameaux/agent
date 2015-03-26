@@ -2,9 +2,11 @@ package com.euromoby.processor;
 
 import java.util.List;
 
+import org.springframework.stereotype.Component;
+
 import com.euromoby.utils.StringUtils;
 
-
+@Component
 public class HelpCommand extends CommandBase implements Command {
 
 	private List<Command> commands;

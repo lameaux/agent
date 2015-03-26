@@ -1,6 +1,8 @@
 package com.euromoby.processor;
 
+import org.springframework.stereotype.Component;
 
+@Component
 public class UptimeCommand extends CommandBase implements Command {
 
 	private static long started = System.currentTimeMillis();

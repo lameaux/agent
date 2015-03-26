@@ -2,7 +2,6 @@ package com.euromoby.processor;
 
 import com.euromoby.utils.StringUtils;
 
-
 public abstract class CommandBase implements Command {
 
 	public static final String COMMAND_SEPARATOR = " ";
@@ -47,7 +46,5 @@ public abstract class CommandBase implements Command {
 		}
 		return params;
 	}
-
-
 
 }

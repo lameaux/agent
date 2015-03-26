@@ -11,25 +11,32 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import com.euromoby.agent.Agent;
 import com.euromoby.processor.CommandProcessor;
 import com.euromoby.rest.handler.RestHandlerBase;
 import com.euromoby.utils.IOUtils;
 import com.google.gson.Gson;
 
+@Component
 public class CliHandler extends RestHandlerBase {
 
 	public static final String URL = "/cli";
-
 	private static final String REQUEST_INPUT_NAME = "request";
 
-	protected final CommandProcessor commandProcessor;
+	private final CommandProcessor commandProcessor;
 
-	public CliHandler() {
-		this.commandProcessor = Agent.get().getCommandProcessor();
+	@Autowired
+	public CliHandler(CommandProcessor commandProcessor) {
+		this.commandProcessor = commandProcessor;
 	}
 
+	@Override
+	public String getUrl() {
+		return URL;
+	}
+	
 	@Override
 	public FullHttpResponse doGet() {
 		InputStream is = CliHandler.class.getResourceAsStream("cli.html");
