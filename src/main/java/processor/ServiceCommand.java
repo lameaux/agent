@@ -29,7 +29,7 @@ public class ServiceCommand extends CommandBase implements Command {
 				ServiceState serviceState = allStates.get(serviceName);
 				sb.append(serviceName).append(": ").append(serviceState.toString()).append(StringUtils.CRLF);
 			}
-			sb.append(StringUtils.CRLF).append("Help: ").append(help());
+			sb.append(StringUtils.CRLF).append("Help: ").append(StringUtils.CRLF).append(help());
 			return sb.toString();
 		}
 		
@@ -56,7 +56,13 @@ public class ServiceCommand extends CommandBase implements Command {
 
 	@Override
 	public String help() {
-		return "service name status|start|stop|restart";
+		
+		return "service\t\t\t\tshow status of all services" + StringUtils.CRLF +
+				"service\t<name>\tstatus\t\tshow service status" + StringUtils.CRLF +
+				"service\t<name>\tstop\t\tstop service" + StringUtils.CRLF +
+				"service\t<name>\trestart\t\trestart service" + StringUtils.CRLF +				
+				"service\t<name>\tstart\t\tstart service";		
+		
 	}
 
 	@Override

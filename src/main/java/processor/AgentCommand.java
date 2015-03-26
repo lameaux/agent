@@ -52,8 +52,12 @@ public class AgentCommand extends CommandBase implements Command {
 
 	@Override
 	public String help() {
-		return "agent [active|all|add host baseport]";
-	}
+		
+		return "agent\t[active]\t\tshow active agents" + StringUtils.CRLF +
+				"agent\tall\t\t\tshow all agents" + StringUtils.CRLF +
+				"agent\tadd <host> <baseport>\tadd new agent";		
+		
+	}	
 
 	@Override
 	public String name() {

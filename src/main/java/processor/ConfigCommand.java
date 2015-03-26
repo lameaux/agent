@@ -6,6 +6,7 @@ import agent.Configuration;
 
 public class ConfigCommand extends CommandBase implements Command {
 
+	@Override
 	public String execute(String request) {
 		Configuration config = Agent.get().getConfig();
 		
@@ -16,6 +17,12 @@ public class ConfigCommand extends CommandBase implements Command {
 		return config.toString();
 	}
 
+	@Override
+	public String help() {
+		return "config\t\t\tlist configuration parameters" + StringUtils.CRLF +
+				"config\t<parameter>\tshow parameter value";
+	}	
+	
 	@Override
 	public String name() {
 		return "config";

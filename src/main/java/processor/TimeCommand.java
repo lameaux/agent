@@ -1,13 +1,19 @@
 package processor;
 
-import java.util.Date;
+import utils.DateUtils;
 
 public class TimeCommand extends CommandBase implements Command {
 
+	@Override
 	public String execute(String request) {
-		return new Date().toString();
+		return DateUtils.iso(System.currentTimeMillis());
 	}
 
+	@Override
+	public String help() {
+		return "time\t\tshow current time (UTC)";
+	}	
+	
 	@Override
 	public String name() {
 		return "time";

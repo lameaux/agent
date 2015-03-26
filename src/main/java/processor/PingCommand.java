@@ -40,9 +40,14 @@ public class PingCommand extends CommandBase implements Command {
 
 	@Override
 	public String help() {
-		return "ping url [noproxy], Example: ping http://localhost:21080/ping noproxy";
+		return "ping\t<agent-ping-url> [noproxy]\t\tsend ping to <agent-ping-url> using proxy" + StringUtils.CRLF
+				+ StringUtils.CRLF + 
+				"Examples:" + StringUtils.CRLF + 
+				"ping\thttp://agent1:21080/ping\t\tuse proxy if available" + StringUtils.CRLF + 
+				"ping\thttp://agent1:21080/ping noproxy\tignore proxy configuration";
+
 	}	
-	
+
 	@Override
 	public String name() {
 		return "ping";

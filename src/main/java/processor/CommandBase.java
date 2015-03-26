@@ -7,16 +7,20 @@ public abstract class CommandBase implements Command {
 
 	public static final String COMMAND_SEPARATOR = " ";
 
+	@Override
 	public abstract String name();
 
+	@Override
 	public String execute(String request) {
 		return null;
 	}
 
+	@Override
 	public String help() {
 		return name();
 	}
 
+	@Override
 	public boolean match(String request) {
 		if (StringUtils.nullOrEmpty(request)) {
 			return false;
@@ -26,7 +30,7 @@ public abstract class CommandBase implements Command {
 	}
 
 	public String syntaxError() {
-		return "Syntax error. Help: " + help();
+		return "Syntax error. Help: " + StringUtils.CRLF + help();
 	}
 
 	public String[] parameters(String request) {

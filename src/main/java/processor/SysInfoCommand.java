@@ -5,6 +5,7 @@ import utils.StringUtils;
 
 public class SysInfoCommand extends CommandBase implements Command {
 
+	@Override
 	public String execute(String request) {
 
 		String[] params = parameters(request);
@@ -18,7 +19,8 @@ public class SysInfoCommand extends CommandBase implements Command {
 
 	@Override
 	public String help() {
-		return "sysinfo [os.arch|os.name|os.version|...]";
+		return "sysinfo\t\t\tlist system parameters" + StringUtils.CRLF +
+				"sysinfo\t<parameter>\tshow parameter value";
 	}	
 	
 	@Override

@@ -18,6 +18,11 @@ public class UptimeCommand extends CommandBase implements Command {
 	}
 
 	@Override
+	public String help() {
+		return "uptime\t\tshow Agent uptime";
+	}	
+	
+	@Override
 	public String name() {
 		return "uptime";
 	}

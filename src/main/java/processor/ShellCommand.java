@@ -7,6 +7,7 @@ public class ShellCommand extends CommandBase implements Command {
 
 	private static final long TIMEOUT = 60 * 1000; // 1 minute
 
+	@Override
 	public String execute(String request) {
 
 		String[] params = parameters(request);
@@ -24,7 +25,7 @@ public class ShellCommand extends CommandBase implements Command {
 
 	@Override
 	public String help() {
-		return "shell echo Hello";
+		return "shell\t<command>\texecute shell command";
 	}
 
 	@Override

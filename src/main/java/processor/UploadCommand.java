@@ -40,7 +40,13 @@ public class UploadCommand extends CommandBase implements Command {
 
 	@Override
 	public String help() {
-		return "upload location url [noproxy], Example: upload page.html http://agent:21080/upload";
+		
+		return "upload\t<location> <agent-upload-url> [noproxy]\t\tupload file from <location> to <agent-upload-url> using proxy" + StringUtils.CRLF
+				+ StringUtils.CRLF + 
+				"Examples:" + StringUtils.CRLF + 
+				"upload\tbundle.zip http://agent1:21080/upload\t\tuse proxy if available" + StringUtils.CRLF + 
+				"upload\tbundle.zip http://agent1:21080/upload noproxy\tignore proxy configuration";
+
 	}
 
 	@Override

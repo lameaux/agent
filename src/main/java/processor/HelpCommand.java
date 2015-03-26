@@ -37,7 +37,8 @@ public class HelpCommand extends CommandBase implements Command {
 
 	@Override
 	public String help() {
-		return "help [command]";
+		return "help\t\t\tlist of available commands" + StringUtils.CRLF +
+				"help\t<command>\tshow help for the command";
 	}	
 	
 	@Override

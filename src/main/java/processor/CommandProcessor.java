@@ -10,13 +10,13 @@ public class CommandProcessor {
 	public CommandProcessor() {
 		commands.add(new HelpCommand(commands));
 		commands.add(new TimeCommand());
-		commands.add(new WhoCommand());
+		commands.add(new HostAddrCommand());
 		commands.add(new UptimeCommand());
 		commands.add(new ShellCommand());
 		commands.add(new VersionCommand());
 		commands.add(new ConfigCommand());
 		commands.add(new SysInfoCommand());
-		commands.add(new InetAddressCommand());
+		commands.add(new InetAddrCommand());
 		commands.add(new ServiceCommand());
 		commands.add(new PingCommand());
 		commands.add(new AgentCommand());
