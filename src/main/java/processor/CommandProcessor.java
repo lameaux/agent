@@ -20,17 +20,21 @@ public class CommandProcessor {
 		commands.add(new ServiceCommand());
 		commands.add(new PingCommand());
 		commands.add(new AgentCommand());
-		commands.add(new DownloadCommand());		
+		commands.add(new DownloadCommand());
 		commands.add(new UploadCommand());
 	}
 
 	public String process(String request) {
-		for (Command command : commands) {
-			if (command.match(request)) {
-				return command.execute(request);
+		try {
+			for (Command command : commands) {
+				if (command.match(request)) {
+					return command.execute(request);
+				}
 			}
+			return "Invalid command";
+		} catch (Exception e) {
+			return "Error: " + e.getMessage();
 		}
-		return "Invalid command";
 	}
 
 }
