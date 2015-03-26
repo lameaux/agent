@@ -29,7 +29,7 @@ public class HelpCommand extends CommandBase implements Command {
 			for (Command command : commands) {
 				sb.append(command.name()).append(StringUtils.CRLF);
 			}
-			sb.append(StringUtils.CRLF + "Type \"help <command name>\" for the list of parameters" + StringUtils.CRLF);			
+			sb.append(StringUtils.CRLF + "Type \"help <command>\" for the list of parameters" + StringUtils.CRLF);			
 			return sb.toString();
 		}
 		
@@ -37,7 +37,7 @@ public class HelpCommand extends CommandBase implements Command {
 
 	@Override
 	public String help() {
-		return "help [command name]";
+		return "help [command]";
 	}	
 	
 	@Override
