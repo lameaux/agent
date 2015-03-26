@@ -157,6 +157,10 @@ public class RestHandlerBase implements RestHandler {
 		return response;
 	}
 
+	protected FullHttpResponse errorResponse(RestException e) {
+		return createHttpResponse(HttpResponseStatus.BAD_REQUEST, fromString(e.getMessage()));
+	}	
+	
 	private void writeResponse(Channel channel, FullHttpResponse response) {
 
 		Set<Cookie> cookies;
@@ -181,12 +185,7 @@ public class RestHandlerBase implements RestHandler {
 		}
 	}
 
-	protected FullHttpResponse errorResponse(RestException e) {
-		FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST, Unpooled.copiedBuffer(e.getMessage(),
-				CharsetUtil.UTF_8));
-		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html; charset=UTF-8");
-		return response;
-	}
+
 
 	/**
 	 * Reading POST data
