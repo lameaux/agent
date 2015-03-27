@@ -160,7 +160,9 @@ public abstract class RestHandlerBase implements RestHandler {
 	}
 
 	protected FullHttpResponse errorResponse(RestException e) {
-		return createHttpResponse(HttpResponseStatus.BAD_REQUEST, fromString(e.getMessage()));
+		FullHttpResponse response = createHttpResponse(HttpResponseStatus.BAD_REQUEST, fromString(e.getMessage()));
+		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
+		return response;
 	}	
 	
 	private void writeResponse(Channel channel, FullHttpResponse response) {
