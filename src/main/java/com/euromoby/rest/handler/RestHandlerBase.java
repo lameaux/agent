@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -226,6 +227,6 @@ public abstract class RestHandlerBase implements RestHandler {
 	}
 
 	@Override
-	public abstract String getUrl();
+	public abstract boolean matchUri(URI uri);
 	
 }

@@ -4,6 +4,8 @@ import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
+import java.net.URI;
+
 import org.springframework.stereotype.Component;
 
 import com.euromoby.rest.handler.RestHandlerBase;
@@ -14,8 +16,8 @@ public class WhatIsMyIpHandler extends RestHandlerBase {
 	public static final String URL = "/whatismyip";
 
 	@Override
-	public String getUrl() {
-		return URL;
+	public boolean matchUri(URI uri) {
+		return uri.getPath().equals(URL);
 	}	
 	
 	@Override

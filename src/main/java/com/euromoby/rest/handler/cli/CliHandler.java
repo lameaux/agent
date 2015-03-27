@@ -9,6 +9,7 @@ import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,8 +34,8 @@ public class CliHandler extends RestHandlerBase {
 	}
 
 	@Override
-	public String getUrl() {
-		return URL;
+	public boolean matchUri(URI uri) {
+		return uri.getPath().equals(URL);
 	}
 	
 	@Override

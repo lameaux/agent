@@ -20,7 +20,7 @@ public class RestMapper {
 
 	public RestHandler getHandler(URI uri) {
 		for (RestHandler restHandler : restHandlers) {
-			if (uri.getPath().equals(restHandler.getUrl())) {
+			if (restHandler.matchUri(uri)) {
 				return restHandler;
 			}
 		}

@@ -5,6 +5,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.ssl.SslContext;
+import io.netty.handler.stream.ChunkedWriteHandler;
 
 public class RestServerInitializer extends ChannelInitializer<SocketChannel> {
 
@@ -25,6 +26,7 @@ public class RestServerInitializer extends ChannelInitializer<SocketChannel> {
 		}
 		p.addLast(new HttpRequestDecoder());
 		p.addLast(new AgentHttpResponseEncoder());
+		p.addLast(new ChunkedWriteHandler());
 		p.addLast(new RestServerHandler(restMapper));
 	}
 }

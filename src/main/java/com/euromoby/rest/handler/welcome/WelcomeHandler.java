@@ -6,6 +6,8 @@ import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.CharsetUtil;
 
+import java.net.URI;
+
 import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.Agent;
@@ -17,8 +19,8 @@ public class WelcomeHandler extends RestHandlerBase {
 	public static final String URL = "/";	
 
 	@Override
-	public String getUrl() {
-		return URL;
+	public boolean matchUri(URI uri) {
+		return uri.getPath().equals(URL);
 	}	
 	
 	@Override

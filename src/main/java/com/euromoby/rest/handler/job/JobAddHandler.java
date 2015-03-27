@@ -7,6 +7,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.CharsetUtil;
 
 import java.io.InputStream;
+import java.net.URI;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,9 +43,9 @@ public class JobAddHandler extends RestHandlerBase {
 	}
 	
 	@Override
-	public String getUrl() {
-		return URL;
-	}	
+	public boolean matchUri(URI uri) {
+		return uri.getPath().equals(URL);
+	}
 	
 	@Override
 	public FullHttpResponse doGet() {

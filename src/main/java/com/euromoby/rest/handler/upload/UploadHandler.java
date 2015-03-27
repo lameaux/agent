@@ -9,6 +9,7 @@ import io.netty.util.CharsetUtil;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
@@ -36,8 +37,8 @@ public class UploadHandler extends RestHandlerBase {
 	private static final Logger LOG = LoggerFactory.getLogger(UploadHandler.class);
 
 	@Override
-	public String getUrl() {
-		return URL;
+	public boolean matchUri(URI uri) {
+		return uri.getPath().equals(URL);
 	}	
 	
 	@Autowired

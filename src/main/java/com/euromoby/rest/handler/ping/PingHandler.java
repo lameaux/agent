@@ -7,6 +7,7 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.CharsetUtil;
 
+import java.net.URI;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -40,9 +41,9 @@ public class PingHandler extends RestHandlerBase {
 	}
 	
 	@Override
-	public String getUrl() {
-		return URL;
-	}	
+	public boolean matchUri(URI uri) {
+		return uri.getPath().equals(URL);
+	}
 	
 	@Override
 	public FullHttpResponse doGet() {

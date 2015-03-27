@@ -4,6 +4,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 
+import java.net.URI;
+
 public interface RestHandler {
 
 	void process(ChannelHandlerContext ctx);
@@ -12,6 +14,6 @@ public interface RestHandler {
 
 	void setHttpPostRequestDecoder(HttpPostRequestDecoder decoder);
 	
-	String getUrl();
+	boolean matchUri(URI uri);
 
 }
