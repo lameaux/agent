@@ -172,10 +172,18 @@ public class CdnHandler extends RestHandlerBase {
 		File filesPath = new File(config.getAgentFilesPath());
 		File targetFile = new File(filesPath, uri);
 
-		if (!targetFile.exists() || !targetFile.isFile()) {
+		if (!targetFile.exists()) {
 			throw new RestException(HttpResponseStatus.NOT_FOUND, "Not found");
 		}
 
+		if (!targetFile.isFile()) {
+			throw new RestException(HttpResponseStatus.FORBIDDEN, "Forbidden");
+		}
+		
+		if (!targetFile.getAbsolutePath().startsWith(filesPath.getAbsolutePath())) {
+			throw new RestException(HttpResponseStatus.NOT_FOUND, "Not found");
+		}
+		
 		return targetFile;
 	}
 	
