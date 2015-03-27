@@ -78,6 +78,11 @@ public class CdnHandler extends RestHandlerBase {
 		
 		File targetFile = getTargetFile(fileUri);
 		
+		if (targetFile == null) {
+			// TODO ask other agents if they have the file
+			throw new RestException(HttpResponseStatus.NOT_FOUND, "Not found");
+		}
+		
         // Cache Validation
         String ifModifiedSince = request.headers().get(HttpHeaders.Names.IF_MODIFIED_SINCE);
         if (!StringUtils.nullOrEmpty(ifModifiedSince)) {
@@ -162,8 +167,7 @@ public class CdnHandler extends RestHandlerBase {
 		// Convert file separators.
 		uri = uri.replace('/', File.separatorChar);
 
-		// Simplistic dumb security check.
-		// You will have to do something serious in the production environment.
+		// TODO Security check.
 		if (uri.contains(File.separator + '.') || uri.contains('.' + File.separator) || uri.charAt(0) == '.' || uri.charAt(uri.length() - 1) == '.'
 				|| INSECURE_URI.matcher(uri).matches()) {
 			throw new RestException(HttpResponseStatus.NOT_FOUND, "Not found");
@@ -173,7 +177,8 @@ public class CdnHandler extends RestHandlerBase {
 		File targetFile = new File(filesPath, uri);
 
 		if (!targetFile.exists()) {
-			throw new RestException(HttpResponseStatus.NOT_FOUND, "Not found");
+			// ask other agents if they have the file 
+			return null;
 		}
 
 		if (!targetFile.isFile()) {
