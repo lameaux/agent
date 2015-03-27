@@ -79,6 +79,9 @@ public abstract class RestHandlerBase implements RestHandler {
 			if (request.getMethod().equals(HttpMethod.POST)) {
 				processPostData();
 				response = doPost();
+			} else if (isChunkedResponse()){
+				doGetChunked(ctx);
+				return;
 			} else {
 				response = doGet();
 			}
@@ -102,6 +105,14 @@ public abstract class RestHandlerBase implements RestHandler {
 		return createHttpResponse(HttpResponseStatus.NOT_IMPLEMENTED);
 	}
 
+	public boolean isChunkedResponse() {
+		return false;
+	}
+	
+	public void doGetChunked(ChannelHandlerContext ctx) throws Exception {
+		writeResponse(ctx.channel(), createHttpResponse(HttpResponseStatus.NOT_IMPLEMENTED));
+	}
+	
 	public HttpHeaders getHeaders() {
 		return request.headers();
 	}
