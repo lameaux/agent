@@ -26,8 +26,9 @@ public class RestServerInitializer extends ChannelInitializer<SocketChannel> {
 		}
 		p.addLast(new HttpRequestDecoder());
 		p.addLast(new AgentHttpResponseEncoder());
-		p.addLast(new ChunkedWriteHandler());
 		// TODO compression
+		//p.addLast(new SmartHttpContentCompressor());
+		p.addLast(new ChunkedWriteHandler());
 		p.addLast(new RestServerHandler(restMapper));
 	}
 }
