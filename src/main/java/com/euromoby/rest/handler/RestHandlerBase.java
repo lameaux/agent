@@ -94,7 +94,7 @@ public abstract class RestHandlerBase implements RestHandler {
 		writeResponse(ctx.channel(), response);
 	}
 
-	public FullHttpResponse doGet() {
+	public FullHttpResponse doGet() throws Exception {
 		return createHttpResponse(HttpResponseStatus.NOT_IMPLEMENTED);
 	}
 
