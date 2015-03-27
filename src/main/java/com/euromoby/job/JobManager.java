@@ -19,7 +19,7 @@ public class JobManager {
 
 	private PriorityQueue<JobDetail> q = new PriorityQueue<JobDetail>();
 
-	private Map<UUID, JobDetail> jobDetails = new HashMap<>();
+	private Map<UUID, JobDetail> jobDetails = new HashMap<UUID, JobDetail>();
 	
 	public synchronized boolean hasNewJob() {
 		JobDetail job = q.peek();

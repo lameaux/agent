@@ -97,7 +97,7 @@ public class JobAddHandler extends RestHandlerBase {
 	}
 
 	private Map<String, String> parseParameters(String parameters) {
-		Map<String, String> map = new HashMap<>();
+		Map<String, String> map = new HashMap<String, String>();
 		if (parameters == null) {
 			return map;
 		}
