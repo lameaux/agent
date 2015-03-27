@@ -39,11 +39,11 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 	private HttpRequest request;
 
 	private RestMapper restMapper;
-	
+
 	public RestServerHandler(RestMapper restMapper) {
 		this.restMapper = restMapper;
 	}
-	
+
 	// store on disk if > 16k
 	private static final HttpDataFactory factory = new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);
 
@@ -52,11 +52,11 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 		DiskFileUpload.baseDirectory = null; // system temp directory
 		DiskAttribute.deleteOnExitTemporaryFile = true;
 		DiskAttribute.baseDirectory = null; // system temp directory
-	}	
-	
+	}
+
 	private HttpPostRequestDecoder decoder;
 
-	private static final Logger LOG = LoggerFactory.getLogger(RestServerHandler.class); 		
+	private static final Logger LOG = LoggerFactory.getLogger(RestServerHandler.class);
 
 	private RestHandler getRestHandler() {
 		String uriString = request.getUri();
@@ -66,7 +66,7 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 		} catch (URISyntaxException e) {
 			return null;
 		}
-		
+
 		return restMapper.getHandler(uri);
 	}
 
@@ -93,6 +93,10 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 	public void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
 		if (msg instanceof HttpRequest) {
 			request = (HttpRequest) msg;
+
+			if (HttpHeaders.is100ContinueExpected(request)) {
+				send100Continue(ctx);
+			}
 
 			handler = getRestHandler();
 			if (handler == null) {
@@ -156,6 +160,11 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 		handler = null;
 		decoder.destroy();
 		decoder = null;
+	}
+
+	private static void send100Continue(ChannelHandlerContext ctx) {
+		FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE);
+		ctx.write(response);
 	}
 
 	@Override
