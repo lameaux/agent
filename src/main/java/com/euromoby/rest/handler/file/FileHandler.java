@@ -1,18 +1,15 @@
-package com.euromoby.rest.handler.cdn;
+package com.euromoby.rest.handler.file;
 
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.DefaultFileRegion;
 import io.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpChunkedInput;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
-import io.netty.handler.codec.http.LastHttpContent;
-import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedFile;
 
 import java.io.File;
@@ -30,36 +27,46 @@ import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.activation.FileTypeMap;
-
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.ConfigurableMimeFileTypeMap;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.Config;
+import com.euromoby.model.Tuple;
+import com.euromoby.rest.ChunkedInputAdapter;
 import com.euromoby.rest.RestException;
 import com.euromoby.rest.handler.RestHandlerBase;
 import com.euromoby.utils.StringUtils;
 
 @Component
-public class CdnHandler extends RestHandlerBase {
+public class FileHandler extends RestHandlerBase {
 
-	public static final String URL = "/cdn";
-	private static final Pattern URL_PATTERN = Pattern.compile("/cdn/(.+)");
+	public static final String URL = "/files";
+	private static final Pattern URL_PATTERN = Pattern.compile("/files/(.+)");
 	
 	private static final Pattern INSECURE_URI = Pattern.compile(".*[<>&\"].*");
 
     public static final String HTTP_DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
     public static final String HTTP_DATE_GMT_TIMEZONE = "GMT";
-    public static final int HTTP_CACHE_SECONDS = 60;	
-	
-	private static FileTypeMap mimeTypesMap = new ConfigurableMimeFileTypeMap();
+    public static final int HTTP_CACHE_SECONDS = 24 * 60 * 60; // 1 day	
+    
+    private static final int HTTP_CHUNK_SIZE = 8192;
+    
+    private static final String APPLICATION_OCTET_STREAM = "application/octet-stream";
+    private static final Pattern RANGE_HEADER = Pattern.compile("bytes=(\\d+)\\-(\\d+)?");
+    
+	private static ConfigurableMimeFileTypeMap mimeTypesMap = new ConfigurableMimeFileTypeMap();
+	static {
+		mimeTypesMap.setMappings(new String[]{
+				"video/mp4  mp4"
+		});
+	}
     
 	private Config config;
 
 	@Autowired
-	public CdnHandler(Config config) {
+	public FileHandler(Config config) {
 		this.config = config;
 	}
 
@@ -109,31 +116,64 @@ public class CdnHandler extends RestHandlerBase {
             long fileLength = raf.length();        
             
     		HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-    		HttpHeaders.setContentLength(response, fileLength);
+    		response.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
+    		response.headers().set(HttpHeaders.Names.CONTENT_ENCODING, HttpHeaders.Values.IDENTITY);
+
+    		response.headers().set(HttpHeaders.Names.TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED);    		
+    		
+    		Tuple<Long, Long> range;
+            try {
+                range = parseRange(fileLength);
+            } catch (IllegalArgumentException e) {
+                throw new RestException(HttpResponseStatus.REQUESTED_RANGE_NOT_SATISFIABLE, e);
+            }
+    		
+            if (range == null) {
+            	HttpHeaders.setContentLength(response, fileLength);
+            } else {
+	        	response.setStatus(HttpResponseStatus.PARTIAL_CONTENT);
+            	HttpHeaders.setContentLength(response, range.getSecond() - range.getFirst() + 1);
+            	response.headers().set(HttpHeaders.Names.CONTENT_RANGE,
+                          "bytes " + range.getFirst() + "-" + range.getSecond() + "/" + fileLength);
+	        }
+   		
     		setContentTypeHeader(response, targetFile);
             setDateAndCacheHeaders(response, targetFile);
             if (HttpHeaders.isKeepAlive(request)) {
                 response.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
             }		
-    		
             ctx.write(response);        	
         	
             // Write the content.
             ChannelFuture sendFileFuture;
             ChannelFuture lastContentFuture;
-            if (ctx.pipeline().get(SslHandler.class) == null) {
-                sendFileFuture = ctx.write(new DefaultFileRegion(raf.getChannel(), 0, fileLength), ctx.newProgressivePromise());
-                // Write the end marker.
-                lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-            } else {
-                sendFileFuture = ctx.write(new HttpChunkedInput(new ChunkedFile(raf, 0, fileLength, 8192)), ctx.newProgressivePromise());
-                // HttpChunkedInput will write the end marker (LastHttpContent) for us.
-                lastContentFuture = sendFileFuture;
-            }        	
+            
+            long rangeStart = 0;
+            long rangeEnd = fileLength;
+            if (range != null) {
+            	rangeStart = range.getFirst();
+            	rangeEnd = range.getSecond() - range.getFirst() + 1;
+            }
+
+            lastContentFuture = ctx.write(new ChunkedInputAdapter(new ChunkedFile(raf, rangeStart, rangeEnd, HTTP_CHUNK_SIZE)));            
+
+            ChannelFuture writeFuture = ctx.writeAndFlush(DefaultLastHttpContent.EMPTY_LAST_CONTENT);            
+            
+            //
+//            if (ctx.pipeline().get(SslHandler.class) == null) {
+//                sendFileFuture = ctx.write(new DefaultFileRegion(raf.getChannel(), rangeStart, rangeEnd), ctx.newProgressivePromise());
+//                // Write the end marker.
+//                lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+//            } else {
+//            	
+//                sendFileFuture = ctx.write(new ChunkedInputAdapter(new ChunkedFile(raf, rangeStart, rangeEnd, HTTP_CHUNK_SIZE)), ctx.newProgressivePromise());
+//                // HttpChunkedInput will write the end marker (LastHttpContent) for us.
+//                lastContentFuture = sendFileFuture;
+//            }        	
         	
-            if (!HttpHeaders.isKeepAlive(request)) {
-                lastContentFuture.addListener(ChannelFutureListener.CLOSE);
-            }        	
+            //if (!HttpHeaders.isKeepAlive(request)) {
+            //    lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+            //}        	
         	
         } catch (FileNotFoundException ignore) {
         	throw new RestException(HttpResponseStatus.NOT_FOUND, "Not found");
@@ -221,7 +261,40 @@ public class CdnHandler extends RestHandlerBase {
     }    
     
 	private static void setContentTypeHeader(HttpResponse response, File file) {
-		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, mimeTypesMap.getContentType(file));
+		String mimeType = mimeTypesMap.getContentType(file);
+		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, mimeType);
+		setContentDisposition(response, file.getName(), APPLICATION_OCTET_STREAM.equals(mimeType));
 	}
 
+	private static void setContentDisposition(HttpResponse response, String name, boolean download) {
+		response.headers().set("Content-Disposition",
+				(download ? "attachment;" : "inline;") + "filename=\"" + name.replaceAll("[^A-Za-z0-9\\-_\\.]", "_") + "\"");
+	}
+
+    private Tuple<Long, Long> parseRange(long availableLength) {
+        String header = request.headers().get(HttpHeaders.Names.RANGE);
+        if (StringUtils.nullOrEmpty(header)) {
+            return null;
+        }
+        Matcher m = RANGE_HEADER.matcher(header);
+        if (!m.matches()) {
+            throw new IllegalArgumentException("Unsupported range: " + header);
+        }
+        Tuple<Long, Long> result = new Tuple<Long, Long>();
+        result.setFirst(Long.parseLong(m.group(1)));
+        if (!StringUtils.nullOrEmpty(m.group(2))) {
+            result.setSecond(Long.parseLong(m.group(2)));
+        } else {
+            result.setSecond(availableLength - 1);
+        }
+        if (result.getSecond() < result.getFirst()) {
+            return null;
+        }
+        if (result.getSecond() >= availableLength) {
+            throw new IllegalArgumentException("Unsupported range: " + header);
+        }
+
+        return result;
+    }	
+	
 }

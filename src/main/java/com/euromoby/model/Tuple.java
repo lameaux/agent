@@ -3,15 +3,15 @@ package com.euromoby.model;
 public class Tuple<F, S> {
 
 	private F first;
-	private S seconds;
+	private S second;
 
 	public Tuple() {
 
 	}
 
-	public Tuple(F first, S seconds) {
+	public Tuple(F first, S second) {
 		this.first = first;
-		this.seconds = seconds;
+		this.second = second;
 	}
 
 	public F getFirst() {
@@ -22,12 +22,12 @@ public class Tuple<F, S> {
 		this.first = first;
 	}
 
-	public S getSeconds() {
-		return seconds;
+	public S getSecond() {
+		return second;
 	}
 
-	public void setSeconds(S seconds) {
-		this.seconds = seconds;
+	public void setSecond(S second) {
+		this.second = second;
 	}
 
 }
