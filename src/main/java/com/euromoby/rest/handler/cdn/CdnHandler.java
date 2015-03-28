@@ -30,10 +30,11 @@ import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.activation.MimetypesFileTypeMap;
+import javax.activation.FileTypeMap;
 
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.javamail.ConfigurableMimeFileTypeMap;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.Config;
@@ -53,6 +54,8 @@ public class CdnHandler extends RestHandlerBase {
     public static final String HTTP_DATE_GMT_TIMEZONE = "GMT";
     public static final int HTTP_CACHE_SECONDS = 60;	
 	
+	private static FileTypeMap mimeTypesMap = new ConfigurableMimeFileTypeMap();
+    
 	private Config config;
 
 	@Autowired
@@ -218,8 +221,7 @@ public class CdnHandler extends RestHandlerBase {
     }    
     
 	private static void setContentTypeHeader(HttpResponse response, File file) {
-		MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
-		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, mimeTypesMap.getContentType(file.getPath()));
+		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, mimeTypesMap.getContentType(file));
 	}
 
 }
