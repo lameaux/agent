@@ -140,7 +140,7 @@ public abstract class RestHandlerBase implements RestHandler {
 	}
 
 	protected FullHttpResponse createHttpResponse(HttpResponseStatus status) {
-		return createHttpResponse(status, Unpooled.buffer(0));
+		return createHttpResponse(status, Unpooled.EMPTY_BUFFER);
 	}
 
 	protected ByteBuf fromString(String s) {
