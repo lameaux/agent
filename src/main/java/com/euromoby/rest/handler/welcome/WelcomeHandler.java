@@ -6,12 +6,14 @@ import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.CharsetUtil;
 
+import java.io.InputStream;
 import java.net.URI;
 
 import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.Agent;
 import com.euromoby.rest.handler.RestHandlerBase;
+import com.euromoby.utils.IOUtils;
 
 @Component
 public class WelcomeHandler extends RestHandlerBase {
@@ -26,19 +28,11 @@ public class WelcomeHandler extends RestHandlerBase {
 	@Override
 	public FullHttpResponse doGet() {
 
-		// response.setContentType("text/html");
-		StringBuilder sb = new StringBuilder();
-		sb.append("<!DOCTYPE html><html><head><title>");
-		sb.append(getWelcomeString());
-		sb.append("</title></head><body>");
-		sb.append(getWelcomeString());
-		sb.append("</body></html>");
-
-		ByteBuf content = Unpooled.copiedBuffer(sb.toString(), CharsetUtil.UTF_8);
-		return createHttpResponse(HttpResponseStatus.OK, content);
-	}
-
-	private String getWelcomeString() {
-		return Agent.TITLE + " " + Agent.VERSION;
+		InputStream is = WelcomeHandler.class.getResourceAsStream("welcome.html");
+		String pageContent = IOUtils.streamToString(is);
+		pageContent = pageContent.replace("%AGENT%", Agent.TITLE);
+		pageContent = pageContent.replace("%VERSION%", Agent.VERSION);
+		ByteBuf content = Unpooled.copiedBuffer(pageContent, CharsetUtil.UTF_8);
+		return createHttpResponse(HttpResponseStatus.OK, content);		
 	}
 }

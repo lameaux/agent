@@ -47,6 +47,7 @@ public class RestServer implements Service {
 				SelfSignedCertificate ssc = new SelfSignedCertificate();
 				sslCtx = SslContext.newServerContext(SslProvider.JDK, ssc.certificate(), ssc.privateKey());
 			} catch (Exception e) {
+				LOG.error("SSL initialization failed", e);
 				sslCtx = null;
 			}
 		} else {

@@ -144,7 +144,7 @@ public class FileResponse {
 
 	private void setHeaderContentType(File file) {
 		String mimeType = mimeHelper.getContentType(file);
-		setHeader(HttpHeaders.Names.CONTENT_TYPE, mimeType);
+		setHeader(HttpHeaders.Names.CONTENT_TYPE, mimeType + "; charset=UTF-8");
 	}
 
 	private void setHeaderContentDisposition(File file, boolean download) {
