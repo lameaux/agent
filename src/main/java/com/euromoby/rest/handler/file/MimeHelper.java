@@ -29,7 +29,7 @@ public class MimeHelper {
 	}
 
 	public boolean isCompressible(File file) {
-		return getContentType(file).startsWith(CONTENT_TEXT);
+		return getContentType(file).contains(CONTENT_TEXT);
 	}	
 	
 }

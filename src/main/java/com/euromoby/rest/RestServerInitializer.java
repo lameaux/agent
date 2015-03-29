@@ -22,13 +22,13 @@ public class RestServerInitializer extends ChannelInitializer<SocketChannel> {
 	public void initChannel(SocketChannel ch) {
 		ChannelPipeline p = ch.pipeline();
 		if (sslCtx != null) {
-			p.addLast(sslCtx.newHandler(ch.alloc()));
+			p.addLast("ssl", sslCtx.newHandler(ch.alloc()));
 		}
-		p.addLast(new HttpRequestDecoder());
-		p.addLast(new AgentHttpResponseEncoder());
-		// TODO compression
-		//p.addLast(new SmartHttpContentCompressor());
-		p.addLast(new ChunkedWriteHandler());
-		p.addLast(new RestServerHandler(restMapper));
+		p.addLast("decoder", new HttpRequestDecoder());
+		p.addLast("encoder", new AgentHttpResponseEncoder());
+		//IdleStateHandler
+		p.addLast("compressor", new SmartHttpContentCompressor());
+		p.addLast("chunked", new ChunkedWriteHandler());
+		p.addLast("rest", new RestServerHandler(restMapper));
 	}
 }

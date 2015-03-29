@@ -11,6 +11,7 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedFile;
 
 import java.io.File;
@@ -66,10 +67,10 @@ public class FileResponse {
 		supportChunks = request.getProtocolVersion() == HttpVersion.HTTP_1_1;
 		compressible = mimeHelper.isCompressible(file);
 
-		if (!compressible) {
+		if (!compressible || isSSL(ctx)) {
 			setHeader(HttpHeaders.Names.CONTENT_ENCODING, HttpHeaders.Values.IDENTITY);
 		}
-		if (supportChunks) {
+		if (supportChunks /* && !isSSL(ctx) */) {
 			setHeader(HttpHeaders.Names.TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED);
 		}
 		if (HttpHeaders.isKeepAlive(request)) {
@@ -114,7 +115,9 @@ public class FileResponse {
 				rangeEnd = range.getSecond() - range.getFirst() + 1;
 			}
 			
-			if (supportChunks) {
+			if (isSSL(ctx)) {
+				ctx.write(new ChunkedFile(raf, rangeStart, rangeEnd, HTTP_CHUNK_SIZE));
+			} if (supportChunks) {
 				ctx.write(new ChunkedInputAdapter(new ChunkedFile(raf, rangeStart, rangeEnd, HTTP_CHUNK_SIZE)));
 			} else {
 				ctx.write(new DefaultFileRegion(raf.getChannel(), rangeStart, rangeEnd));
@@ -196,4 +199,8 @@ public class FileResponse {
 		}
 	}
 
+	private boolean isSSL(ChannelHandlerContext ctx) {
+        return ctx.channel().pipeline().get(SslHandler.class) != null;
+    }	
+	
 }

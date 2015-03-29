@@ -8,6 +8,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 
 import org.slf4j.Logger;
@@ -23,7 +24,7 @@ import com.euromoby.service.ServiceState;
 public class RestServer implements Service {
 
 	public static final String SERVICE_NAME = "rest";
-	public static final int REST_PORT = 80;
+	public static final int REST_PORT = 443;
 	
 	private Config config;
 	private RestMapper restMapper; 
@@ -44,7 +45,7 @@ public class RestServer implements Service {
 		if (config.isRestSsl()) {
 			try {
 				SelfSignedCertificate ssc = new SelfSignedCertificate();
-				sslCtx = SslContext.newServerContext(ssc.certificate(), ssc.privateKey());
+				sslCtx = SslContext.newServerContext(SslProvider.JDK, ssc.certificate(), ssc.privateKey());
 			} catch (Exception e) {
 				sslCtx = null;
 			}

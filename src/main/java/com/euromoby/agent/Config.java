@@ -76,7 +76,7 @@ public class Config {
 	}
 
 	public boolean isRestSsl() {
-		return false;
+		return true;
 	}
 	
 	public String getHttpProxyHost() {
