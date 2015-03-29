@@ -12,7 +12,6 @@ import java.util.Properties;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.euromoby.agent.Config;
 import com.euromoby.rest.RestServer;
 import com.euromoby.telnet.TelnetServer;
 import com.euromoby.utils.SystemUtils;
@@ -133,7 +132,7 @@ public class ConfigTest {
 
 	@Test
 	public void testIsRestSsl() {
-		assertFalse(config.isRestSsl());
+		assertTrue(config.isRestSsl());
 	}
 
 }

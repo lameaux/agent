@@ -8,7 +8,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 
 import org.slf4j.Logger;
@@ -44,14 +43,21 @@ public class RestServer implements Service {
 
 		if (config.isRestSsl()) {
 			try {
+				// TODO use keystore
+//				InputStream is = RestServer.class.getClassLoader().getResourceAsStream("agent.keystore");
+//				SSLContext sslContext = SSLUtils.createSSLContext(is, "agent007", "agent007");
+//				this.sslEngine = sslContext.createSSLEngine();
+//				this.sslEngine.setUseClientMode(false);
+				
 				SelfSignedCertificate ssc = new SelfSignedCertificate();
-				sslCtx = SslContext.newServerContext(SslProvider.JDK, ssc.certificate(), ssc.privateKey());
+				this.sslCtx = SslContext.newServerContext(ssc.certificate(), ssc.privateKey());
+				
 			} catch (Exception e) {
 				LOG.error("SSL initialization failed", e);
-				sslCtx = null;
+				this.sslCtx = null;
 			}
 		} else {
-			sslCtx = null;
+			this.sslCtx = null;
 		}
 
 	}

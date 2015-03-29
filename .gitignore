@@ -2,3 +2,5 @@
 /.classpath
 /.settings
 /.project
+
+/src/main/resources/agent.keystore

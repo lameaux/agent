@@ -13,43 +13,62 @@
 				<directory>src/main/resources</directory>
 			</resource>
 		</resources>
+		
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.2</version>
+					<configuration>
+						<source>1.6</source>
+						<target>1.6</target>
+					</configuration>
+				</plugin>
 
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.2</version>
-				<configuration>
-					<source>1.7</source>
-					<target>1.6</target>
-				</configuration>
-			</plugin>
-			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.5.3</version>
-				<configuration>
-					<archive>
-						<manifest>
-							<mainClass>
-								agent.Agent
-							</mainClass>
-						</manifest>
-					</archive>
-					<descriptorRefs>
-						<descriptorRef>jar-with-dependencies</descriptorRef>
-					</descriptorRefs>
-				</configuration>
-				<executions>
-					<execution>
-						<id>make-assembly</id> <!-- this is used for inheritance merges -->
-						<phase>package</phase> <!-- bind to the packaging phase -->
-						<goals>
-							<goal>single</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>keytool-maven-plugin</artifactId>
+					<version>1.5</version>
+					<configuration>
+						<keystore>${project.basedir}/src/main/resources/agent.keystore</keystore>
+						<dname>cn=agent.loc</dname>
+						<keypass>agent007</keypass>
+						<storepass>agent007</storepass>
+						<alias>agent.loc</alias>
+						<keyalg>RSA</keyalg>
+						<validity>99999</validity>
+						<skipIfExist>true</skipIfExist>
+					</configuration>
+				</plugin>
+
+				<plugin>
+					<artifactId>maven-assembly-plugin</artifactId>
+					<version>2.5.3</version>
+					<configuration>
+						<archive>
+							<manifest>
+								<mainClass>
+									agent.Agent
+								</mainClass>
+							</manifest>
+						</archive>
+						<descriptorRefs>
+							<descriptorRef>jar-with-dependencies</descriptorRef>
+						</descriptorRefs>
+					</configuration>
+					<executions>
+						<execution>
+							<id>make-assembly</id> <!-- this is used for inheritance merges -->
+							<phase>package</phase> <!-- bind to the packaging phase -->
+							<goals>
+								<goal>single</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 	</build>
 
 	<repositories>
@@ -99,7 +118,7 @@
 			<artifactId>httpmime</artifactId>
 			<version>4.4</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
@@ -111,7 +130,7 @@
 			<artifactId>spring-context-support</artifactId>
 			<version>4.1.5.RELEASE</version>
 		</dependency>
-		
+
 	</dependencies>
 
 </project>

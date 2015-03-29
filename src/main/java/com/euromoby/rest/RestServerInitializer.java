@@ -15,14 +15,13 @@ public class RestServerInitializer extends ChannelInitializer<SocketChannel> {
 	public RestServerInitializer(SslContext sslCtx, RestMapper restMapper) {
 		this.sslCtx = sslCtx;
 		this.restMapper = restMapper;
-
 	}
 
 	@Override
 	public void initChannel(SocketChannel ch) {
 		ChannelPipeline p = ch.pipeline();
 		if (sslCtx != null) {
-			p.addLast("ssl", sslCtx.newHandler(ch.alloc()));
+			p.addFirst("ssl", sslCtx.newHandler(ch.alloc()));
 		}
 		p.addLast("decoder", new HttpRequestDecoder());
 		p.addLast("encoder", new AgentHttpResponseEncoder());
