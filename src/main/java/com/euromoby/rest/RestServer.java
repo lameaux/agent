@@ -8,7 +8,8 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.util.SelfSignedCertificate;
+
+import java.io.File;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,15 +44,10 @@ public class RestServer implements Service {
 
 		if (config.isRestSsl()) {
 			try {
-				// TODO use keystore
-//				InputStream is = RestServer.class.getClassLoader().getResourceAsStream("agent.keystore");
-//				SSLContext sslContext = SSLUtils.createSSLContext(is, "agent007", "agent007");
-//				this.sslEngine = sslContext.createSSLEngine();
-//				this.sslEngine.setUseClientMode(false);
-				
-				SelfSignedCertificate ssc = new SelfSignedCertificate();
-				this.sslCtx = SslContext.newServerContext(ssc.certificate(), ssc.privateKey());
-				
+				// load default certificate
+				File certificate = new File(RestServer.class.getClassLoader().getResource("cert.crt").getFile());
+				File privateKey = new File(RestServer.class.getClassLoader().getResource("key.key").getFile());
+				this.sslCtx = SslContext.newServerContext( certificate, privateKey);
 			} catch (Exception e) {
 				LOG.error("SSL initialization failed", e);
 				this.sslCtx = null;
