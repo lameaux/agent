@@ -7,9 +7,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import io.netty.handler.ssl.SslContext;
-
-import java.io.File;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +30,7 @@ public class RestServer implements Service {
 	private volatile ServiceState serviceState = ServiceState.STOPPED;
 
 	private Channel serverChannel;
-	private SslContext sslCtx;
+	private SslEngineFactory sslEngineFactory;
 
 	private static final Logger LOG = LoggerFactory.getLogger(RestServer.class); 
 	
@@ -43,17 +40,9 @@ public class RestServer implements Service {
 		this.restMapper = restMapper;
 
 		if (config.isRestSsl()) {
-			try {
-				// load default certificate
-				File certificate = new File(RestServer.class.getClassLoader().getResource("cert.crt").getFile());
-				File privateKey = new File(RestServer.class.getClassLoader().getResource("key.key").getFile());
-				this.sslCtx = SslContext.newServerContext( certificate, privateKey);
-			} catch (Exception e) {
-				LOG.error("SSL initialization failed", e);
-				this.sslCtx = null;
-			}
+			sslEngineFactory = new SslEngineFactory();
 		} else {
-			this.sslCtx = null;
+			sslEngineFactory = null;
 		}
 
 	}
@@ -70,7 +59,7 @@ public class RestServer implements Service {
 			b.group(bossGroup, workerGroup);
 			b.channel(NioServerSocketChannel.class);
 			b.handler(new LoggingHandler(LogLevel.INFO));
-			b.childHandler(new RestServerInitializer(sslCtx, restMapper));
+			b.childHandler(new RestServerInitializer(sslEngineFactory, restMapper));
 
 			serverChannel = b.bind(config.getRestPort()).sync().channel();
 

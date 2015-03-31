@@ -2,5 +2,8 @@
 /.classpath
 /.settings
 /.project
-
-/src/main/resources/agent.keystore
+/bin/agent.crt
+/bin/agent.csr
+/bin/agent.key
+/bin/agent.keystore
+/bin/agent.p12
