@@ -30,21 +30,15 @@ public class RestServer implements Service {
 	private volatile ServiceState serviceState = ServiceState.STOPPED;
 
 	private Channel serverChannel;
-	private SslEngineFactory sslEngineFactory;
+	private SSLContextProvider sslContextProvider;
 
 	private static final Logger LOG = LoggerFactory.getLogger(RestServer.class); 
 	
 	@Autowired
-	public RestServer(Config config, RestMapper restMapper) {
+	public RestServer(Config config, SSLContextProvider sslContextProvider, RestMapper restMapper) {
 		this.config = config;
 		this.restMapper = restMapper;
-
-		if (config.isRestSsl()) {
-			sslEngineFactory = new SslEngineFactory();
-		} else {
-			sslEngineFactory = null;
-		}
-
+		this.sslContextProvider = sslContextProvider;
 	}
 
 	@Override
@@ -59,7 +53,7 @@ public class RestServer implements Service {
 			b.group(bossGroup, workerGroup);
 			b.channel(NioServerSocketChannel.class);
 			b.handler(new LoggingHandler(LogLevel.INFO));
-			b.childHandler(new RestServerInitializer(sslEngineFactory, restMapper));
+			b.childHandler(new RestServerInitializer(sslContextProvider, restMapper));
 
 			serverChannel = b.bind(config.getRestPort()).sync().channel();
 

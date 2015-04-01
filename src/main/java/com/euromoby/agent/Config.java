@@ -59,6 +59,15 @@ public class Config {
 	public static final String PING_POOL_SIZE = "agent.ping.pool.size";
 	public static final String DEFAULT_PING_POOL_SIZE = "2";	
 
+	public static final String KEYSTORE_PATH = "agent.keystore.path";
+	
+	public static final String KEYSTORE_STORE_PASSWORD = "agent.keystore.storepass";
+	public static final String DEFAULT_KEYSTORE_STORE_PASSWORD = "123456";	
+
+	public static final String KEYSTORE_KEY_PASSWORD = "agent.keystore.keypass";	
+	public static final String DEFAULT_KEYSTORE_KEY_PASSWORD = "123456";
+	
+	
 	public AgentId getAgentId() {
 		return new AgentId(NetUtils.getHostname(), getBasePort());
 	}	
@@ -75,8 +84,16 @@ public class Config {
 		return getBasePort() + RestServer.REST_PORT;
 	}
 
-	public boolean isRestSsl() {
-		return true;
+	public String getKeystorePath() {
+		return properties.getProperty(KEYSTORE_PATH);
+	}	
+
+	public String getKeystoreStorePass() {
+		return properties.getProperty(KEYSTORE_STORE_PASSWORD, DEFAULT_KEYSTORE_STORE_PASSWORD);
+	}	
+	
+	public String getKeystoreKeyPass() {
+		return properties.getProperty(KEYSTORE_KEY_PASSWORD, DEFAULT_KEYSTORE_KEY_PASSWORD);
 	}
 	
 	public String getHttpProxyHost() {

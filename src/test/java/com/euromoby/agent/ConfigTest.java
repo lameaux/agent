@@ -130,9 +130,4 @@ public class ConfigTest {
 		assertEquals(Integer.parseInt(Config.DEFAULT_AGENT_BASE_PORT) + TelnetServer.TELNET_PORT, config.getTelnetPort());
 	}
 
-	@Test
-	public void testIsRestSsl() {
-		assertTrue(config.isRestSsl());
-	}
-
 }
