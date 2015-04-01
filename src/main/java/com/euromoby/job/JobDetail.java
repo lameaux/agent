@@ -4,11 +4,15 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import com.euromoby.model.AgentId;
 import com.euromoby.utils.DateUtils;
 
 
 public class JobDetail implements Comparable<JobDetail> {
 
+	private AgentId sender;
+	private AgentId recipient;
+	
 	private UUID uuid = UUID.randomUUID();	
 	private String jobClass;
 	private long scheduleTime = System.currentTimeMillis();
@@ -29,6 +33,8 @@ public class JobDetail implements Comparable<JobDetail> {
 	}
 
 	public JobDetail(JobDetail that) {
+		this.sender = that.sender;
+		this.recipient = that.recipient;
 		this.uuid = that.uuid;
 		this.jobClass = that.jobClass;
 		this.scheduleTime = that.scheduleTime;
@@ -178,6 +184,22 @@ public class JobDetail implements Comparable<JobDetail> {
 		}
 
 		return sb.toString();
+	}
+
+	public AgentId getSender() {
+		return sender;
+	}
+
+	public void setSender(AgentId sender) {
+		this.sender = sender;
+	}
+
+	public AgentId getRecipient() {
+		return recipient;
+	}
+
+	public void setRecipient(AgentId recipient) {
+		this.recipient = recipient;
 	}
 
 }

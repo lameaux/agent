@@ -5,9 +5,18 @@ public class AgentId {
 	private int basePort;
 
 	public AgentId(String host, int basePort) {
-		super();
 		this.host = host;
 		this.basePort = basePort;
+	}
+
+	public AgentId(String agentId) {
+		try {
+			String agentIdParts[] = agentId.split(":", 2);
+			this.host = agentIdParts[0];
+			this.basePort = Integer.parseInt(agentIdParts[1]);
+		} catch (Exception e) {
+			throw new IllegalArgumentException("Invalid AgentId " + agentId);
+		}
 	}
 
 	public String getHost() {

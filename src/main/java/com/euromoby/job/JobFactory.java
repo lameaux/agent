@@ -13,10 +13,11 @@ public class JobFactory {
 	
 	private UploadClient uploadClient;
 	private DownloadClient downloadClient;
+	private GetJobsClient getJobsClient;
 	
 	@SuppressWarnings("rawtypes")
 	private Class[] jobClasses = new Class[]{
-			DownloadJob.class, UploadJob.class
+			DownloadJob.class, UploadJob.class, GetNewJobsJob.class
 	};
 	
 	@SuppressWarnings("rawtypes")
@@ -34,12 +35,20 @@ public class JobFactory {
 		this.downloadClient = downloadClient;
 	}
 
+	@Autowired	
+	public void setGetJobsClient(GetJobsClient getJobsClient) {
+		this.getJobsClient = getJobsClient;
+	}
+
 	public Job createJob(JobDetail jobDetail) throws Exception {
 		if (DownloadJob.class.getCanonicalName().equals(jobDetail.getJobClass())) {
 			return new DownloadJob(jobDetail, downloadClient);
 		}
 		if (UploadJob.class.getCanonicalName().equals(jobDetail.getJobClass())) {
 			return new UploadJob(jobDetail, uploadClient);
+		}
+		if (GetNewJobsJob.class.getCanonicalName().equals(jobDetail.getJobClass())) {
+			return new GetNewJobsJob(jobDetail, getJobsClient);
 		}
 		throw new Exception(jobDetail.getJobClass() + " is not supported");
 	}
