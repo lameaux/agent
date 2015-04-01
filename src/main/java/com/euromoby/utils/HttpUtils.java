@@ -2,6 +2,8 @@ package com.euromoby.utils;
 
 import io.netty.util.CharsetUtil;
 
+import javax.net.ssl.SSLContext;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpStatus;
@@ -9,7 +11,9 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
@@ -26,6 +30,10 @@ public class HttpUtils {
 		return requestConfigBuilder;
 	}
 
+	public static CloseableHttpClient defaultHttpClient(SSLContext sslContext) {
+		return HttpClientBuilder.create().setSslcontext(sslContext).setSSLHostnameVerifier(new NoopHostnameVerifier()).build();
+	}
+	
 	public static String getContentFromUrl(Config config, String url, boolean noProxy) throws Exception {
 		CloseableHttpClient httpclient = HttpClients.createDefault();
 		try {

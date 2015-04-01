@@ -9,12 +9,12 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.Config;
+import com.euromoby.agent.SSLContextProvider;
 import com.euromoby.utils.HttpUtils;
 
 @Component
@@ -24,14 +24,16 @@ public class UploadClient {
 	private static final String REQUEST_INPUT_FILE = "file";
 
 	private Config config;
+	private SSLContextProvider sslContextProvider;	
 
 	@Autowired
-	public UploadClient(Config config) {
+	public UploadClient(Config config, SSLContextProvider sslContextProvider) {
 		this.config = config;
+		this.sslContextProvider = sslContextProvider;
 	}
 
 	public void upload(String location, String targetUrl, boolean noProxy) throws Exception {
-		CloseableHttpClient httpclient = HttpClients.createDefault();
+		CloseableHttpClient httpclient = HttpUtils.defaultHttpClient(sslContextProvider.getSSLContext());
 		try {
 
 			RequestConfig.Builder requestConfigBuilder = HttpUtils.createRequestConfigBuilder(config, noProxy);

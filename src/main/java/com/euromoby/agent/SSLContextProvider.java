@@ -1,4 +1,4 @@
-package com.euromoby.rest;
+package com.euromoby.agent;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -8,14 +8,12 @@ import java.security.KeyStore;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
+import javax.net.ssl.TrustManagerFactory;
 
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
-
-import com.euromoby.agent.Agent;
-import com.euromoby.agent.Config;
 
 @Component
 public class SSLContextProvider {
@@ -35,10 +33,15 @@ public class SSLContextProvider {
 		try {
 			KeyStore keystore = KeyStore.getInstance("JKS");
 			keystore.load(keystoreInputStream, config.getKeystoreStorePass().toCharArray());
+			
 			KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
 			kmf.init(keystore, config.getKeystoreKeyPass().toCharArray());
+			
+			TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("PKIX");
+			trustManagerFactory.init(keystore);
+			
 			sslContext = SSLContext.getInstance("TLS");
-			sslContext.init(kmf.getKeyManagers(), null, null);
+			sslContext.init(kmf.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
 			
 		} finally {
 			IOUtils.closeQuietly(keystoreInputStream);
@@ -60,4 +63,8 @@ public class SSLContextProvider {
 		return sslEngine;
 	}
 
+	public SSLContext getSSLContext() {
+		return sslContext;
+	}
+	
 }

@@ -6,12 +6,12 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.Config;
+import com.euromoby.agent.SSLContextProvider;
 import com.euromoby.model.PingInfo;
 import com.euromoby.rest.handler.ping.PingHandler;
 import com.euromoby.utils.HttpUtils;
@@ -25,21 +25,23 @@ public class PingSender {
 	private static final Gson gson = new Gson();
 
 	private Config config;
+	private SSLContextProvider sslContextProvider;
 
 	@Autowired
-	public PingSender(Config config) {
+	public PingSender(Config config, SSLContextProvider sslContextProvider) {
 		this.config = config;
+		this.sslContextProvider = sslContextProvider;
 	}
 
 	public PingInfo ping(String host, int restPort, boolean noProxy) throws Exception {
-		CloseableHttpClient httpclient = HttpClients.createDefault();
+		CloseableHttpClient httpclient = HttpUtils.defaultHttpClient(sslContextProvider.getSSLContext());
 
 		PingInfo myPingInfo = new PingInfo(config.getAgentId());
 
 		try {
 			RequestConfig.Builder requestConfigBuilder = HttpUtils.createRequestConfigBuilder(config, noProxy);
 
-			String url = "http://" + host + ":" + restPort + PingHandler.URL;
+			String url = "https://" + host + ":" + restPort + PingHandler.URL;
 			HttpUriRequest ping = RequestBuilder.post(url).setConfig(requestConfigBuilder.build()).addParameter(PING_INFO_INPUT_NAME, gson.toJson(myPingInfo))
 					.build();
 
