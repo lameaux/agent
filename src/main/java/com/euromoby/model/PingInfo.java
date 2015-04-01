@@ -2,7 +2,7 @@ package com.euromoby.model;
 
 public class PingInfo {
 	private AgentId agentId;
-	private boolean hasNewJobs = false;
+	private long jobsTimestamp = 0;
 	private long freeSpace;
 
 	public PingInfo(AgentId agentId) {
@@ -17,12 +17,12 @@ public class PingInfo {
 		this.agentId = agentId;
 	}
 
-	public boolean isHasNewJobs() {
-		return hasNewJobs;
+	public long getJobsTimestamp() {
+		return jobsTimestamp;
 	}
 
-	public void setHasNewJobs(boolean hasNewJobs) {
-		this.hasNewJobs = hasNewJobs;
+	public void setJobsTimestamp(long jobsTimestamp) {
+		this.jobsTimestamp = jobsTimestamp;
 	}
 
 	public long getFreeSpace() {
