@@ -3,6 +3,7 @@ package com.euromoby.model;
 public class PingInfo {
 	private AgentId agentId;
 	private boolean hasNewJobs = false;
+	private long freeSpace;
 
 	public PingInfo(AgentId agentId) {
 		this.agentId = agentId;
@@ -22,6 +23,14 @@ public class PingInfo {
 
 	public void setHasNewJobs(boolean hasNewJobs) {
 		this.hasNewJobs = hasNewJobs;
+	}
+
+	public long getFreeSpace() {
+		return freeSpace;
+	}
+
+	public void setFreeSpace(long freeSpace) {
+		this.freeSpace = freeSpace;
 	}
 
 }

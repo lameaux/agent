@@ -26,17 +26,19 @@ public class PingSender {
 
 	private Config config;
 	private SSLContextProvider sslContextProvider;
+	private PingInfoProvider pingInfoProvider;
 
 	@Autowired
-	public PingSender(Config config, SSLContextProvider sslContextProvider) {
+	public PingSender(Config config, SSLContextProvider sslContextProvider, PingInfoProvider pingInfoProvider) {
 		this.config = config;
 		this.sslContextProvider = sslContextProvider;
+		this.pingInfoProvider = pingInfoProvider;
 	}
 
 	public PingInfo ping(String host, int restPort, boolean noProxy) throws Exception {
 		CloseableHttpClient httpclient = HttpUtils.defaultHttpClient(sslContextProvider.getSSLContext());
 
-		PingInfo myPingInfo = new PingInfo(config.getAgentId());
+		PingInfo myPingInfo = pingInfoProvider.createPingInfo();
 
 		try {
 			RequestConfig.Builder requestConfigBuilder = HttpUtils.createRequestConfigBuilder(config, noProxy);

@@ -16,8 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.AgentManager;
-import com.euromoby.agent.Config;
 import com.euromoby.model.PingInfo;
+import com.euromoby.ping.PingInfoProvider;
 import com.euromoby.rest.RestException;
 import com.euromoby.rest.handler.RestHandlerBase;
 import com.google.gson.Gson;
@@ -31,13 +31,13 @@ public class PingHandler extends RestHandlerBase {
 	private static final Logger LOG = LoggerFactory.getLogger(PingHandler.class);
 	private static final Gson gson = new Gson();
 
-	private Config config;
 	private AgentManager agentManager;
+	private PingInfoProvider pingInfoProvider;
 	
 	@Autowired
-	public PingHandler(Config config, AgentManager agentManager) {
-		this.config = config;
+	public PingHandler(AgentManager agentManager, PingInfoProvider pingInfoProvider) {
 		this.agentManager = agentManager;
+		this.pingInfoProvider = pingInfoProvider;
 	}
 	
 	@Override
@@ -74,7 +74,7 @@ public class PingHandler extends RestHandlerBase {
 	}
 
 	private FullHttpResponse createPingResponse() {
-		String jsonResponse = gson.toJson(new PingInfo(config.getAgentId()));
+		String jsonResponse = gson.toJson(pingInfoProvider.createPingInfo());
 		ByteBuf content = Unpooled.copiedBuffer(jsonResponse, CharsetUtil.UTF_8);
 		FullHttpResponse response = createHttpResponse(HttpResponseStatus.OK, content);
 		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/json; charset=UTF-8");
