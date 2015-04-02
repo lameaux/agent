@@ -12,9 +12,10 @@ import com.euromoby.utils.StringUtils;
 @Component
 public class AgentCommand extends CommandBase implements Command {
 
-	private static final String PARAM_ACTIVE = "active";
-	private static final String PARAM_ALL = "all";
-	private static final String PARAM_ADD = "add";
+	public static final String NAME = "agent";	
+	public static final String PARAM_ACTIVE = "active";
+	public static final String PARAM_ALL = "all";
+	public static final String PARAM_ADD = "add";
 
 	private AgentManager agentManager; 
 	
@@ -66,15 +67,13 @@ public class AgentCommand extends CommandBase implements Command {
 
 	@Override
 	public String help() {
-
-		return "agent\t[active]\t\tshow active agents" + StringUtils.CRLF + "agent\tall\t\t\tshow all agents" + StringUtils.CRLF
-				+ "agent\tadd <host> <baseport>\tadd new agent";
-
+		return NAME + "\t[" + PARAM_ACTIVE + "]\t\tshow active agents" + StringUtils.CRLF + NAME +"\t" + PARAM_ALL + "\t\t\tshow all agents" + StringUtils.CRLF
+				+ NAME +"\t" + PARAM_ADD + " <host> <baseport>\tadd new agent";
 	}
 
 	@Override
 	public String name() {
-		return "agent";
+		return NAME;
 	}
 
 }

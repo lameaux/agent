@@ -8,6 +8,7 @@ import com.euromoby.utils.StringUtils;
 @Component
 public class ShellCommand extends CommandBase implements Command {
 
+	public static final String NAME = "shell";		
 	private static final long TIMEOUT = 60 * 1000; // 1 minute
 
 	@Override
@@ -28,12 +29,12 @@ public class ShellCommand extends CommandBase implements Command {
 
 	@Override
 	public String help() {
-		return "shell\t<command>\texecute shell command";
+		return NAME + "\t<command>\texecute shell command";
 	}
 
 	@Override
 	public String name() {
-		return "shell";
+		return NAME;
 	}
 
 }
