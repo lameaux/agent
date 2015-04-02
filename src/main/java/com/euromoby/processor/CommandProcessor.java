@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class CommandProcessor {
 
+	public static final String INVALID_COMMAND = "Invalid command";
+	
 	private List<Command> commands;
 
 	@Autowired
@@ -22,7 +24,7 @@ public class CommandProcessor {
 					return command.execute(request);
 				}
 			}
-			return "Invalid command";
+			return INVALID_COMMAND;
 		} catch (Exception e) {
 			return "Error: " + e.getMessage();
 		}
