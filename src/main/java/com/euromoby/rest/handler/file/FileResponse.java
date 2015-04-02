@@ -161,7 +161,7 @@ public class FileResponse {
 		if (!m.matches()) {
 			throw new IllegalArgumentException("Unsupported range: " + header);
 		}
-		Tuple<Long, Long> result = new Tuple<Long, Long>();
+		Tuple<Long, Long> result = Tuple.empty();
 		result.setFirst(Long.parseLong(m.group(1)));
 		if (!StringUtils.nullOrEmpty(m.group(2))) {
 			result.setSecond(Long.parseLong(m.group(2)));

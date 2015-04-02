@@ -4,16 +4,25 @@ public class Tuple<F, S> {
 
 	private F first;
 	private S second;
-
-	public Tuple() {
+	
+	private Tuple() {
 
 	}
 
-	public Tuple(F first, S second) {
+	private Tuple(F first, S second) {
 		this.first = first;
 		this.second = second;
 	}
 
+
+	public static <F, S> Tuple<F, S> empty() {
+		return new Tuple<F, S>();
+	}
+
+	public static <F, S> Tuple<F, S> of(F first, S second) {
+		return new Tuple<F, S>(first, second);
+	}	
+	
 	public F getFirst() {
 		return first;
 	}
