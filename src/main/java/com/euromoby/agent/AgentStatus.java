@@ -2,8 +2,8 @@ package com.euromoby.agent;
 
 public class AgentStatus {
 
-	private static final long ACTIVE_SINCE_LAST_PING = 10 * 60 * 1000L; // 10 minutes
-	private static final long PING_INTERVAL = 1 * 60 * 1000L; // 1 minute
+	public static final long ACTIVE_SINCE_LAST_PING = 10 * 60 * 1000L; // 10 minutes
+	public static final long PING_INTERVAL = 1 * 60 * 1000L; // 1 minute
 
 	private String myHost;
 	private long lastPingSendAttempt = 0;
