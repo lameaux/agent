@@ -12,8 +12,10 @@ import java.util.Properties;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.euromoby.model.AgentId;
 import com.euromoby.rest.RestServer;
 import com.euromoby.telnet.TelnetServer;
+import com.euromoby.utils.NetUtils;
 import com.euromoby.utils.SystemUtils;
 
 
@@ -22,6 +24,10 @@ public class ConfigTest {
 	private Properties properties;
 	private Config config;
 
+	private static final String DUMMY = "dummy";	
+	private static final String DUMMY_STR = "dummy";
+	private static final int DUMMY_INT = 42;
+	
 	@Before
 	public void init() {
 		properties = new Properties();
@@ -31,14 +37,30 @@ public class ConfigTest {
 	@Test
 	public void testGet() {
 		// empty - default
-		String PARAM1 = "PARAM1";
-		String VALUE1 = "VALUE1";
-		assertNull(config.get(PARAM1));
+		assertNull(config.get(DUMMY));
 		// changed
-		properties.put(PARAM1, VALUE1);
-		assertEquals(VALUE1, config.get(PARAM1));
+		properties.put(DUMMY, DUMMY_STR);
+		assertEquals(DUMMY_STR, config.get(DUMMY));
 	}
 
+	@Test
+	public void testGetProperties() {
+		assertEquals(properties, config.getProperties());
+	}
+	
+	@Test
+	public void testGetHost() {
+		assertEquals(NetUtils.getHostname(), config.getHost());
+		properties.put(Config.AGENT_HOST, DUMMY_STR);
+		assertEquals(DUMMY_STR, config.getHost());
+	}
+
+	@Test
+	public void testGetAgentId() {
+		AgentId agentId = new AgentId(config.getHost(), config.getBasePort());
+		assertEquals(agentId, config.getAgentId());
+	}
+	
 	@Test
 	public void testGetAutorunServices() {
 		// empty - default
@@ -57,19 +79,79 @@ public class ConfigTest {
 		// empty - default
 		assertEquals(Integer.parseInt(Config.DEFAULT_AGENT_BASE_PORT), config.getBasePort());
 		// changed
-		int baseport = 1000;
-		properties.put(Config.AGENT_BASE_PORT, String.valueOf(baseport));
-		assertEquals(baseport, config.getBasePort());
+		properties.put(Config.AGENT_BASE_PORT, String.valueOf(DUMMY_INT));
+		assertEquals(DUMMY_INT, config.getBasePort());
 	}
 
+	@Test
+	public void testGetTelnetPort() {
+		assertEquals(Integer.parseInt(Config.DEFAULT_AGENT_BASE_PORT) + TelnetServer.TELNET_PORT, config.getTelnetPort());
+	}
+	
+	@Test
+	public void testGetRestPort() {
+		assertEquals(Integer.parseInt(Config.DEFAULT_AGENT_BASE_PORT) + RestServer.REST_PORT, config.getRestPort());
+	}
+
+	@Test
+	public void testGetKeystorePath() {
+		assertNull(config.getKeystorePath());
+		properties.put(Config.KEYSTORE_PATH, DUMMY_STR);
+		assertEquals(DUMMY_STR, config.getKeystorePath());
+	}	
+
+	@Test
+	public void testGetKeystoreStorePass() {
+		// empty - default
+		assertEquals(Config.DEFAULT_KEYSTORE_STORE_PASSWORD, config.getKeystoreStorePass());		
+		//changed
+		properties.put(Config.KEYSTORE_STORE_PASSWORD, DUMMY_STR);
+		assertEquals(DUMMY_STR, config.getKeystoreStorePass());		
+	}
+	
+	@Test
+	public void testGetKeystoreKeyPass() {
+		// empty - default
+		assertEquals(Config.DEFAULT_KEYSTORE_KEY_PASSWORD, config.getKeystoreKeyPass());		
+		//changed
+		properties.put(Config.KEYSTORE_KEY_PASSWORD, DUMMY_STR);
+		assertEquals(DUMMY_STR, config.getKeystoreKeyPass());		
+	}
+	
+	@Test
+	public void testGetHttpProxyHost() {
+		// default
+		assertNull(config.getHttpProxyHost());
+		// changed
+		properties.put(Config.HTTP_PROXY_HOST, DUMMY_STR);
+		assertEquals(DUMMY_STR, config.getHttpProxyHost());
+	}
+
+	@Test
+	public void testGetHttpProxyPort() {
+		// default
+		assertEquals(Integer.parseInt(Config.DEFAULT_HTTP_PROXY_PORT), config.getHttpProxyPort());
+		// changed
+		properties.put(Config.HTTP_PROXY_PORT, String.valueOf(DUMMY_INT));
+		assertEquals(DUMMY_INT, config.getHttpProxyPort());
+	}	
+
+	@Test
+	public void testIsHttpProxy() {
+		// default
+		assertFalse(config.isHttpProxy());
+		// changed
+		properties.put(Config.HTTP_PROXY_HOST, DUMMY_STR);		
+		assertTrue(config.isHttpProxy());
+	}	
+	
 	@Test
 	public void testGetAgentRootPath() {
 		// empty - default
 		assertEquals(SystemUtils.getUserHome(), config.getAgentRootPath());		
 		//changed
-		String agentRootPath = "/home/agent";
-		properties.put(Config.AGENT_ROOT_PATH, agentRootPath);
-		assertEquals(agentRootPath, config.getAgentRootPath());		
+		properties.put(Config.AGENT_ROOT_PATH, DUMMY_STR);
+		assertEquals(DUMMY_STR, config.getAgentRootPath());		
 	}
 
 	@Test
@@ -77,57 +159,35 @@ public class ConfigTest {
 		// empty - default
 		assertEquals(config.getAgentRootPath() + File.separatorChar + Config.DEFAULT_AGENT_APP_PATH , config.getAgentAppPath());		
 		//changed
-		String agentAppPath = "agentapp";
-		properties.put(Config.AGENT_APP_PATH, agentAppPath);
-		assertEquals(config.getAgentRootPath() + File.separatorChar + agentAppPath, config.getAgentAppPath());		
+		properties.put(Config.AGENT_APP_PATH, DUMMY_STR);
+		assertEquals(config.getAgentRootPath() + File.separatorChar + DUMMY_STR, config.getAgentAppPath());		
 	}
-	
 	
 	@Test
 	public void testGetAgentFilesPath() {
 		// empty - default
 		assertEquals(config.getAgentAppPath() + File.separatorChar + Config.DEFAULT_AGENT_FILES_PATH, config.getAgentFilesPath());
 		// changed
-		String filesPath = "cdnfiles";
-		properties.put(Config.AGENT_FILES_PATH, filesPath);
-		assertEquals(config.getAgentAppPath() + File.separatorChar + filesPath, config.getAgentFilesPath());
+		properties.put(Config.AGENT_FILES_PATH, DUMMY_STR);
+		assertEquals(config.getAgentAppPath() + File.separatorChar + DUMMY_STR, config.getAgentFilesPath());
 	}
 
 	@Test
-	public void testGetHttpProxyHost() {
+	public void testGetJobPoolSize() {
 		// default
-		assertNull(config.getHttpProxyHost());
-		assertFalse(config.isHttpProxy());
+		assertEquals(Integer.parseInt(Config.DEFAULT_JOB_POOL_SIZE), config.getJobPoolSize());
 		// changed
-		String proxyHost = "proxy";
-		properties.put(Config.HTTP_PROXY_HOST, proxyHost);
-		assertEquals(proxyHost, config.getHttpProxyHost());
-		assertTrue(config.isHttpProxy());
+		properties.put(Config.JOB_POOL_SIZE, String.valueOf(DUMMY_INT));
+		assertEquals(DUMMY_INT, config.getJobPoolSize());
 	}
 
 	@Test
-	public void testGetHttpProxyPort() {
+	public void testGetPingPoolSize() {
 		// default
-		assertEquals(3128, config.getHttpProxyPort());
+		assertEquals(Integer.parseInt(Config.DEFAULT_PING_POOL_SIZE), config.getPingPoolSize());
 		// changed
-		int proxyPort = 8080;
-		properties.put(Config.HTTP_PROXY_PORT, String.valueOf(proxyPort));
-		assertEquals(proxyPort, config.getHttpProxyPort());
-	}
-
-	@Test
-	public void testGetProperties() {
-		assertEquals(properties, config.getProperties());
-	}
-
-	@Test
-	public void testGetRestPort() {
-		assertEquals(Integer.parseInt(Config.DEFAULT_AGENT_BASE_PORT) + RestServer.REST_PORT, config.getRestPort());
-	}
-
-	@Test
-	public void testGetTelnetPort() {
-		assertEquals(Integer.parseInt(Config.DEFAULT_AGENT_BASE_PORT) + TelnetServer.TELNET_PORT, config.getTelnetPort());
-	}
-
+		properties.put(Config.PING_POOL_SIZE, String.valueOf(DUMMY_INT));
+		assertEquals(DUMMY_INT, config.getPingPoolSize());
+	}	
+	
 }
