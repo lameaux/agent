@@ -23,7 +23,7 @@ public class ShellCommandTest {
 
 	@Test
 	public void testMatchWithParam() {
-		assertTrue(shell.match(ShellCommand.NAME + CommandBase.COMMAND_SEPARATOR + "param"));
+		assertTrue(shell.match(ShellCommand.NAME + Command.SEPARATOR + "param"));
 	}
 	
 	@Test
@@ -40,7 +40,7 @@ public class ShellCommandTest {
 	@Test
 	public void testGoodRequest() {
 		String params = "java -version";
-		String result = shell.execute(shell.name() + CommandBase.COMMAND_SEPARATOR + params);
+		String result = shell.execute(shell.name() + Command.SEPARATOR + params);
 		assertTrue(result.toLowerCase().contains("java"));
 	}
 

@@ -4,8 +4,6 @@ import com.euromoby.utils.StringUtils;
 
 public abstract class CommandBase implements Command {
 
-	public static final String COMMAND_SEPARATOR = " ";
-
 	@Override
 	public abstract String name();
 
@@ -25,7 +23,7 @@ public abstract class CommandBase implements Command {
 			return false;
 		}
 
-		return name().equalsIgnoreCase(request) || request.toLowerCase().startsWith(name() + COMMAND_SEPARATOR);
+		return name().equalsIgnoreCase(request) || request.toLowerCase().startsWith(name() + SEPARATOR);
 	}
 
 	public String syntaxError() {
@@ -34,12 +32,12 @@ public abstract class CommandBase implements Command {
 
 	public String[] parameters(String request) {
 
-		String nameWithSeparator = name() + COMMAND_SEPARATOR;
+		String nameWithSeparator = name() + SEPARATOR;
 		if (!request.startsWith(nameWithSeparator)) {
 			return new String[0];
 		}
 
-		String[] params = request.substring(nameWithSeparator.length()).trim().split(COMMAND_SEPARATOR);
+		String[] params = request.substring(nameWithSeparator.length()).trim().split(SEPARATOR);
 		// trim
 		for (int i = 0; i < params.length; i++) {
 			params[i] = params[i].trim();

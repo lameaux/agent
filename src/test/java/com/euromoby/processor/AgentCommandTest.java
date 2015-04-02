@@ -34,9 +34,9 @@ public class AgentCommandTest {
 
 	@Test
 	public void testMatchWithParam() {
-		assertTrue(agentCommand.match(AgentCommand.NAME + CommandBase.COMMAND_SEPARATOR + AgentCommand.PARAM_ACTIVE));
-		assertTrue(agentCommand.match(AgentCommand.NAME + CommandBase.COMMAND_SEPARATOR + AgentCommand.PARAM_ALL));
-		assertTrue(agentCommand.match(AgentCommand.NAME + CommandBase.COMMAND_SEPARATOR + AgentCommand.PARAM_ADD));		
+		assertTrue(agentCommand.match(AgentCommand.NAME + Command.SEPARATOR + AgentCommand.PARAM_ACTIVE));
+		assertTrue(agentCommand.match(AgentCommand.NAME + Command.SEPARATOR + AgentCommand.PARAM_ALL));
+		assertTrue(agentCommand.match(AgentCommand.NAME + Command.SEPARATOR + AgentCommand.PARAM_ADD));		
 	}
 	
 	@Test
@@ -46,31 +46,31 @@ public class AgentCommandTest {
 
 	@Test
 	public void testBadRequest() {
-		String result = agentCommand.execute(AgentCommand.NAME + CommandBase.COMMAND_SEPARATOR + "aaa");
+		String result = agentCommand.execute(AgentCommand.NAME + Command.SEPARATOR + "aaa");
 		assertEquals(agentCommand.syntaxError(), result);
 	}
 
 	@Test
 	public void testDefault() {
-		agentCommand.execute(agentCommand.name() + CommandBase.COMMAND_SEPARATOR);
+		agentCommand.execute(agentCommand.name() + Command.SEPARATOR);
 		Mockito.verify(agentManager).getActive();
 	}
 
 	@Test
 	public void testActive() {
-		agentCommand.execute(agentCommand.name() + CommandBase.COMMAND_SEPARATOR + AgentCommand.PARAM_ACTIVE);
+		agentCommand.execute(agentCommand.name() + Command.SEPARATOR + AgentCommand.PARAM_ACTIVE);
 		Mockito.verify(agentManager).getActive();
 	}	
 
 	@Test
 	public void testAll() {
-		agentCommand.execute(agentCommand.name() + CommandBase.COMMAND_SEPARATOR + AgentCommand.PARAM_ALL);
+		agentCommand.execute(agentCommand.name() + Command.SEPARATOR + AgentCommand.PARAM_ALL);
 		Mockito.verify(agentManager).getAll();
 	}	
 
 	@Test
 	public void testAddEmpty() {
-		String result = agentCommand.execute(agentCommand.name() + CommandBase.COMMAND_SEPARATOR + AgentCommand.PARAM_ADD);
+		String result = agentCommand.execute(agentCommand.name() + Command.SEPARATOR + AgentCommand.PARAM_ADD);
 		assertEquals(agentCommand.syntaxError(), result);
 	}	
 	
@@ -79,7 +79,7 @@ public class AgentCommandTest {
 		String host = "host";
 		int baseport = 21000;
 		AgentId agentId = new AgentId(host, baseport);
-		agentCommand.execute(agentCommand.name() + CommandBase.COMMAND_SEPARATOR + AgentCommand.PARAM_ADD + CommandBase.COMMAND_SEPARATOR + host + CommandBase.COMMAND_SEPARATOR + baseport );
+		agentCommand.execute(agentCommand.name() + Command.SEPARATOR + AgentCommand.PARAM_ADD + Command.SEPARATOR + host + Command.SEPARATOR + baseport );
 		Mockito.verify(agentManager).addAgent(Matchers.eq(agentId));
 	}	
 	

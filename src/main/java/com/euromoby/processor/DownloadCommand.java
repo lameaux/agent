@@ -14,7 +14,8 @@ import com.euromoby.utils.StringUtils;
 @Component
 public class DownloadCommand extends CommandBase implements Command {
 
-	private static final String NO_PROXY = "noproxy";
+	public static final String NAME = "download";
+	public static final String NO_PROXY = "noproxy";
 	
 	private JobManager jobManager;
 	
@@ -48,14 +49,14 @@ public class DownloadCommand extends CommandBase implements Command {
 
 	@Override
 	public String help() {
-		return "download\t<url> <location> [noproxy]\t\tdownload file from <url> to <location> using proxy" + StringUtils.CRLF + StringUtils.CRLF + "Examples:"
-				+ StringUtils.CRLF + "download\thttp://google.com google_page.html\t\tuse proxy if available" + StringUtils.CRLF
-				+ "download\thttp://google.com google_page.html noproxy\tignore proxy configuration";
+		return NAME + "\t<url> <location> [noproxy]\t\tdownload file from <url> to <location> using proxy" + StringUtils.CRLF + StringUtils.CRLF + "Examples:"
+				+ StringUtils.CRLF + NAME + "\thttp://google.com google_page.html\t\tuse proxy if available" + StringUtils.CRLF
+				+ NAME + "\thttp://google.com google_page.html noproxy\tignore proxy configuration";
 	}
 
 	@Override
 	public String name() {
-		return "download";
+		return NAME;
 	}
 
 }
