@@ -8,7 +8,9 @@ import com.euromoby.utils.SystemUtils;
 
 @Component
 public class FreeSpaceCommand extends CommandBase implements Command {
-
+	
+	public static final String NAME = "freespace";
+	
 	private Config config;
 	
 	@Autowired
@@ -24,12 +26,12 @@ public class FreeSpaceCommand extends CommandBase implements Command {
 
 	@Override
 	public String help() {
-		return "freespace\t\tget free space";
+		return NAME + "\t\tget free space";
 	}	
 	
 	@Override
 	public String name() {
-		return "freespace";
+		return NAME;
 	}
 
 }

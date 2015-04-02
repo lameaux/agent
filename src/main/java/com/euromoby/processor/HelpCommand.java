@@ -10,6 +10,11 @@ import com.euromoby.utils.StringUtils;
 @Component
 public class HelpCommand extends CommandBase implements Command {
 
+	public static final String NAME = "help";	
+	public static final String COMMAND_NOT_FOUND = "Command not found";
+	public static final String HELP_HEADER = "Supported commands:";
+	public static final String HELP_FOOTER = "Type \"" + NAME + " <command>\" for the list of parameters";
+	
 	private List<Command> commands;
 
 	@Autowired
@@ -27,28 +32,27 @@ public class HelpCommand extends CommandBase implements Command {
 					return command.help();
 				}
 			}
-			return "Command not found";
+			return COMMAND_NOT_FOUND;
 		} else {		
 			StringBuffer sb = new StringBuffer();
-			sb.append("Supported commands:" + StringUtils.CRLF);
+			sb.append(HELP_HEADER + StringUtils.CRLF);
 			for (Command command : commands) {
 				sb.append(command.name()).append(StringUtils.CRLF);
 			}
-			sb.append(StringUtils.CRLF + "Type \"help <command>\" for the list of parameters" + StringUtils.CRLF);			
+			sb.append(StringUtils.CRLF + HELP_FOOTER + StringUtils.CRLF);			
 			return sb.toString();
 		}
-		
 	}
 
 	@Override
 	public String help() {
-		return "help\t\t\tlist of available commands" + StringUtils.CRLF +
-				"help\t<command>\tshow help for the command";
+		return NAME + "\t\t\tlist of available commands" + StringUtils.CRLF +
+				NAME + "\t<command>\tshow help for the command";
 	}	
 	
 	@Override
 	public String name() {
-		return "help";
+		return NAME;
 	}
 
 }
