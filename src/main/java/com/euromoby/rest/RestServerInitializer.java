@@ -23,7 +23,7 @@ public class RestServerInitializer extends ChannelInitializer<SocketChannel> {
 	public void initChannel(SocketChannel ch) {
 		ChannelPipeline p = ch.pipeline();
 		
-		p.addLast("ssl", new SslHandler(sslContextProvider.newSslEngine()));		
+		p.addLast("ssl", new SslHandler(sslContextProvider.newServerSSLEngine()));		
 		p.addLast("decoder", new HttpRequestDecoder());
 		p.addLast("encoder", new AgentHttpResponseEncoder());
 		//IdleStateHandler

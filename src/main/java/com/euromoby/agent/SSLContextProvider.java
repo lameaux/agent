@@ -11,23 +11,28 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManagerFactory;
 
 import org.apache.commons.io.IOUtils;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
 @Component
-public class SSLContextProvider {
+public class SSLContextProvider implements InitializingBean {
 
 	private Config config;
 	private SSLContext sslContext;
 
 	@Autowired
-	public SSLContextProvider(Config config) throws Exception {
+	public SSLContextProvider(Config config) {
 		this.config = config;
-		initSSLContext();
 	}
 
-	private void initSSLContext() throws Exception {
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		initSSLContext();
+	}	
+	
+	protected void initSSLContext() throws Exception {
 		File keystoreFile = getKeystoreFile();
 		InputStream keystoreInputStream = new FileInputStream(keystoreFile);
 		try {
@@ -57,7 +62,10 @@ public class SSLContextProvider {
 		return new File(keystorePath);
 	}
 	
-	public SSLEngine newSslEngine() {
+	public SSLEngine newServerSSLEngine() {
+		if (sslContext == null) {
+			throw new IllegalStateException("SSLContext is not initialized");
+		}
 		SSLEngine sslEngine = sslContext.createSSLEngine();
 		sslEngine.setUseClientMode(false);
 		return sslEngine;
@@ -66,5 +74,6 @@ public class SSLContextProvider {
 	public SSLContext getSSLContext() {
 		return sslContext;
 	}
+
 	
 }
