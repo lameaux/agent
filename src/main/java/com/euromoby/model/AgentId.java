@@ -1,20 +1,34 @@
 package com.euromoby.model;
 
+import com.euromoby.utils.StringUtils;
+
 public class AgentId {
 	private String host;
 	private int basePort;
 
 	public AgentId(String host, int basePort) {
+		if (StringUtils.nullOrEmpty(host)) {
+			throw new IllegalArgumentException("Invalid host " + host);
+		}
 		this.host = host;
 		this.basePort = basePort;
 	}
 
 	public AgentId(String agentId) {
+		if (StringUtils.nullOrEmpty(agentId)) {
+			throw new IllegalArgumentException("Invalid AgentId agentId");
+		}
 		try {
 			String agentIdParts[] = agentId.split(":", 2);
+			if (agentIdParts.length != 2) {
+				throw new IllegalArgumentException("Invalid AgentId " + agentId);
+			}
 			this.host = agentIdParts[0];
+			if (StringUtils.nullOrEmpty(host)) {
+				throw new IllegalArgumentException("Invalid host " + host);
+			}			
 			this.basePort = Integer.parseInt(agentIdParts[1]);
-		} catch (Exception e) {
+		} catch (NumberFormatException e) {
 			throw new IllegalArgumentException("Invalid AgentId " + agentId);
 		}
 	}
