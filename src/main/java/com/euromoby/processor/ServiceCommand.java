@@ -13,6 +13,11 @@ import com.euromoby.utils.StringUtils;
 @Component
 public class ServiceCommand extends CommandBase implements Command {
 
+	public static final String NAME = "service";
+	public static final String UNKNOWN_SERVICE = "Service %s is not available";
+	public static final String UNKNOWN_ACTION = "Unable to %s %s";
+	public static final String SERVICE_STATUS = "%s: %s";
+	
 	private ServiceManager serviceManager;	
 
 	@Autowired
@@ -44,33 +49,32 @@ public class ServiceCommand extends CommandBase implements Command {
 		String action = params[1].toLowerCase();
 
 		if (!serviceManager.isAvailable(serviceName)) {
-			return "Service " + serviceName + " is not available";
+			return String.format(UNKNOWN_SERVICE, serviceName);
 		}
 
 		if (!serviceManager.isAllowedAction(serviceName, action)) {
-			return "Unable to " + action + " " + serviceName;
+			return String.format(UNKNOWN_ACTION, action, serviceName);
 		}
 
 		ServiceState status = serviceManager.executeAction(serviceName, action);
 
-		return serviceName + ": " + status.toString();
+		return String.format(SERVICE_STATUS, serviceName, status.toString());
 
 	}
 
 	@Override
 	public String help() {
 		
-		return "service\t\t\t\tshow status of all services" + StringUtils.CRLF +
-				"service\t<name>\tstatus\t\tshow service status" + StringUtils.CRLF +
-				"service\t<name>\tstop\t\tstop service" + StringUtils.CRLF +
-				"service\t<name>\trestart\t\trestart service" + StringUtils.CRLF +				
-				"service\t<name>\tstart\t\tstart service";		
-		
+		return NAME + "\t\t\t\tshow status of all services" + StringUtils.CRLF +
+				NAME + "\t<name>\t" + ServiceManager.ACTION_STATUS + "\t\tshow service status" + StringUtils.CRLF +
+				NAME + "\t<name>\t" + ServiceManager.ACTION_STOP + "\t\tstop service" + StringUtils.CRLF +
+				NAME + "\t<name>\t" + ServiceManager.ACTION_RESTART + "\t\trestart service" + StringUtils.CRLF +				
+				NAME + "\t<name>\t" + ServiceManager.ACTION_START + "\t\tstart service";		
 	}
 
 	@Override
 	public String name() {
-		return "service";
+		return NAME;
 	}
 
 }
