@@ -43,6 +43,10 @@ public class Agent {
 		running = false;
 	}
 	
+	public static boolean isRunning() {
+		return running;
+	}
+	
 }
 
 class AgentShutdownHook extends Thread {

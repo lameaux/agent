@@ -7,20 +7,23 @@ import com.euromoby.agent.Agent;
 @Component
 public class ShutdownCommand extends CommandBase implements Command {
 
+	public static final String NAME = "shutdown";
+	public static final String GOODBYE = "Shutting down...";
+	
 	@Override
 	public String execute(String request) {
 		Agent.shutdown();
-		return "Shutting down...";
+		return GOODBYE;
 	}
 
 	@Override
 	public String help() {
-		return "shutdown\t\tterminate Agent instance";
+		return NAME + "\t\tterminate Agent instance";
 	}	
 	
 	@Override
 	public String name() {
-		return "shutdown";
+		return NAME;
 	}
 
 }
