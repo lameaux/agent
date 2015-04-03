@@ -13,6 +13,8 @@ import javax.net.ssl.SSLEngine;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.euromoby.http.SSLContextProvider;
+
 public class SSLContextProviderTest {
 
 	private Properties properties;

@@ -14,8 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.Config;
-import com.euromoby.agent.SSLContextProvider;
-import com.euromoby.utils.HttpUtils;
+import com.euromoby.http.HttpClientProvider;
 
 @Component
 public class UploadClient {
@@ -24,19 +23,19 @@ public class UploadClient {
 	private static final String REQUEST_INPUT_FILE = "file";
 
 	private Config config;
-	private SSLContextProvider sslContextProvider;	
+	private HttpClientProvider httpClientProvider;	
 
 	@Autowired
-	public UploadClient(Config config, SSLContextProvider sslContextProvider) {
+	public UploadClient(Config config, HttpClientProvider httpClientProvider) {
 		this.config = config;
-		this.sslContextProvider = sslContextProvider;
+		this.httpClientProvider = httpClientProvider;
 	}
 
 	public void upload(String location, String targetUrl, boolean noProxy) throws Exception {
-		CloseableHttpClient httpclient = HttpUtils.defaultHttpClient(sslContextProvider.getSSLContext());
+		CloseableHttpClient httpclient = httpClientProvider.createHttpClient();
 		try {
 
-			RequestConfig.Builder requestConfigBuilder = HttpUtils.createRequestConfigBuilder(config, noProxy);
+			RequestConfig.Builder requestConfigBuilder = httpClientProvider.createRequestConfigBuilder(noProxy);
 
 			HttpPost request = new HttpPost(targetUrl);
 			request.setConfig(requestConfigBuilder.build());

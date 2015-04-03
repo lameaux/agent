@@ -13,35 +13,35 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.Config;
-import com.euromoby.agent.SSLContextProvider;
+import com.euromoby.http.HttpClientProvider;
 import com.euromoby.model.AgentId;
 import com.euromoby.rest.RestServer;
 import com.euromoby.rest.handler.job.GetJobsHandler;
-import com.euromoby.utils.HttpUtils;
 import com.google.gson.Gson;
 
 @Component
 public class GetJobsClient {
-
+	
+	private static final String URL_PATTERN = "https://%s:%d";
+	
 	private static final Gson gson = new Gson();
-
 	private Config config;
-	private SSLContextProvider sslContextProvider;
+	private HttpClientProvider httpClientProvider;
 
 	@Autowired
-	public GetJobsClient(Config config, SSLContextProvider sslContextProvider) {
+	public GetJobsClient(Config config, HttpClientProvider httpClientProvider) {
 		this.config = config;
-		this.sslContextProvider = sslContextProvider;
+		this.httpClientProvider = httpClientProvider;
 	}
 
 	public JobDetail[] getJobs(AgentId agentId, boolean noProxy) throws Exception {
-		CloseableHttpClient httpclient = HttpUtils.defaultHttpClient(sslContextProvider.getSSLContext());
+		CloseableHttpClient httpclient = httpClientProvider.createHttpClient();
 
 		AgentId myAgentId = config.getAgentId();
 		try {
 
-			RequestConfig.Builder requestConfigBuilder = HttpUtils.createRequestConfigBuilder(config, noProxy);
-			String url = "https://" + agentId.getHost() + ":" + (agentId.getBasePort() + RestServer.REST_PORT) + GetJobsHandler.URL;
+			RequestConfig.Builder requestConfigBuilder = httpClientProvider.createRequestConfigBuilder(noProxy);
+			String url = String.format(URL_PATTERN, agentId.getHost(), (agentId.getBasePort() + RestServer.REST_PORT)) + GetJobsHandler.URL;
 			HttpUriRequest request = RequestBuilder.get(url).setConfig(requestConfigBuilder.build())
 					.addParameter(GetJobsHandler.AGENT_ID_PARAM_NAME, myAgentId.toString()).build();
 

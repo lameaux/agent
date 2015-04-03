@@ -20,8 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.Config;
-import com.euromoby.agent.SSLContextProvider;
-import com.euromoby.utils.HttpUtils;
+import com.euromoby.http.HttpClientProvider;
 
 @Component
 public class DownloadClient {
@@ -29,19 +28,18 @@ public class DownloadClient {
 	private static final Logger LOG = LoggerFactory.getLogger(DownloadClient.class);
 
 	private Config config;
-	private SSLContextProvider sslContextProvider;	
+	private HttpClientProvider httpClientProvider;	
 
 	@Autowired
-	public DownloadClient(Config config, SSLContextProvider sslContextProvider) {
+	public DownloadClient(Config config, HttpClientProvider httpClientProvider) {
 		this.config = config;
-		this.sslContextProvider = sslContextProvider;
+		this.httpClientProvider = httpClientProvider;
 	}
 
 	public void download(String url, String location, boolean noProxy) throws Exception {
-		CloseableHttpClient httpclient = HttpUtils.defaultHttpClient(sslContextProvider.getSSLContext());
+		CloseableHttpClient httpclient = httpClientProvider.createHttpClient();
 		try {
-
-			RequestConfig.Builder requestConfigBuilder = HttpUtils.createRequestConfigBuilder(config, noProxy);
+			RequestConfig.Builder requestConfigBuilder = httpClientProvider.createRequestConfigBuilder(noProxy);
 
 			HttpGet request = new HttpGet(url);
 			request.setConfig(requestConfigBuilder.build());

@@ -10,40 +10,37 @@ import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.euromoby.agent.Config;
-import com.euromoby.agent.SSLContextProvider;
+import com.euromoby.http.HttpClientProvider;
 import com.euromoby.model.PingInfo;
 import com.euromoby.rest.handler.ping.PingHandler;
-import com.euromoby.utils.HttpUtils;
 import com.google.gson.Gson;
 
 @Component
 public class PingSender {
 
+	private static final String URL_PATTERN = "https://%s:%d";	
 	private static final String PING_INFO_INPUT_NAME = "pingInfo";
 
 	private static final Gson gson = new Gson();
 
-	private Config config;
-	private SSLContextProvider sslContextProvider;
+	private HttpClientProvider httpClientProvider;
 	private PingInfoProvider pingInfoProvider;
 
 	@Autowired
-	public PingSender(Config config, SSLContextProvider sslContextProvider, PingInfoProvider pingInfoProvider) {
-		this.config = config;
-		this.sslContextProvider = sslContextProvider;
+	public PingSender(HttpClientProvider httpClientProvider, PingInfoProvider pingInfoProvider) {
+		this.httpClientProvider = httpClientProvider;
 		this.pingInfoProvider = pingInfoProvider;
 	}
 
 	public PingInfo ping(String host, int restPort, boolean noProxy) throws Exception {
-		CloseableHttpClient httpclient = HttpUtils.defaultHttpClient(sslContextProvider.getSSLContext());
+		CloseableHttpClient httpclient = httpClientProvider.createHttpClient();
 
 		PingInfo myPingInfo = pingInfoProvider.createPingInfo();
 
 		try {
-			RequestConfig.Builder requestConfigBuilder = HttpUtils.createRequestConfigBuilder(config, noProxy);
+			RequestConfig.Builder requestConfigBuilder = httpClientProvider.createRequestConfigBuilder(noProxy);
 
-			String url = "https://" + host + ":" + restPort + PingHandler.URL;
+			String url = String.format(URL_PATTERN, host, restPort) + PingHandler.URL;
 			HttpUriRequest ping = RequestBuilder.post(url).setConfig(requestConfigBuilder.build()).addParameter(PING_INFO_INPUT_NAME, gson.toJson(myPingInfo))
 					.build();
 

@@ -1,4 +1,4 @@
-package com.euromoby.agent;
+package com.euromoby.http;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,6 +15,9 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
+
+import com.euromoby.agent.Agent;
+import com.euromoby.agent.Config;
 
 @Component
 public class SSLContextProvider implements InitializingBean {

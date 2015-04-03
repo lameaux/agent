@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.Config;
-import com.euromoby.agent.SSLContextProvider;
+import com.euromoby.http.SSLContextProvider;
 import com.euromoby.service.Service;
 import com.euromoby.service.ServiceState;
 
