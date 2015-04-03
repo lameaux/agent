@@ -14,7 +14,8 @@ import com.euromoby.utils.StringUtils;
 @Component
 public class UploadCommand extends CommandBase implements Command {
 
-	private static final String NO_PROXY = "noproxy";
+	public static final String NAME = "upload";	
+	public static final String NO_PROXY = "noproxy";
 
 	private JobManager jobManager;
 	
@@ -49,17 +50,17 @@ public class UploadCommand extends CommandBase implements Command {
 	@Override
 	public String help() {
 		
-		return "upload\t<location> <agent-upload-url> [noproxy]\t\tupload file from <location> to <agent-upload-url>  (using configured proxy or directly)" + StringUtils.CRLF
+		return NAME + "\t<location> <agent-upload-url> [noproxy]\t\tupload file from <location> to <agent-upload-url>  (using configured proxy or directly)" + StringUtils.CRLF
 				+ StringUtils.CRLF + 
 				"Examples:" + StringUtils.CRLF + 
-				"upload\tbundle.zip http://agent1:21080/upload\t\tuse proxy if available" + StringUtils.CRLF + 
-				"upload\tbundle.zip http://agent1:21080/upload noproxy\tignore proxy configuration";
+				NAME + "\tbundle.zip http://agent1:21080/upload\t\tuse proxy if available" + StringUtils.CRLF + 
+				NAME + "\tbundle.zip http://agent1:21080/upload noproxy\tignore proxy configuration";
 
 	}
 
 	@Override
 	public String name() {
-		return "upload";
+		return NAME;
 	}
 
 }

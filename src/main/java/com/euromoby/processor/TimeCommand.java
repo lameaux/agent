@@ -7,6 +7,8 @@ import com.euromoby.utils.DateUtils;
 @Component
 public class TimeCommand extends CommandBase implements Command {
 
+	public static final String NAME = "time";
+	
 	@Override
 	public String execute(String request) {
 		return DateUtils.iso(System.currentTimeMillis());
@@ -14,12 +16,12 @@ public class TimeCommand extends CommandBase implements Command {
 
 	@Override
 	public String help() {
-		return "time\t\tshow current time (UTC)";
+		return NAME + "\t\tshow current time (UTC)";
 	}	
 	
 	@Override
 	public String name() {
-		return "time";
+		return NAME;
 	}
 
 }
