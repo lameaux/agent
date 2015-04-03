@@ -9,6 +9,8 @@ import com.euromoby.utils.StringUtils;
 @Component
 public class ConfigCommand extends CommandBase implements Command {
 
+	public static final String NAME = "config";
+	
 	private Config config;
 	
 	@Autowired
@@ -23,7 +25,7 @@ public class ConfigCommand extends CommandBase implements Command {
 		if (params.length == 1 && !StringUtils.nullOrEmpty(params[0])) {
 			return config.get(params[0]);
 		}		
-		return config.toString();
+		return StringUtils.printProperties(config.getProperties(), null);
 	}
 
 	@Override
@@ -34,7 +36,7 @@ public class ConfigCommand extends CommandBase implements Command {
 	
 	@Override
 	public String name() {
-		return "config";
+		return NAME;
 	}
 
 }

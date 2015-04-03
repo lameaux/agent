@@ -7,6 +7,8 @@ import com.euromoby.utils.StringUtils;
 @Component
 public class SysInfoCommand extends CommandBase implements Command {
 
+	public static final String NAME = "sysinfo";
+	
 	@Override
 	public String execute(String request) {
 
@@ -21,13 +23,13 @@ public class SysInfoCommand extends CommandBase implements Command {
 
 	@Override
 	public String help() {
-		return "sysinfo\t\t\tlist system parameters" + StringUtils.CRLF +
-				"sysinfo\t<parameter>\tshow parameter value";
+		return NAME + "\t\t\tlist system parameters" + StringUtils.CRLF +
+				NAME + "\t<parameter>\tshow parameter value";
 	}	
 	
 	@Override
 	public String name() {
-		return "sysinfo";
+		return NAME;
 	}
 
 }
