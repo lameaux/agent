@@ -9,6 +9,9 @@ import com.euromoby.job.JobState;
 
 public class DownloadJob extends Job {
 
+	public static final String ERROR_PARAMS_EMPTY = "Mandatory parameters are missing";
+	public static final String ERROR_PARAM_MISSING = "%s is missing";
+	
 	public static final String PARAM_URL = "url";
 	public static final String PARAM_LOCATION = "location";
 	public static final String PARAM_NOPROXY = "noproxy";
@@ -21,7 +24,7 @@ public class DownloadJob extends Job {
 	}
 
 	@Override
-	public JobDetail call() throws Exception {
+	public JobDetail call() {
 		jobDetail.setState(JobState.RUNNING);
 		jobDetail.setStartTime(System.currentTimeMillis());
 		try {
@@ -45,13 +48,13 @@ public class DownloadJob extends Job {
 	
 	private void validate(Map<String, String> parameters) throws Exception {
 		if (parameters == null || parameters.isEmpty()) {
-			throw new IllegalArgumentException("Mandatory parameters are missing");
+			throw new IllegalArgumentException(ERROR_PARAMS_EMPTY);
 		}	
 		if (!parameters.containsKey(PARAM_URL)) {
-			throw new IllegalArgumentException(PARAM_URL + " is missing");
+			throw new IllegalArgumentException(String.format(ERROR_PARAM_MISSING, PARAM_URL));
 		}
 		if (!parameters.containsKey(PARAM_LOCATION)) {
-			throw new IllegalArgumentException(PARAM_LOCATION + " is missing");
+			throw new IllegalArgumentException(String.format(ERROR_PARAM_MISSING, PARAM_LOCATION));
 		}		
 	}
 	
