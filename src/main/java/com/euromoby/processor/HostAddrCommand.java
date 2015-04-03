@@ -4,11 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.Config;
-import com.euromoby.utils.StringUtils;
 
 @Component
 public class HostAddrCommand extends CommandBase implements Command {
 
+	public static final String NAME = "hostaddr";
+	
 	private Config config;
 	
 	@Autowired
@@ -23,13 +24,12 @@ public class HostAddrCommand extends CommandBase implements Command {
 
 	@Override
 	public String help() {
-		return "hostaddr\t\t\tget host address" + StringUtils.CRLF +
-				"hostaddr\t<address>\tset host address";
+		return NAME + "\t\tget configured host address";
 	}	
 	
 	@Override
 	public String name() {
-		return "hostaddr";
+		return NAME;
 	}
 
 }
