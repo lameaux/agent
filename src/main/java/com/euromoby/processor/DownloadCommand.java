@@ -49,7 +49,7 @@ public class DownloadCommand extends CommandBase implements Command {
 
 	@Override
 	public String help() {
-		return NAME + "\t<url> <location> [noproxy]\t\tdownload file from <url> to <location> using proxy" + StringUtils.CRLF + StringUtils.CRLF + "Examples:"
+		return NAME + "\t<url> <location> [noproxy]\t\tdownload file from <url> to <location>  (using configured proxy or directly)" + StringUtils.CRLF + StringUtils.CRLF + "Examples:"
 				+ StringUtils.CRLF + NAME + "\thttp://google.com google_page.html\t\tuse proxy if available" + StringUtils.CRLF
 				+ NAME + "\thttp://google.com google_page.html noproxy\tignore proxy configuration";
 	}
