@@ -1,7 +1,5 @@
 package com.euromoby.cdn;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -26,6 +24,7 @@ import com.euromoby.file.FileProvider;
 import com.euromoby.file.MimeHelper;
 import com.euromoby.http.HttpResponseProvider;
 import com.euromoby.http.HttpUtils;
+import com.euromoby.model.AgentId;
 import com.euromoby.rest.RestException;
 import com.euromoby.rest.handler.file.FileResponse;
 
@@ -35,16 +34,18 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 	
 	private FileProvider fileProvider;
 	private MimeHelper mimeHelper;	
+	private CdnNetwork cdnNetwork;
 
-	public CdnServerHandler(FileProvider fileProvider, MimeHelper mimeHelper) {
+	public CdnServerHandler(FileProvider fileProvider, MimeHelper mimeHelper, CdnNetwork cdnNetwork) {
 		this.fileProvider = fileProvider;
 		this.mimeHelper = mimeHelper;
+		this.cdnNetwork = cdnNetwork;
 	}
 	
 	@Override
 	public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
 		if (!request.getMethod().equals(HttpMethod.GET)) {
-			writeErrorResponse(ctx, HttpResponseStatus.NOT_IMPLEMENTED, Unpooled.EMPTY_BUFFER);
+			writeErrorResponse(ctx, HttpResponseStatus.NOT_IMPLEMENTED);
 			return;
 		}		
 
@@ -54,23 +55,35 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 		try {
 			fileLocation = URLDecoder.decode(fileLocation, "UTF-8");
 		} catch (UnsupportedEncodingException e) {
-			writeErrorResponse(ctx, HttpResponseStatus.BAD_REQUEST, HttpUtils.fromString("Invalid request"));
+			writeErrorResponse(ctx, HttpResponseStatus.BAD_REQUEST);
 			return;
 		}		
+
+		// remove first slash
+		fileLocation = fileLocation.substring(1);
+		
+		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
 		
 		File targetFile = fileProvider.getFileByLocation(fileLocation);
 		if (targetFile == null) {
 			
-			// TODO ask other agents if they have file
+			// Ask other agents if they have file
+			AgentId agentId = cdnNetwork.find(fileLocation);
+			if (agentId != null) {
+				String agentUrl = String.format("http://%s:%d%s", agentId.getHost(), agentId.getBasePort() + CdnServer.CDN_PORT, request.getUri()); 
+				FullHttpResponse response = httpResponseProvider.createRedirectResponse(agentUrl);
+				httpResponseProvider.writeResponse(ctx, response);				
+				return;
+			}
+			
 			// TODO create download job if file is not found			
 			
-			writeErrorResponse(ctx, HttpResponseStatus.NOT_FOUND, HttpUtils.fromString("Not found"));
+			writeErrorResponse(ctx, HttpResponseStatus.NOT_FOUND);
 			return;
 		}
 		
         // Cache Validation
 		if (!HttpUtils.ifModifiedSince(request, targetFile)) {
-			HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);			
 			FullHttpResponse response = httpResponseProvider.createNotModifiedResponse();
 			httpResponseProvider.writeResponse(ctx, response);
         	return;			
@@ -80,13 +93,18 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 		try {
 			fileResponse.send(ctx, targetFile);		
 		} catch (RestException e) {
-			writeErrorResponse(ctx, HttpResponseStatus.BAD_REQUEST, HttpUtils.fromString(e.getMessage()));
+			writeErrorResponse(ctx, HttpResponseStatus.BAD_REQUEST, e.getMessage());
 		}
 	}
+
+	private void writeErrorResponse(ChannelHandlerContext ctx, HttpResponseStatus status) {
+		writeErrorResponse(ctx, status, status.reasonPhrase());
+	}
 	
-	private void writeErrorResponse(ChannelHandlerContext ctx, HttpResponseStatus status, ByteBuf buf) {
+	private void writeErrorResponse(ChannelHandlerContext ctx, HttpResponseStatus status, String message) {
+		
 		// Build the response object.
-		FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, buf);
+		FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, HttpUtils.fromString(message));
 		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
 		// Write the response.
 		ChannelFuture future = ctx.channel().writeAndFlush(response);
@@ -95,7 +113,6 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-		//LOG.debug("Exception", cause);
 		ctx.channel().close();
 	}
 

@@ -15,11 +15,13 @@ import com.euromoby.http.SmartHttpContentCompressor;
 public class CdnServerInitializer extends ChannelInitializer<SocketChannel> {
 
 	private FileProvider fileProvider;
-	private MimeHelper mimeHelper;		
+	private MimeHelper mimeHelper;
+	private CdnNetwork cdnNetwork;
 	
-	public CdnServerInitializer(FileProvider fileProvider, MimeHelper mimeHelper) {
+	public CdnServerInitializer(FileProvider fileProvider, MimeHelper mimeHelper, CdnNetwork cdnNetwork) {
 		this.fileProvider = fileProvider;
 		this.mimeHelper = mimeHelper;
+		this.cdnNetwork = cdnNetwork;
 	}
 
 	@Override
@@ -32,6 +34,6 @@ public class CdnServerInitializer extends ChannelInitializer<SocketChannel> {
 		// TODO IdleStateHandler
 		p.addLast("compressor", new SmartHttpContentCompressor());
 		p.addLast("chunked", new ChunkedWriteHandler());
-		p.addLast("cdn", new CdnServerHandler(this.fileProvider, this.mimeHelper));
+		p.addLast("cdn", new CdnServerHandler(fileProvider, mimeHelper, cdnNetwork));
 	}
 }

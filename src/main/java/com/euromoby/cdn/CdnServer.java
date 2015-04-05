@@ -28,6 +28,7 @@ public class CdnServer implements Service {
 	private Config config;
 	private FileProvider fileProvider;
 	private MimeHelper mimeHelper;	
+	private CdnNetwork cdnNetwork;
 	
 	private EventLoopGroup bossGroup;
 	private EventLoopGroup workerGroup;
@@ -38,10 +39,11 @@ public class CdnServer implements Service {
 	private static final Logger LOG = LoggerFactory.getLogger(CdnServer.class); 
 	
 	@Autowired
-	public CdnServer(Config config, FileProvider fileProvider, MimeHelper mimeHelper) {
+	public CdnServer(Config config, FileProvider fileProvider, MimeHelper mimeHelper, CdnNetwork cdnNetwork) {
 		this.config = config;
 		this.fileProvider = fileProvider;
 		this.mimeHelper = mimeHelper;
+		this.cdnNetwork = cdnNetwork;
 	}
 
 	@Override
@@ -55,7 +57,7 @@ public class CdnServer implements Service {
 			b.group(bossGroup, workerGroup);
 			b.channel(NioServerSocketChannel.class);
 			b.handler(new LoggingHandler(LogLevel.INFO));
-			b.childHandler(new CdnServerInitializer(this.fileProvider, this.mimeHelper));
+			b.childHandler(new CdnServerInitializer(this.fileProvider, this.mimeHelper, this.cdnNetwork));
 
 			serverChannel = b.bind(config.getCdnPort()).sync().channel();
 
