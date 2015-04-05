@@ -1,11 +1,22 @@
 package com.euromoby.rest.handler.fileinfo;
 
-public class FileInfoResponse {
+import com.euromoby.model.AgentId;
+
+public class FileInfo {
+	private AgentId agentId;
 	private long length;
 	private long lastModified;
 	private boolean complete = true;
 
-	public FileInfoResponse() {
+	public FileInfo() {
+	}
+
+	public AgentId getAgentId() {
+		return agentId;
+	}
+
+	public void setAgentId(AgentId agentId) {
+		this.agentId = agentId;
 	}
 
 	public long getLength() {

@@ -17,6 +17,7 @@ import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.euromoby.agent.Config;
 import com.euromoby.file.FileProvider;
 import com.euromoby.rest.RestException;
 import com.euromoby.rest.handler.RestHandlerBase;
@@ -29,10 +30,12 @@ public class FileInfoHandler extends RestHandlerBase {
 	private static final Pattern URL_PATTERN = Pattern.compile(URL + "/(.+)");
 	private static final Gson gson = new Gson();
 	
+	private Config config;
 	private FileProvider fileProvider;
 
 	@Autowired
-	public FileInfoHandler(FileProvider fileProvider) {
+	public FileInfoHandler(Config config, FileProvider fileProvider) {
+		this.config = config;
 		this.fileProvider = fileProvider;
 	}
 
@@ -64,7 +67,8 @@ public class FileInfoHandler extends RestHandlerBase {
 			throw new RestException(HttpResponseStatus.NOT_FOUND, "Not found");
 		}
 		
-		FileInfoResponse fileInfoResponse = new FileInfoResponse();
+		FileInfo fileInfoResponse = new FileInfo();
+		fileInfoResponse.setAgentId(config.getAgentId());
 		fileInfoResponse.setLength(targetFile.length());
 		fileInfoResponse.setLastModified(targetFile.lastModified());
 		

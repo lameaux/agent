@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
+import java.util.Properties;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -15,6 +16,8 @@ import com.euromoby.model.PingInfo;
 
 public class AgentManagerTest {
 
+	private Properties properties;
+	private Config config;	
 	private AgentManager agentManager;
 	private AgentId agent1;
 	private AgentId agent2;
@@ -22,7 +25,9 @@ public class AgentManagerTest {
 	
 	@Before
 	public void init() {
-		agentManager = new AgentManager();
+		properties = new Properties();
+		config = new Config(properties);		
+		agentManager = new AgentManager(config);
 		agent1 = new AgentId("host1:21000");
 		agent2 = new AgentId("host2:21000");
 		agent3 = new AgentId("host3:21000");		

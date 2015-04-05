@@ -5,16 +5,44 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.model.AgentId;
 import com.euromoby.model.PingInfo;
 
 @Component
-public class AgentManager {
+public class AgentManager implements InitializingBean {
 
+	private static final Logger LOG = LoggerFactory.getLogger(AgentManager.class);	
+	
 	private Map<AgentId, AgentStatus> agents = new HashMap<AgentId, AgentStatus>();
+	private Config config;
+	
+	@Autowired
+	public AgentManager(Config config) {
+		this.config = config;
+	}
 
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		AgentId myAgentId = config.getAgentId();
+		String[] agentFriendIds = config.getAgentFriends();
+		for (String agentFriendId : agentFriendIds) {
+			try {
+				AgentId agentId = new AgentId(agentFriendId);
+				if (!agentId.equals(myAgentId)) {
+					addAgent(agentId);
+				}
+			} catch (Exception e) {
+				LOG.warn("Invalid AgentId '{}'", agentFriendId);
+			}
+		}
+	}	
+	
 	public synchronized void addAgent(AgentId agentId) {
 		if (!agents.containsKey(agentId)) {
 			agents.put(agentId, new AgentStatus());
@@ -81,5 +109,6 @@ public class AgentManager {
 			status.setLastPingSendAttempt(System.currentTimeMillis());
 		}
 	}
+
 
 }

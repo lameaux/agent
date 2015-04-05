@@ -69,6 +69,8 @@ public class Config {
 	
 	public static final String AUTORUN = "agent.autorun";
 	public static final String DEFAULT_AUTORUN = "rest,job,ping";
+	
+	public static final String AGENT_FRIENDS = "agent.friends";
 
 	public static final String AGENT_ROOT_PATH = "agent.root.path";
 
@@ -88,6 +90,12 @@ public class Config {
 	public static final String PING_POOL_SIZE = "agent.ping.pool.size";
 	public static final String DEFAULT_PING_POOL_SIZE = "2";	
 
+	public static final String CDN_POOL_SIZE = "agent.cdn.pool.size";
+	public static final String DEFAULT_CDN_POOL_SIZE = "4";	
+
+	public static final String CDN_TIMEOUT = "agent.cdn.timeout";
+	public static final String DEFAULT_CDN_TIMEOUT = "5";	
+	
 	public static final String KEYSTORE_PATH = "agent.keystore.path";
 	
 	public static final String KEYSTORE_STORE_PASSWORD = "agent.keystore.storepass";
@@ -122,6 +130,10 @@ public class Config {
 		return autorun.split(",");
 	}	
 	
+	public String[] getAgentFriends() {
+		String friendIds = properties.getProperty(AGENT_FRIENDS, "").trim();
+		return friendIds.split(",");
+	}
 	
 	public int getBasePort() {
 		return Integer.parseInt(properties.getProperty(AGENT_BASE_PORT, DEFAULT_AGENT_BASE_PORT));
@@ -189,6 +201,14 @@ public class Config {
 
 	public int getPingPoolSize() {
 		return Integer.parseInt(properties.getProperty(PING_POOL_SIZE, DEFAULT_PING_POOL_SIZE));
+	}	
+
+	public int getCdnPoolSize() {
+		return Integer.parseInt(properties.getProperty(CDN_POOL_SIZE, DEFAULT_CDN_POOL_SIZE));
+	}	
+
+	public int getCdnTimeout() {
+		return Integer.parseInt(properties.getProperty(CDN_TIMEOUT, DEFAULT_CDN_TIMEOUT));
 	}	
 	
 	@Override

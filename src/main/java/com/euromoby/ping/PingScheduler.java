@@ -66,7 +66,7 @@ public class PingScheduler implements Service {
 					interrupted = true;
 					break;
 				} catch (ExecutionException e) {
-					LOG.warn("Pinged with error", e.getCause());
+					LOG.warn("Pinged with error: {}", e.getCause().getMessage());
 				}
 			}
 

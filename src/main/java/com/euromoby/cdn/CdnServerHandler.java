@@ -17,9 +17,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.euromoby.file.FileProvider;
 import com.euromoby.file.MimeHelper;
 import com.euromoby.http.HttpResponseProvider;
@@ -27,11 +24,11 @@ import com.euromoby.http.HttpUtils;
 import com.euromoby.model.AgentId;
 import com.euromoby.rest.RestException;
 import com.euromoby.rest.handler.file.FileResponse;
+import com.euromoby.rest.handler.fileinfo.FileInfo;
+import com.euromoby.utils.StringUtils;
 
 public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
-	private static final Logger LOG = LoggerFactory.getLogger(CdnServerHandler.class);
-	
 	private FileProvider fileProvider;
 	private MimeHelper mimeHelper;	
 	private CdnNetwork cdnNetwork;
@@ -59,24 +56,33 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 			return;
 		}		
 
+		
+		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);		
+		
+		if (StringUtils.nullOrEmpty(fileLocation)) {
+			writeErrorResponse(ctx, HttpResponseStatus.BAD_REQUEST);
+			return;			
+		}
+		
 		// remove first slash
 		fileLocation = fileLocation.substring(1);
-		
-		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
 		
 		File targetFile = fileProvider.getFileByLocation(fileLocation);
 		if (targetFile == null) {
 			
 			// Ask other agents if they have file
-			AgentId agentId = cdnNetwork.find(fileLocation);
-			if (agentId != null) {
+			FileInfo fileInfo = cdnNetwork.find(uri.getPath());
+
+			if (fileInfo != null) {
+				AgentId agentId = fileInfo.getAgentId();
 				String agentUrl = String.format("http://%s:%d%s", agentId.getHost(), agentId.getBasePort() + CdnServer.CDN_PORT, request.getUri()); 
 				FullHttpResponse response = httpResponseProvider.createRedirectResponse(agentUrl);
 				httpResponseProvider.writeResponse(ctx, response);				
 				return;
 			}
 			
-			// TODO create download job if file is not found			
+			// TODO create download job if file is not found
+			// createJob();
 			
 			writeErrorResponse(ctx, HttpResponseStatus.NOT_FOUND);
 			return;
