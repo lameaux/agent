@@ -2,7 +2,13 @@ package com.euromoby.agent;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.euromoby.model.AgentId;
 import com.euromoby.rest.RestServer;
@@ -11,24 +17,47 @@ import com.euromoby.utils.NetUtils;
 import com.euromoby.utils.StringUtils;
 import com.euromoby.utils.SystemUtils;
 
-
 public class Config {
 
+	public static final String PARAM_AGENT_CONFIG = "agent.config";
+	private static final Logger LOG = LoggerFactory.getLogger(Config.class);	
+	
 	private Properties properties = new Properties();
 
 	public Config() {
-		loadDefaultProperties();
+		String agentConfigLocation = System.getProperty(PARAM_AGENT_CONFIG);
+		if (!StringUtils.nullOrEmpty(agentConfigLocation)) {
+			try {
+				loadExternalProperties(agentConfigLocation);
+			} catch (Exception e) {
+				LOG.error("Error loading properties from {}", agentConfigLocation);
+				loadDefaultProperties();
+			}
+		} else {
+			LOG.warn("-D{} parameter is missing.", PARAM_AGENT_CONFIG);
+			loadDefaultProperties();
+		}
 	}
 
 	public Config(Properties properties) {
 		this.properties = properties;
 	}
+
+	private void loadExternalProperties(String agentConfigLocation) throws Exception {
+		InputStream agentConfigInputStream = FileUtils.openInputStream(new File(agentConfigLocation));
+		try {
+			properties.load(agentConfigInputStream);
+		} finally {
+			IOUtils.closeQuietly(agentConfigInputStream);
+		}
+	}
 	
 	private void loadDefaultProperties() {
+		LOG.info("Loading default properties");
 		try {
 			properties.load(Config.class.getResourceAsStream("default.properties"));
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOG.error("Error loading default properties");
 		}
 	}
 

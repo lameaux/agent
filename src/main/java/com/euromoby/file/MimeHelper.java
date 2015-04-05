@@ -1,4 +1,4 @@
-package com.euromoby.rest.handler.file;
+package com.euromoby.file;
 
 import java.io.File;
 

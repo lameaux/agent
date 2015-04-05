@@ -23,6 +23,8 @@ import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.euromoby.file.FileProvider;
+import com.euromoby.file.MimeHelper;
 import com.euromoby.rest.RestException;
 import com.euromoby.rest.handler.RestHandlerBase;
 import com.euromoby.utils.StringUtils;
@@ -31,7 +33,7 @@ import com.euromoby.utils.StringUtils;
 public class FileHandler extends RestHandlerBase {
 
 	public static final String URL = "/files";
-	private static final Pattern URL_PATTERN = Pattern.compile("/files/(.+)");
+	private static final Pattern URL_PATTERN = Pattern.compile(URL + "/(.+)");
 
     public static final String HTTP_DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
     public static final String HTTP_DATE_GMT_TIMEZONE = "GMT";

@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
 
+import com.euromoby.file.MimeHelper;
 import com.euromoby.model.Tuple;
 import com.euromoby.rest.ChunkedInputAdapter;
 import com.euromoby.rest.RestException;
