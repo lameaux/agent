@@ -8,6 +8,7 @@ import java.net.URI;
 
 import org.springframework.stereotype.Component;
 
+import com.euromoby.http.HttpUtils;
 import com.euromoby.rest.handler.RestHandlerBase;
 
 @Component
@@ -22,7 +23,7 @@ public class WhatIsMyIpHandler extends RestHandlerBase {
 	
 	@Override
 	public FullHttpResponse doGet() {
-		FullHttpResponse response = createHttpResponse(HttpResponseStatus.OK, fromString(getClientInetAddress().getHostAddress()));
+		FullHttpResponse response = httpResponseProvider.createHttpResponse(HttpResponseStatus.OK, HttpUtils.fromString(getClientInetAddress().getHostAddress()));
 		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
 		return response;
 	}

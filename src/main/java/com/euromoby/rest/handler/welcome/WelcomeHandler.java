@@ -33,6 +33,6 @@ public class WelcomeHandler extends RestHandlerBase {
 		pageContent = pageContent.replace("%AGENT%", Agent.TITLE);
 		pageContent = pageContent.replace("%VERSION%", Agent.VERSION);
 		ByteBuf content = Unpooled.copiedBuffer(pageContent, CharsetUtil.UTF_8);
-		return createHttpResponse(HttpResponseStatus.OK, content);		
+		return httpResponseProvider.createHttpResponse(HttpResponseStatus.OK, content);		
 	}
 }

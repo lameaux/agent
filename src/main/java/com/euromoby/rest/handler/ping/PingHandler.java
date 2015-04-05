@@ -76,7 +76,7 @@ public class PingHandler extends RestHandlerBase {
 	private FullHttpResponse createPingResponse() {
 		String jsonResponse = gson.toJson(pingInfoProvider.createPingInfo());
 		ByteBuf content = Unpooled.copiedBuffer(jsonResponse, CharsetUtil.UTF_8);
-		FullHttpResponse response = createHttpResponse(HttpResponseStatus.OK, content);
+		FullHttpResponse response = httpResponseProvider.createHttpResponse(HttpResponseStatus.OK, content);
 		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/json; charset=UTF-8");
 		return response;		
 	}

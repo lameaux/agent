@@ -1,4 +1,4 @@
-package com.euromoby.rest;
+package com.euromoby.http;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpHeaders;

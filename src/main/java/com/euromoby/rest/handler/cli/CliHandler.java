@@ -42,7 +42,7 @@ public class CliHandler extends RestHandlerBase {
 	public FullHttpResponse doGet() {
 		InputStream is = CliHandler.class.getResourceAsStream("cli.html");
 		ByteBuf content = Unpooled.copiedBuffer(IOUtils.streamToString(is), CharsetUtil.UTF_8);
-		return createHttpResponse(HttpResponseStatus.OK, content);
+		return httpResponseProvider.createHttpResponse(HttpResponseStatus.OK, content);
 	}
 
 	@Override
@@ -55,7 +55,7 @@ public class CliHandler extends RestHandlerBase {
 		Gson gson = new Gson();
 		String jsonResponse = gson.toJson(new CliResponse(message));
 		ByteBuf content = Unpooled.copiedBuffer(jsonResponse, CharsetUtil.UTF_8);
-		FullHttpResponse response = createHttpResponse(HttpResponseStatus.OK, content);
+		FullHttpResponse response = httpResponseProvider.createHttpResponse(HttpResponseStatus.OK, content);
 		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/json; charset=UTF-8");
 		return response;
 	}

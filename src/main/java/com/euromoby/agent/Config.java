@@ -10,6 +10,7 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.euromoby.cdn.CdnServer;
 import com.euromoby.model.AgentId;
 import com.euromoby.rest.RestServer;
 import com.euromoby.telnet.TelnetServer;
@@ -134,6 +135,10 @@ public class Config {
 		return getBasePort() + RestServer.REST_PORT;
 	}
 
+	public int getCdnPort() {
+		return getBasePort() + CdnServer.CDN_PORT;
+	}	
+	
 	public String getKeystorePath() {
 		return properties.getProperty(KEYSTORE_PATH);
 	}	

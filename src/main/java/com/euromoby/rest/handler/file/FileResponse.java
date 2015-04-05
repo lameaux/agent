@@ -32,6 +32,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.IOUtils;
 
 import com.euromoby.file.MimeHelper;
+import com.euromoby.http.HttpUtils;
 import com.euromoby.model.Tuple;
 import com.euromoby.rest.ChunkedInputAdapter;
 import com.euromoby.rest.RestException;
@@ -40,9 +41,6 @@ import com.euromoby.utils.StringUtils;
 public class FileResponse {
 
 	private static final Pattern RANGE_HEADER = Pattern.compile("bytes=(\\d+)\\-(\\d+)?");
-	private static final String HTTP_DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
-	private static final String HTTP_DATE_GMT_TIMEZONE = "GMT";
-	private static final int HTTP_CACHE_SECONDS = 24 * 60 * 60; // 1 day
 	private static final int HTTP_CHUNK_SIZE = 8192;
 
 	private HttpRequest request;
@@ -180,17 +178,17 @@ public class FileResponse {
 	}
 
 	private void setDateAndCacheHeaders(File fileToCache) {
-		SimpleDateFormat dateFormatter = new SimpleDateFormat(HTTP_DATE_FORMAT, Locale.US);
-		dateFormatter.setTimeZone(TimeZone.getTimeZone(HTTP_DATE_GMT_TIMEZONE));
+		SimpleDateFormat dateFormatter = new SimpleDateFormat(HttpUtils.HTTP_DATE_FORMAT, Locale.US);
+		dateFormatter.setTimeZone(TimeZone.getTimeZone(HttpUtils.HTTP_DATE_GMT_TIMEZONE));
 
 		// Date header
 		Calendar time = new GregorianCalendar();
 		setHeader(HttpHeaders.Names.DATE, dateFormatter.format(time.getTime()));
 
 		// Add cache headers
-		time.add(Calendar.SECOND, HTTP_CACHE_SECONDS);
+		time.add(Calendar.SECOND, HttpUtils.HTTP_CACHE_SECONDS);
 		setHeader(HttpHeaders.Names.EXPIRES, dateFormatter.format(time.getTime()));
-		setHeader(HttpHeaders.Names.CACHE_CONTROL, "private, max-age=" + HTTP_CACHE_SECONDS);
+		setHeader(HttpHeaders.Names.CACHE_CONTROL, "private, max-age=" + HttpUtils.HTTP_CACHE_SECONDS);
 		setHeader(HttpHeaders.Names.LAST_MODIFIED, dateFormatter.format(new Date(fileToCache.lastModified())));
 	}
 

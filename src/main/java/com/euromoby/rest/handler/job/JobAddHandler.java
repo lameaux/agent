@@ -15,6 +15,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.euromoby.http.HttpUtils;
 import com.euromoby.job.JobDetail;
 import com.euromoby.job.JobFactory;
 import com.euromoby.job.JobManager;
@@ -62,7 +63,7 @@ public class JobAddHandler extends RestHandlerBase {
 		pageContent = pageContent.replace("%JOB_CLASSES%", sb.toString());
 		
 		ByteBuf content = Unpooled.copiedBuffer(pageContent, CharsetUtil.UTF_8);
-		return createHttpResponse(HttpResponseStatus.OK, content);
+		return httpResponseProvider.createHttpResponse(HttpResponseStatus.OK, content);
 	}
 
 	@Override
@@ -94,7 +95,7 @@ public class JobAddHandler extends RestHandlerBase {
 
 		jobManager.submit(jobDetail);
 
-		return createHttpResponse(HttpResponseStatus.OK, fromString("OK"));
+		return httpResponseProvider.createHttpResponse(HttpResponseStatus.OK, HttpUtils.fromString("OK"));
 	}
 
 	private Map<String, String> parseParameters(String parameters) {

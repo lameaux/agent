@@ -169,7 +169,7 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-		LOG.debug("Exception", cause);
+		//LOG.debug("Exception", cause);
 		ctx.channel().close();
 	}
 

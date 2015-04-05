@@ -25,7 +25,7 @@ import com.google.gson.Gson;
 @Component
 public class FileInfoHandler extends RestHandlerBase {
 
-	public static final String URL = "/fileinfo";
+	public static final String URL = "/filesinfo";
 	private static final Pattern URL_PATTERN = Pattern.compile(URL + "/(.+)");
 	private static final Gson gson = new Gson();
 	
@@ -70,7 +70,7 @@ public class FileInfoHandler extends RestHandlerBase {
 		
 		String jsonResponse = gson.toJson(fileInfoResponse);
 		ByteBuf content = Unpooled.copiedBuffer(jsonResponse, CharsetUtil.UTF_8);
-		FullHttpResponse response = createHttpResponse(HttpResponseStatus.OK, content);
+		FullHttpResponse response = httpResponseProvider.createHttpResponse(HttpResponseStatus.OK, content);
 		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/json; charset=UTF-8");
 		return response;
 	}

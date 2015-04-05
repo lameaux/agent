@@ -1,5 +1,6 @@
 package com.euromoby.rest;
 
+import com.euromoby.http.AgentHttpResponseEncoder;
 import com.euromoby.http.SSLContextProvider;
 
 import io.netty.channel.ChannelInitializer;
