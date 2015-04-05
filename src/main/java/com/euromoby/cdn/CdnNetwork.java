@@ -3,7 +3,6 @@ package com.euromoby.cdn;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -26,7 +25,6 @@ public class CdnNetwork {
 	private HttpClientProvider httpClientProvider;
 
 	private ExecutorService executor;
-	private ExecutorCompletionService<FileInfo> completionService;
 
 	@Autowired
 	public CdnNetwork(Config config, AgentManager agentManager, HttpClientProvider httpClientProvider) {
@@ -35,7 +33,6 @@ public class CdnNetwork {
 		this.httpClientProvider = httpClientProvider;
 
 		executor = Executors.newFixedThreadPool(this.config.getCdnPoolSize());
-		completionService = new ExecutorCompletionService<FileInfo>(executor);
 	}
 
 	private boolean isAvailable(String uriPath) {
@@ -56,7 +53,7 @@ public class CdnNetwork {
 		List<AgentId> activeAgents = agentManager.getActive();
 		List<Future<FileInfo>> futureList = new ArrayList<Future<FileInfo>>();
 		for (AgentId agentId : activeAgents) {
-			Future<FileInfo> future = executor.submit(new CdnWorker(agentId, config, httpClientProvider));
+			Future<FileInfo> future = executor.submit(new CdnWorker(config, httpClientProvider, agentId, uriPath));
 			futureList.add(future);
 		}
 		long endTime = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(config.getCdnTimeout());
@@ -73,6 +70,12 @@ public class CdnNetwork {
 						// ignore;
 					}
 				}
+			}
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				return null;
 			}
 		}
 

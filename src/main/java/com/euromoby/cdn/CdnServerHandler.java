@@ -17,6 +17,9 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.euromoby.file.FileProvider;
 import com.euromoby.file.MimeHelper;
 import com.euromoby.http.HttpResponseProvider;
@@ -29,6 +32,8 @@ import com.euromoby.utils.StringUtils;
 
 public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
+	private static final Logger LOG = LoggerFactory.getLogger(CdnServerHandler.class);	
+	
 	private FileProvider fileProvider;
 	private MimeHelper mimeHelper;	
 	private CdnNetwork cdnNetwork;
@@ -76,6 +81,7 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 			if (fileInfo != null) {
 				AgentId agentId = fileInfo.getAgentId();
 				String agentUrl = String.format("http://%s:%d%s", agentId.getHost(), agentId.getBasePort() + CdnServer.CDN_PORT, request.getUri()); 
+				LOG.debug("Redirecting to {}", agentId);
 				FullHttpResponse response = httpResponseProvider.createRedirectResponse(agentUrl);
 				httpResponseProvider.writeResponse(ctx, response);				
 				return;
