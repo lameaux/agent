@@ -1,5 +1,6 @@
 package com.euromoby.agent;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -14,6 +15,34 @@ public class AgentStatusTest {
 	public void init() {
 		agentStatus = new AgentStatus();
 	}	
+	
+	@Test
+	public void testMyHost() {
+		String MYHOST = "myhost";
+		agentStatus.setMyHost(MYHOST);
+		assertEquals(MYHOST, agentStatus.getMyHost());
+	}
+	
+	@Test
+	public void testLastPingSendAttempt() {
+		long TIME = System.currentTimeMillis();
+		agentStatus.setLastPingSendAttempt(TIME);
+		assertEquals(TIME, agentStatus.getLastPingSendAttempt());
+	}
+	
+	@Test
+	public void testLastPingSendSuccess() {
+		long TIME = System.currentTimeMillis();
+		agentStatus.setLastPingSendSuccess(TIME);
+		assertEquals(TIME, agentStatus.getLastPingSendSuccess());
+	}
+	
+	@Test
+	public void testLastPingReceived() {
+		long TIME = System.currentTimeMillis();
+		agentStatus.setLastPingReceived(TIME);
+		assertEquals(TIME, agentStatus.getLastPingReceived());
+	}
 	
 	@Test
 	public void testIsActive() {

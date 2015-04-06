@@ -23,6 +23,18 @@ public class Tuple<F, S> {
 		return new Tuple<F, S>(first, second);
 	}	
 	
+	public static Tuple<String, String> splitString(String string, String separator) {
+		Tuple<String, String> t = Tuple.empty();
+		String array[] = string.split(separator, 2);
+		if (array.length == 2) {
+			t.setFirst(array[0]);
+			t.setSecond(array[1]);
+		} else {
+			t.setFirst(array[0]);
+		}
+		return t;
+	}
+	
 	public F getFirst() {
 		return first;
 	}

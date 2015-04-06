@@ -28,9 +28,6 @@ import io.netty.util.CharsetUtil;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.euromoby.rest.handler.RestHandler;
 
 public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
@@ -55,8 +52,6 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 	}
 
 	private HttpPostRequestDecoder decoder;
-
-	private static final Logger LOG = LoggerFactory.getLogger(RestServerHandler.class);
 
 	private RestHandler getRestHandler() {
 		String uriString = request.getUri();
@@ -169,7 +164,6 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-		//LOG.debug("Exception", cause);
 		ctx.channel().close();
 	}
 

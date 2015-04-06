@@ -69,9 +69,11 @@ public class Config {
 	
 	public static final String AUTORUN = "agent.autorun";
 	public static final String DEFAULT_AUTORUN = "rest,job,ping";
-	
+
 	public static final String AGENT_FRIENDS = "agent.friends";
 
+	public static final String LIST_SEPARATOR = ",";
+	
 	public static final String AGENT_ROOT_PATH = "agent.root.path";
 
 	public static final String AGENT_APP_PATH = "agent.app.path";
@@ -104,6 +106,9 @@ public class Config {
 	public static final String KEYSTORE_KEY_PASSWORD = "agent.keystore.keypass";	
 	public static final String DEFAULT_KEYSTORE_KEY_PASSWORD = "123456";
 	
+	public static final String AGENT_REST_SECURED = "agent.rest.secured";
+	public static final String AGENT_REST_LOGIN = "agent.rest.login";
+	public static final String AGENT_REST_PASSWORD = "agent.rest.password";
 	
 	public String get(String key) {
 		return properties.getProperty(key);
@@ -112,6 +117,18 @@ public class Config {
 	public Properties getProperties() {
 		return properties;
 	}	
+	
+	public boolean isRestSecured() {
+		return Boolean.valueOf(properties.getProperty(AGENT_REST_SECURED));
+	}
+	
+	public String getRestLogin() {
+		return properties.getProperty(AGENT_REST_LOGIN, "");
+	}
+
+	public String getRestPassword() {
+		return properties.getProperty(AGENT_REST_PASSWORD, "");
+	}
 	
 	public String getHost() {
 		String agentHost = properties.getProperty(AGENT_HOST);
@@ -127,12 +144,12 @@ public class Config {
 
 	public String[] getAutorunServices() {
 		String autorun = properties.getProperty(AUTORUN, DEFAULT_AUTORUN).trim();
-		return autorun.split(",");
+		return autorun.split(LIST_SEPARATOR);
 	}	
 	
 	public String[] getAgentFriends() {
 		String friendIds = properties.getProperty(AGENT_FRIENDS, "").trim();
-		return friendIds.split(",");
+		return friendIds.split(LIST_SEPARATOR);
 	}
 	
 	public int getBasePort() {

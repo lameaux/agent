@@ -54,7 +54,7 @@ public class RestServer implements Service {
 			b.group(bossGroup, workerGroup);
 			b.channel(NioServerSocketChannel.class);
 			b.handler(new LoggingHandler(LogLevel.INFO));
-			b.childHandler(new RestServerInitializer(sslContextProvider, restMapper));
+			b.childHandler(new RestServerInitializer(config, sslContextProvider, restMapper));
 
 			serverChannel = b.bind(config.getRestPort()).sync().channel();
 
