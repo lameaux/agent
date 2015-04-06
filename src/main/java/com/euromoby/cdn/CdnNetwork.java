@@ -1,6 +1,8 @@
 package com.euromoby.cdn;
 
+import java.net.URI;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -34,7 +36,7 @@ public class CdnNetwork {
 
 		executor = Executors.newFixedThreadPool(this.config.getCdnPoolSize());
 	}
-
+	
 	private boolean isAvailable(String uriPath) {
 		if (uriPath.startsWith("/thumb/")) {
 			return true;
@@ -45,29 +47,58 @@ public class CdnNetwork {
 		return false;
 	}
 
+	public String requestSourceDownload(URI uri) {
+		if (!isAvailable(uri.getPath())) {
+			return null;
+		}		
+		return null;
+	}
+	
+	public String findSourceUrl(URI uri) {
+		return null;
+	}
+	
 	public FileInfo find(String uriPath) {
 		if (!isAvailable(uriPath)) {
 			return null;
 		}
-
+		// send requests to active agents
 		List<AgentId> activeAgents = agentManager.getActive();
 		List<Future<FileInfo>> futureList = new ArrayList<Future<FileInfo>>();
 		for (AgentId agentId : activeAgents) {
-			Future<FileInfo> future = executor.submit(new CdnWorker(config, httpClientProvider, agentId, uriPath));
+			Future<FileInfo> future = executor.submit(new CdnWorker(httpClientProvider, agentId, uriPath));
 			futureList.add(future);
 		}
+		
+		// lets wait 500 ms
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			return null;
+		}		
+		// gather results from agents with timeout
 		long endTime = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(config.getCdnTimeout());
+		List<FileInfo> fileInfoResult = new ArrayList<FileInfo>();
 		while (endTime > System.currentTimeMillis()) {
-			for (Future<FileInfo> future : futureList) {
+			Iterator<Future<FileInfo>> futureIterator = futureList.iterator();
+			if (!futureIterator.hasNext()) {
+				break;
+			}
+			while (futureIterator.hasNext()) {
+				Future<FileInfo> future = futureIterator.next();
 				if (future.isDone()) {
 					try {
 						FileInfo fileInfo = future.get();
-						return fileInfo;
+						if (fileInfo != null) {
+							fileInfoResult.add(fileInfo);
+						}
+						futureIterator.remove();
 					} catch (InterruptedException e) {
 						Thread.currentThread().interrupt();
-						return null;
+						break;
 					} catch (ExecutionException e) {
-						// ignore;
+						futureIterator.remove();
 					}
 				}
 			}
@@ -75,11 +106,16 @@ public class CdnNetwork {
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
-				return null;
+				break;
 			}
 		}
-
-		return null;
+		
+		if (fileInfoResult.isEmpty()) {
+			return null;
+		}
+		
+		// TODO choose best source
+		return fileInfoResult.get(0);
 	}
 
 }

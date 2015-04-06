@@ -2,9 +2,11 @@ package com.euromoby.http;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.util.CharsetUtil;
 
 import java.io.File;
@@ -13,7 +15,9 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 
 import com.euromoby.utils.StringUtils;
@@ -56,4 +60,10 @@ public class HttpUtils {
 	public static ByteBuf fromString(String s) {
 		return Unpooled.copiedBuffer(s, CharsetUtil.UTF_8);
 	}    
+	
+	public static Map<String, List<String>> getUriAttributes(FullHttpRequest request) {
+		QueryStringDecoder decoderQuery = new QueryStringDecoder(request.getUri());
+		return decoderQuery.parameters();
+	}	
+	
 }

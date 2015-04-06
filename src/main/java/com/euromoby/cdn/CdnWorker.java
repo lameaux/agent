@@ -12,7 +12,6 @@ import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 
-import com.euromoby.agent.Config;
 import com.euromoby.http.HttpClientProvider;
 import com.euromoby.model.AgentId;
 import com.euromoby.rest.RestServer;
@@ -27,14 +26,12 @@ public class CdnWorker implements Callable<FileInfo> {
 	private static final Gson gson = new Gson();	
 	
 	private AgentId agentId;
-	private Config config;
 	private HttpClientProvider httpClientProvider;
 	private String uriPath;
 	
 
-	public CdnWorker(Config config, HttpClientProvider httpClientProvider, AgentId agentId, String uriPath) {
+	public CdnWorker(HttpClientProvider httpClientProvider, AgentId agentId, String uriPath) {
 		this.agentId = agentId;
-		this.config = config;
 		this.httpClientProvider = httpClientProvider;
 		this.uriPath = uriPath;
 	}
@@ -51,14 +48,12 @@ public class CdnWorker implements Callable<FileInfo> {
 					.build();
 
 			CloseableHttpResponse response = httpclient.execute(request);
-
 			try {
 				StatusLine statusLine = response.getStatusLine();
 				if (statusLine.getStatusCode() != HttpStatus.SC_OK) {
 					EntityUtils.consumeQuietly(response.getEntity());
 					return null;
 				}
-
 				HttpEntity entity = response.getEntity();
 				String content = EntityUtils.toString(entity);
 				EntityUtils.consumeQuietly(entity);

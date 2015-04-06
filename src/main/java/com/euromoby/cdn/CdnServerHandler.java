@@ -76,8 +76,8 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 		if (targetFile == null) {
 			
 			// Ask other agents if they have file
+			LOG.debug("Asking other agents for {}", uri.getPath());
 			FileInfo fileInfo = cdnNetwork.find(uri.getPath());
-
 			if (fileInfo != null) {
 				AgentId agentId = fileInfo.getAgentId();
 				String agentUrl = String.format("http://%s:%d%s", agentId.getHost(), agentId.getBasePort() + CdnServer.CDN_PORT, request.getUri()); 
@@ -87,9 +87,16 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 				return;
 			}
 			
-			// TODO create download job if file is not found
-			// createJob();
+			// create download job or start streaming
+			String sourceUrl = cdnNetwork.requestSourceDownload(uri);
+			if (sourceUrl != null) {
+				LOG.debug("Redirecting to {}", sourceUrl);
+				FullHttpResponse response = httpResponseProvider.createRedirectResponse(sourceUrl);
+				httpResponseProvider.writeResponse(ctx, response);				
+				return;				
+			}
 			
+			// nothing found
 			writeErrorResponse(ctx, HttpResponseStatus.NOT_FOUND);
 			return;
 		}
