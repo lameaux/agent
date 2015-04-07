@@ -52,13 +52,19 @@ public class CdnWorker implements Callable<FileInfo> {
 				StatusLine statusLine = response.getStatusLine();
 				if (statusLine.getStatusCode() != HttpStatus.SC_OK) {
 					EntityUtils.consumeQuietly(response.getEntity());
-					return null;
+					if (statusLine.getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+						return null;
+					}
+					throw new Exception(statusLine.getStatusCode() + " " + statusLine.getReasonPhrase());
 				}
+				
 				HttpEntity entity = response.getEntity();
 				String content = EntityUtils.toString(entity);
 				EntityUtils.consumeQuietly(entity);
 				FileInfo fileInfo = gson.fromJson(content, FileInfo.class);
-				fileInfo.setAgentId(agentId);
+				if (fileInfo != null) {
+					fileInfo.setAgentId(agentId);
+				}
 				return fileInfo;
 			} finally {
 				response.close();

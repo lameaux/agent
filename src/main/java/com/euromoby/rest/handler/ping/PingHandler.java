@@ -59,12 +59,10 @@ public class PingHandler extends RestHandlerBase {
 		}
 		
 		PingInfo pingInfo = gson.fromJson(pingInfoString, PingInfo.class);
-		if (pingInfo.getAgentId() == null) {
+		if (pingInfo == null || pingInfo.getAgentId() == null) {
 			throw new RestException("AgentId is missing");
 		}
 		
-		// set real host address
-		pingInfo.getAgentId().setHost(getClientInetAddress().getHostAddress());
 		// notify received ping
 		agentManager.notifyPingReceive(pingInfo);
 		

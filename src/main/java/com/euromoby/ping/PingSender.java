@@ -1,6 +1,8 @@
 package com.euromoby.ping;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpStatus;
+import org.apache.http.StatusLine;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -48,6 +50,12 @@ public class PingSender {
 
 			CloseableHttpResponse response = httpclient.execute(ping, httpClientProvider.createHttpClientContext());
 			try {
+				StatusLine statusLine = response.getStatusLine();
+				if (statusLine.getStatusCode() != HttpStatus.SC_OK) {
+					EntityUtils.consumeQuietly(response.getEntity());
+					throw new Exception(statusLine.getStatusCode() + " " + statusLine.getReasonPhrase());
+				}				
+				
 				HttpEntity entity = response.getEntity();
 				String content = EntityUtils.toString(entity);
 				EntityUtils.consumeQuietly(entity);

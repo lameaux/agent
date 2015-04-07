@@ -20,7 +20,7 @@ public class FreeSpaceCommand extends CommandBase implements Command {
 	
 	@Override
 	public String execute(String request) {
-		long sizeInMegabytes = SystemUtils.getFreeSpace(config.getAgentFilesPath()) / (1024*1024);
+		long sizeInMegabytes = SystemUtils.getFreeSpace(config.getAgentRootPath()) / (1024*1024);
 		return  String.format("%dG %dM", sizeInMegabytes / 1024, sizeInMegabytes % 1024) ;
 	}
 
