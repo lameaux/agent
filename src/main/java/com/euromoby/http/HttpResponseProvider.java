@@ -22,8 +22,6 @@ import com.euromoby.rest.RestException;
 
 public class HttpResponseProvider {
 	
-	private static final String REALM = "Agent";
-	
 	private HttpRequest request;
 	
 	public HttpResponseProvider(HttpRequest request) {
@@ -68,10 +66,10 @@ public class HttpResponseProvider {
         return response;
     }	
 
-    public FullHttpResponse createUnauthorizedResponse() {
+    public FullHttpResponse createUnauthorizedResponse(String realm) {
         FullHttpResponse response = createHttpResponse(HttpResponseStatus.UNAUTHORIZED);
 		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
-		response.headers().set(HttpHeaders.Names.WWW_AUTHENTICATE, "Basic realm=\"" + REALM + "\"");
+		response.headers().set(HttpHeaders.Names.WWW_AUTHENTICATE, "Basic realm=\"" + realm + "\"");
         return response;
     }    
     

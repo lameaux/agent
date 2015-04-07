@@ -45,7 +45,7 @@ public class GetJobsClient {
 			HttpUriRequest request = RequestBuilder.get(url).setConfig(requestConfigBuilder.build())
 					.addParameter(GetJobsHandler.AGENT_ID_PARAM_NAME, myAgentId.toString()).build();
 
-			CloseableHttpResponse response = httpclient.execute(request);
+			CloseableHttpResponse response = httpclient.execute(request, httpClientProvider.createHttpClientContext());
 
 			try {
 				StatusLine statusLine = response.getStatusLine();

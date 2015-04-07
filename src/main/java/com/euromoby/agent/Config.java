@@ -109,6 +109,8 @@ public class Config {
 	public static final String AGENT_REST_SECURED = "agent.rest.secured";
 	public static final String AGENT_REST_LOGIN = "agent.rest.login";
 	public static final String AGENT_REST_PASSWORD = "agent.rest.password";
+	public static final String AGENT_REST_REALM = "agent.rest.realm";
+	public static final String DEFAULT_AGENT_REST_REALM = "Agent";
 	
 	public String get(String key) {
 		return properties.getProperty(key);
@@ -128,6 +130,10 @@ public class Config {
 
 	public String getRestPassword() {
 		return properties.getProperty(AGENT_REST_PASSWORD, "");
+	}
+	
+	public String getRestRealm() {
+		return properties.getProperty(AGENT_REST_REALM, DEFAULT_AGENT_REST_REALM);
 	}
 	
 	public String getHost() {

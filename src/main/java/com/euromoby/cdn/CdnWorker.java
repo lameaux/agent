@@ -47,7 +47,7 @@ public class CdnWorker implements Callable<FileInfo> {
 			HttpUriRequest request = RequestBuilder.get(url).setConfig(requestConfigBuilder.build())
 					.build();
 
-			CloseableHttpResponse response = httpclient.execute(request);
+			CloseableHttpResponse response = httpclient.execute(request, httpClientProvider.createHttpClientContext());
 			try {
 				StatusLine statusLine = response.getStatusLine();
 				if (statusLine.getStatusCode() != HttpStatus.SC_OK) {

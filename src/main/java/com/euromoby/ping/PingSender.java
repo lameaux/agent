@@ -41,10 +41,12 @@ public class PingSender {
 			RequestConfig.Builder requestConfigBuilder = httpClientProvider.createRequestConfigBuilder(noProxy);
 
 			String url = String.format(URL_PATTERN, host, restPort) + PingHandler.URL;
-			HttpUriRequest ping = RequestBuilder.post(url).setConfig(requestConfigBuilder.build()).addParameter(PING_INFO_INPUT_NAME, gson.toJson(myPingInfo))
+			HttpUriRequest ping = RequestBuilder.post(url)
+					.setConfig(requestConfigBuilder.build())
+					.addParameter(PING_INFO_INPUT_NAME, gson.toJson(myPingInfo))
 					.build();
 
-			CloseableHttpResponse response = httpclient.execute(ping);
+			CloseableHttpResponse response = httpclient.execute(ping, httpClientProvider.createHttpClientContext());
 			try {
 				HttpEntity entity = response.getEntity();
 				String content = EntityUtils.toString(entity);

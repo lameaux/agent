@@ -44,7 +44,7 @@ public class DownloadClient {
 			HttpGet request = new HttpGet(url);
 			request.setConfig(requestConfigBuilder.build());
 
-			CloseableHttpResponse response = httpclient.execute(request);
+			CloseableHttpResponse response = httpclient.execute(request, httpClientProvider.createHttpClientContext());
 			
 			try {
 

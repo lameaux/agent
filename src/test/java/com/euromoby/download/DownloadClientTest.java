@@ -13,6 +13,7 @@ import org.apache.http.ProtocolVersion;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -51,11 +52,12 @@ public class DownloadClientTest {
 		downloadClient = new DownloadClient(config, httpClientProvider);
 		Mockito.when(httpClientProvider.createHttpClient()).thenReturn(httpClient);
 		Mockito.when(httpClientProvider.createRequestConfigBuilder(true)).thenReturn(RequestConfig.custom());
+		Mockito.when(httpClientProvider.createHttpClientContext()).thenReturn(HttpClientContext.create());
 	}	
 
 	@Test
 	public void testNotfound() throws Exception {
-		Mockito.when(httpClient.execute(Matchers.any(HttpGet.class))).thenReturn(closeableHttpResponse);
+		Mockito.when(httpClient.execute(Matchers.any(HttpGet.class), Matchers.any(HttpClientContext.class))).thenReturn(closeableHttpResponse);
 
 		int status = HttpStatus.SC_NOT_FOUND;
 		String reason = "Not found";		
@@ -73,7 +75,7 @@ public class DownloadClientTest {
 	
 	@Test
 	public void testDownload() throws Exception {
-		Mockito.when(httpClient.execute(Matchers.any(HttpGet.class))).thenReturn(closeableHttpResponse);
+		Mockito.when(httpClient.execute(Matchers.any(HttpGet.class), Matchers.any(HttpClientContext.class))).thenReturn(closeableHttpResponse);
 		int status = HttpStatus.SC_OK;
 		String reason = "OK";
 		Mockito.when(closeableHttpResponse.getStatusLine()).thenReturn(new BasicStatusLine(new ProtocolVersion("HTTP", 1, 1), status, reason));

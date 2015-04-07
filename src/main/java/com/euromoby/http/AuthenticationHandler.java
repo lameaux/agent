@@ -32,7 +32,7 @@ public class AuthenticationHandler extends SimpleChannelInboundHandler<HttpObjec
 				HttpRequest request = (HttpRequest) msg;
 				if (!isAuthenticated(request)) {
 					HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
-					FullHttpResponse response = httpResponseProvider.createUnauthorizedResponse();
+					FullHttpResponse response = httpResponseProvider.createUnauthorizedResponse(config.getRestRealm());
 					ChannelFuture future = ctx.channel().writeAndFlush(response);
 					future.addListener(ChannelFutureListener.CLOSE);					
 					return;

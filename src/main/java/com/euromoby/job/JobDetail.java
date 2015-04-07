@@ -16,6 +16,7 @@ public class JobDetail implements Comparable<JobDetail> {
 	private UUID uuid = UUID.randomUUID();	
 	private String jobClass;
 	private long scheduleTime = System.currentTimeMillis();
+	
 	private Map<String, String> parameters = null;
 
 	private JobState state = JobState.NEW;
@@ -23,6 +24,7 @@ public class JobDetail implements Comparable<JobDetail> {
 	private long finishTime = 0;
 	private boolean error = false;
 	private String message;
+
 
 	public JobDetail() {
 	}

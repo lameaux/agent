@@ -45,7 +45,7 @@ public class UploadClient {
 
 			request.setEntity(requestMultipartEntity);
 
-			CloseableHttpResponse response = httpclient.execute(request);
+			CloseableHttpResponse response = httpclient.execute(request, httpClientProvider.createHttpClientContext());
 			try {
 				StatusLine statusLine = response.getStatusLine();
 				EntityUtils.consumeQuietly(response.getEntity());
