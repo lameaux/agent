@@ -37,7 +37,7 @@ public class FreeSpaceCommandTest {
 
 	@Test
 	public void testDefault() {
-		Mockito.when(config.getAgentFilesPath()).thenReturn(SystemUtils.getUserHome());
+		Mockito.when(config.getAgentRootPath()).thenReturn(SystemUtils.getUserHome());
 		String result = freeSpaceCommand.execute(freeSpaceCommand.name());
 		assertTrue(result.matches("[0-9]+G [0-9]+M"));
 	}
