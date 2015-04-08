@@ -1,4 +1,4 @@
-package com.euromoby.rest.handler.file;
+package com.euromoby.http;
 
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -32,7 +32,6 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.IOUtils;
 
 import com.euromoby.file.MimeHelper;
-import com.euromoby.http.HttpUtils;
 import com.euromoby.model.Tuple;
 import com.euromoby.rest.ChunkedInputAdapter;
 import com.euromoby.rest.RestException;

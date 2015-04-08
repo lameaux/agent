@@ -7,17 +7,22 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.stream.ChunkedWriteHandler;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.euromoby.file.FileProvider;
 import com.euromoby.file.MimeHelper;
 import com.euromoby.http.AgentHttpResponseEncoder;
 import com.euromoby.http.SmartHttpContentCompressor;
 
+@Component
 public class CdnServerInitializer extends ChannelInitializer<SocketChannel> {
 
 	private FileProvider fileProvider;
 	private MimeHelper mimeHelper;
 	private CdnNetwork cdnNetwork;
 	
+	@Autowired
 	public CdnServerInitializer(FileProvider fileProvider, MimeHelper mimeHelper, CdnNetwork cdnNetwork) {
 		this.fileProvider = fileProvider;
 		this.mimeHelper = mimeHelper;

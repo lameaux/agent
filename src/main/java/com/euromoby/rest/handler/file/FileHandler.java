@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import com.euromoby.file.FileProvider;
 import com.euromoby.file.MimeHelper;
+import com.euromoby.http.FileResponse;
 import com.euromoby.http.HttpUtils;
 import com.euromoby.rest.RestException;
 import com.euromoby.rest.handler.RestHandlerBase;

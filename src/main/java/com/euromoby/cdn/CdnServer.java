@@ -14,8 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.Config;
-import com.euromoby.file.FileProvider;
-import com.euromoby.file.MimeHelper;
 import com.euromoby.service.Service;
 import com.euromoby.service.ServiceState;
 
@@ -26,9 +24,7 @@ public class CdnServer implements Service {
 	public static final int CDN_PORT = 80;
 	
 	private Config config;
-	private FileProvider fileProvider;
-	private MimeHelper mimeHelper;	
-	private CdnNetwork cdnNetwork;
+	private CdnServerInitializer initializer;
 	
 	private EventLoopGroup bossGroup;
 	private EventLoopGroup workerGroup;
@@ -39,11 +35,9 @@ public class CdnServer implements Service {
 	private static final Logger LOG = LoggerFactory.getLogger(CdnServer.class); 
 	
 	@Autowired
-	public CdnServer(Config config, FileProvider fileProvider, MimeHelper mimeHelper, CdnNetwork cdnNetwork) {
+	public CdnServer(Config config, CdnServerInitializer initializer) {
 		this.config = config;
-		this.fileProvider = fileProvider;
-		this.mimeHelper = mimeHelper;
-		this.cdnNetwork = cdnNetwork;
+		this.initializer = initializer;
 	}
 
 	@Override
@@ -57,7 +51,7 @@ public class CdnServer implements Service {
 			b.group(bossGroup, workerGroup);
 			b.channel(NioServerSocketChannel.class);
 			b.handler(new LoggingHandler(LogLevel.INFO));
-			b.childHandler(new CdnServerInitializer(this.fileProvider, this.mimeHelper, this.cdnNetwork));
+			b.childHandler(initializer);
 
 			serverChannel = b.bind(config.getCdnPort()).sync().channel();
 

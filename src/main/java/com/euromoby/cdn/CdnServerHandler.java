@@ -13,7 +13,6 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 
@@ -22,11 +21,11 @@ import org.slf4j.LoggerFactory;
 
 import com.euromoby.file.FileProvider;
 import com.euromoby.file.MimeHelper;
+import com.euromoby.http.FileResponse;
 import com.euromoby.http.HttpResponseProvider;
 import com.euromoby.http.HttpUtils;
 import com.euromoby.model.AgentId;
 import com.euromoby.rest.RestException;
-import com.euromoby.rest.handler.file.FileResponse;
 import com.euromoby.rest.handler.fileinfo.FileInfo;
 import com.euromoby.utils.StringUtils;
 
@@ -37,6 +36,7 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 	private FileProvider fileProvider;
 	private MimeHelper mimeHelper;	
 	private CdnNetwork cdnNetwork;
+	private HttpResponseProvider httpResponseProvider = new HttpResponseProvider();
 
 	public CdnServerHandler(FileProvider fileProvider, MimeHelper mimeHelper, CdnNetwork cdnNetwork) {
 		this.fileProvider = fileProvider;
@@ -44,65 +44,78 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 		this.cdnNetwork = cdnNetwork;
 	}
 	
+	protected void manageCdnRequest(ChannelHandlerContext ctx, URI uri) {
+		
+		// Ask other agents if they have file
+		LOG.debug("Asking other agents for {}", uri.getPath());
+		FileInfo fileInfo = cdnNetwork.find(uri.getPath());
+		if (fileInfo != null) {
+			AgentId agentId = fileInfo.getAgentId();
+			String agentUrl = String.format("http://%s:%d%s", agentId.getHost(), agentId.getBasePort() + CdnServer.CDN_PORT, uri.getPath()); 
+			LOG.debug("Redirecting to {}", agentId);
+			FullHttpResponse response = httpResponseProvider.createRedirectResponse(agentUrl);
+			httpResponseProvider.writeResponse(ctx, response);				
+			return;
+		}
+
+		// TODO Stream (+ store local) from source location if defined, 
+		// no range if not synced, 
+		// or 404 if not found in source
+					
+		
+		// create download job or start streaming
+		String sourceUrl = cdnNetwork.requestSourceDownload(uri);
+		if (sourceUrl != null) {
+			LOG.debug("Redirecting to {}", sourceUrl);
+			FullHttpResponse response = httpResponseProvider.createRedirectResponse(sourceUrl);
+			httpResponseProvider.writeResponse(ctx, response);				
+			return;				
+		}
+		
+		// nothing found
+		writeErrorResponse(ctx, HttpResponseStatus.NOT_FOUND);		
+	}
+	
+	protected void manageFileResponse(ChannelHandlerContext ctx, FullHttpRequest request, File targetFile) {
+		FileResponse fileResponse = new FileResponse(request, mimeHelper);
+		try {
+			fileResponse.send(ctx, targetFile);		
+		} catch (RestException e) {
+			writeErrorResponse(ctx, HttpResponseStatus.BAD_REQUEST, e.getMessage());
+		}		
+	}
+	
 	@Override
 	public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
+		
+		httpResponseProvider.setHttpRequest(request);		
+		
 		if (!request.getMethod().equals(HttpMethod.GET)) {
 			writeErrorResponse(ctx, HttpResponseStatus.NOT_IMPLEMENTED);
 			return;
 		}		
 
-		URI uri = new URI(request.getUri());
-		String fileLocation = uri.getPath();
+		URI uri;
+		String fileLocation;
 
 		try {
-			fileLocation = URLDecoder.decode(fileLocation, "UTF-8");
-		} catch (UnsupportedEncodingException e) {
+			uri = new URI(request.getUri());
+			fileLocation = URLDecoder.decode(uri.getPath(), "UTF-8");
+		} catch (Exception e) {
 			writeErrorResponse(ctx, HttpResponseStatus.BAD_REQUEST);
 			return;
 		}		
 
-		
-		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);		
-		
-		if (StringUtils.nullOrEmpty(fileLocation)) {
+		if (StringUtils.nullOrEmpty(fileLocation) || !fileLocation.startsWith("/")) {
 			writeErrorResponse(ctx, HttpResponseStatus.BAD_REQUEST);
 			return;			
 		}
-		
 		// remove first slash
 		fileLocation = fileLocation.substring(1);
-		
+
 		File targetFile = fileProvider.getFileByLocation(fileLocation);
 		if (targetFile == null) {
-			
-			// Ask other agents if they have file
-			LOG.debug("Asking other agents for {}", uri.getPath());
-			FileInfo fileInfo = cdnNetwork.find(uri.getPath());
-			if (fileInfo != null) {
-				AgentId agentId = fileInfo.getAgentId();
-				String agentUrl = String.format("http://%s:%d%s", agentId.getHost(), agentId.getBasePort() + CdnServer.CDN_PORT, request.getUri()); 
-				LOG.debug("Redirecting to {}", agentId);
-				FullHttpResponse response = httpResponseProvider.createRedirectResponse(agentUrl);
-				httpResponseProvider.writeResponse(ctx, response);				
-				return;
-			}
-
-			// TODO Stream (+ store local) from source location if defined, 
-			// no range if not synced, 
-			// or 404 if not found in source
-						
-			
-			// create download job or start streaming
-			String sourceUrl = cdnNetwork.requestSourceDownload(uri);
-			if (sourceUrl != null) {
-				LOG.debug("Redirecting to {}", sourceUrl);
-				FullHttpResponse response = httpResponseProvider.createRedirectResponse(sourceUrl);
-				httpResponseProvider.writeResponse(ctx, response);				
-				return;				
-			}
-			
-			// nothing found
-			writeErrorResponse(ctx, HttpResponseStatus.NOT_FOUND);
+			manageCdnRequest(ctx, uri);
 			return;
 		}
 		
@@ -113,12 +126,7 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
         	return;			
 		}
 		
-		FileResponse fileResponse = new FileResponse(request, mimeHelper);
-		try {
-			fileResponse.send(ctx, targetFile);		
-		} catch (RestException e) {
-			writeErrorResponse(ctx, HttpResponseStatus.BAD_REQUEST, e.getMessage());
-		}
+		manageFileResponse(ctx, request, targetFile);
 	}
 
 	private void writeErrorResponse(ChannelHandlerContext ctx, HttpResponseStatus status) {

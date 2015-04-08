@@ -23,11 +23,18 @@ import com.euromoby.rest.RestException;
 public class HttpResponseProvider {
 	
 	private HttpRequest request;
+
+	public HttpResponseProvider() {
+	}	
 	
 	public HttpResponseProvider(HttpRequest request) {
 		this.request = request;
 	}
 
+	public void setHttpRequest(HttpRequest request) {
+		this.request = request;
+	}	
+	
 	public FullHttpResponse createHttpResponse() {
 		return createHttpResponse(HttpResponseStatus.OK);
 	}
