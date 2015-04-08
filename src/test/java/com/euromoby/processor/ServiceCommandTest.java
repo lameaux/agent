@@ -4,6 +4,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,6 +17,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.euromoby.service.ServiceManager;
 import com.euromoby.service.ServiceState;
+import com.euromoby.utils.StringUtils;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ServiceCommandTest {
@@ -55,8 +59,18 @@ public class ServiceCommandTest {
 	}
 
 	@Test
+	public void testBadRequest2() {
+		String result = serviceCommand.execute(ServiceCommand.NAME + Command.SEPARATOR + " " + Command.SEPARATOR + " ");
+		assertEquals(serviceCommand.syntaxError(), result);
+	}	
+	
+	@Test
 	public void testDefault() {
-		serviceCommand.execute(serviceCommand.name());
+		Map<String, ServiceState> stateMap = new HashMap<String, ServiceState>();
+		stateMap.put(SERVICE_NAME, ServiceState.UNKNOWN);
+		Mockito.when(serviceManager.getAllStates()).thenReturn(stateMap);
+		String output = SERVICE_NAME + ": " + ServiceState.UNKNOWN.toString() + StringUtils.CRLF;
+		assertEquals(output, serviceCommand.execute(serviceCommand.name()));
 		Mockito.verify(serviceManager).getAllStates();
 	}
 

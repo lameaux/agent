@@ -4,6 +4,8 @@ import com.euromoby.utils.StringUtils;
 
 public abstract class CommandBase implements Command {
 
+	public static final String SYNTAX_ERROR = "Syntax error. Help: ";
+	
 	@Override
 	public abstract String name();
 
@@ -27,7 +29,7 @@ public abstract class CommandBase implements Command {
 	}
 
 	public String syntaxError() {
-		return "Syntax error. Help: " + StringUtils.CRLF + help();
+		return SYNTAX_ERROR + StringUtils.CRLF + help();
 	}
 
 	public String[] parameters(String request) {
