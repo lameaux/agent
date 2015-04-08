@@ -55,6 +55,10 @@ public class CdnNetwork {
 	}
 	
 	public String findSourceUrl(URI uri) {
+		
+		// TODO Stream (+ store local) from source location if defined, no range if not synced, or 404 if not found in source
+		
+		
 		return null;
 	}
 	

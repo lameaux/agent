@@ -86,6 +86,11 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 				httpResponseProvider.writeResponse(ctx, response);				
 				return;
 			}
+
+			// TODO Stream (+ store local) from source location if defined, 
+			// no range if not synced, 
+			// or 404 if not found in source
+						
 			
 			// create download job or start streaming
 			String sourceUrl = cdnNetwork.requestSourceDownload(uri);
