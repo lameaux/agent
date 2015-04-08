@@ -126,7 +126,6 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 	}
 	
 	private void writeErrorResponse(ChannelHandlerContext ctx, HttpResponseStatus status, String message) {
-		
 		// Build the response object.
 		FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, HttpUtils.fromString(message));
 		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
