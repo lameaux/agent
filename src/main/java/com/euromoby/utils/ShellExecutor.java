@@ -5,7 +5,7 @@ import java.util.concurrent.TimeoutException;
 
 public class ShellExecutor {
 
-	public static String executeCommandLine(final String[] commandLine, final long timeout) throws IOException, InterruptedException, TimeoutException {
+	public String executeCommandLine(final String[] commandLine, final long timeout) throws IOException, InterruptedException, TimeoutException {
 		ProcessBuilder pb = new ProcessBuilder().command(commandLine).redirectErrorStream(true);
 		Process process = pb.start();
 
@@ -43,6 +43,7 @@ public class ShellExecutor {
 			this.process = process;
 		}
 
+		@Override
 		public void run() {
 			try {
 				exit = process.waitFor();

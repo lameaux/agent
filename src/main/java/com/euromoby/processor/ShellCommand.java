@@ -9,7 +9,13 @@ import com.euromoby.utils.StringUtils;
 public class ShellCommand extends CommandBase implements Command {
 
 	public static final String NAME = "shell";		
-	private static final long TIMEOUT = 60 * 1000; // 1 minute
+	public static final long TIMEOUT = 5 * 60 * 1000; // 5 minutes
+	
+	private ShellExecutor shellExecutor;
+	
+	public ShellCommand(ShellExecutor shellExecutor) {
+		this.shellExecutor = shellExecutor;
+	}
 
 	@Override
 	public String execute(String request) {
@@ -20,7 +26,7 @@ public class ShellCommand extends CommandBase implements Command {
 		}
 
 		try {
-			return ShellExecutor.executeCommandLine(params, TIMEOUT);
+			return shellExecutor.executeCommandLine(params, TIMEOUT);
 		} catch (Exception e) {
 			return e.getMessage();
 		}

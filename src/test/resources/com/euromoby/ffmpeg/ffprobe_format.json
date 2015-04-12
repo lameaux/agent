@@ -1,0 +1,20 @@
+{
+    "format": {
+        "filename": "55.mp4",
+        "nb_streams": 6,
+        "nb_programs": 0,
+        "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+        "format_long_name": "QuickTime / MOV",
+        "start_time": "0.000000",
+        "duration": "86.981000",
+        "size": "4726784",
+        "bit_rate": "434741",
+        "probe_score": 100,
+        "tags": {
+            "major_brand": "mp42",
+            "minor_version": "1",
+            "compatible_brands": "isomiso2avc1mp41mp423gp5",
+            "encoder": "Lavf54.29.104"
+        }
+    }
+}

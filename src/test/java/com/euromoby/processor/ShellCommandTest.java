@@ -6,14 +6,24 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Matchers;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.runners.MockitoJUnitRunner;
 
+import com.euromoby.utils.ShellExecutor;
+
+@RunWith(MockitoJUnitRunner.class)
 public class ShellCommandTest {
 
+	@Mock
+	ShellExecutor shellExecutor;
 	ShellCommand shell;
 
 	@Before
 	public void init() {
-		shell = new ShellCommand();
+		shell = new ShellCommand(shellExecutor);
 	}
 
 	@Test
@@ -38,10 +48,13 @@ public class ShellCommandTest {
 	}
 
 	@Test
-	public void testGoodRequest() {
+	public void testGoodRequest() throws Exception {
 		String params = "java -version";
+		String output = "java";
+		Mockito.when(shellExecutor.executeCommandLine(Matchers.eq(params.split(" ")), 
+				Matchers.eq(ShellCommand.TIMEOUT))).thenReturn(output);
 		String result = shell.execute(shell.name() + Command.SEPARATOR + params);
-		assertTrue(result.toLowerCase().contains("java"));
+		assertEquals(output, result);
 	}
 
 }
