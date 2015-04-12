@@ -9,6 +9,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.euromoby.agent.Config;
 import com.euromoby.utils.ShellExecutor;
 
 @Ignore
@@ -23,7 +24,12 @@ public class FfmpegIntegrationTest {
 	@Before
 	public void init() {
 		ShellExecutor shellExecutor = new ShellExecutor();
-		ffmpeg = new Ffmpeg(shellExecutor, FFMPEG_LOCATION);
+		ffmpeg = new Ffmpeg(shellExecutor, new Config(){
+			@Override
+			public String getFfmpegPath() {
+				return FFMPEG_LOCATION;
+			} 
+		});
 	}
 
 	@Test

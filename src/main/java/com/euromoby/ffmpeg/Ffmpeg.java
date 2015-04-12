@@ -4,10 +4,15 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.euromoby.agent.Config;
 import com.euromoby.utils.ShellExecutor;
 import com.euromoby.utils.StringUtils;
 import com.google.gson.Gson;
 
+@Component
 public class Ffmpeg {
 
 	public static final String FFMPEG = "ffmpeg";
@@ -17,14 +22,16 @@ public class Ffmpeg {
 	private static final Gson gson = new Gson();
 	
 	private ShellExecutor shellExecutor;
-	private String ffmpegLocation;
+	private Config config;
 	
-	public Ffmpeg(ShellExecutor shellExecutor, String ffmpegLocation) {
+	@Autowired
+	public Ffmpeg(ShellExecutor shellExecutor, Config config) {
 		this.shellExecutor = shellExecutor;
-		this.ffmpegLocation = ffmpegLocation;
+		this.config = config;
 	}
 
 	protected String getPathToCommand(String command) {
+		String ffmpegLocation = config.getFfmpegPath();
 		if (StringUtils.nullOrEmpty(ffmpegLocation)) {
 			return command;
 		}		
@@ -49,7 +56,7 @@ public class Ffmpeg {
 		command.add("-y"); // do not ask
 		command.add("-loglevel");
 		command.add("error");
-		command.add("-itsoffset");
+		command.add("-ss");
 		command.add(String.valueOf(offsetSeconds));
 		command.add("-i");
 		command.add(inFileName);		

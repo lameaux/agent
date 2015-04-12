@@ -1,5 +1,6 @@
 package com.euromoby.processor;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.utils.ShellExecutor;
@@ -13,6 +14,7 @@ public class ShellCommand extends CommandBase implements Command {
 	
 	private ShellExecutor shellExecutor;
 	
+	@Autowired
 	public ShellCommand(ShellExecutor shellExecutor) {
 		this.shellExecutor = shellExecutor;
 	}

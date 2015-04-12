@@ -127,6 +127,8 @@ public class Config {
 	public static final String AGENT_REST_REALM = "agent.rest.realm";
 	public static final String DEFAULT_AGENT_REST_REALM = "Agent";
 
+	public static final String AGENT_FFMPEG_PATH = "agent.ffmpeg.path";	
+	
 	public String get(String key) {
 		return properties.getProperty(key);
 	}
@@ -253,6 +255,10 @@ public class Config {
 		return Integer.parseInt(properties.getProperty(CDN_TIMEOUT, DEFAULT_CDN_TIMEOUT));
 	}
 
+	public String getFfmpegPath() {
+		return properties.getProperty(AGENT_FFMPEG_PATH);
+	}
+	
 	@Override
 	public String toString() {
 		return StringUtils.printProperties(properties, null);

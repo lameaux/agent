@@ -3,6 +3,9 @@ package com.euromoby.video;
 import java.io.File;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.euromoby.download.DownloadClient;
 import com.euromoby.ffmpeg.Ffmpeg;
 import com.euromoby.ffmpeg.FfmpegFormat;
@@ -13,6 +16,8 @@ import com.euromoby.job.JobState;
 
 public class GrabVideoJob extends Job {
 
+	private static final Logger LOG = LoggerFactory.getLogger(GrabVideoJob.class);
+	
 	public static final String ERROR_PARAMS_EMPTY = "Mandatory parameters are missing";
 	public static final String ERROR_PARAM_MISSING = "%s is missing";
 
@@ -51,7 +56,8 @@ public class GrabVideoJob extends Job {
 			
 			File videoFile = fileProvider.getTargetFile(videoLocation);			
 			downloadClient.download(url, videoFile, noProxy);
-
+			LOG.debug("Downloaded video {}", videoLocation);
+			
 			// create thumbnails
 			FfmpegFormat ffmpegFormat = ffmpeg.getFormat(videoFile.getCanonicalPath());
 			if (ffmpegFormat != null) {
@@ -70,6 +76,7 @@ public class GrabVideoJob extends Job {
 				for (int i=1; i<=thumbnailCount; i++) {
 					String outputFileName = String.format(parameters.get(PARAM_THUMB_LOCATION_PATTERN), i);
 					File thumbFile = fileProvider.getTargetFile(outputFileName); 
+					LOG.debug("Creating thumbnail {}", outputFileName);
 					ffmpeg.createThumbnail(videoFile.getCanonicalPath(), chunkLength*i, thumbnailWidth, thumbnailHeight, thumbFile.getCanonicalPath());
 				}
 			}

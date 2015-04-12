@@ -3,6 +3,9 @@ package com.euromoby.utils;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class ShellExecutor {
 
 	public String executeCommandLine(final String[] commandLine, final long timeout) throws IOException, InterruptedException, TimeoutException {

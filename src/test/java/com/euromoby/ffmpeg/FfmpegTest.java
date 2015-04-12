@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import com.euromoby.agent.Config;
 import com.euromoby.utils.ShellExecutor;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -30,10 +31,13 @@ public class FfmpegTest {
 
 	@Mock
 	ShellExecutor shellExecutor;
+	@Mock
+	Config config;
 
 	@Before
 	public void init() {
-		ffmpeg = new Ffmpeg(shellExecutor, FFMPEG_LOCATION);
+		Mockito.when(config.getFfmpegPath()).thenReturn(FFMPEG_LOCATION);
+		ffmpeg = new Ffmpeg(shellExecutor, config);
 	}
 
 	@Test
@@ -50,7 +54,7 @@ public class FfmpegTest {
 	@Test
 	public void testGetThumbnailCommand() {
 		String outfile = "out.jpg";
-		String[] command = { ffmpeg.getPathToCommand(Ffmpeg.FFMPEG), "-y", "-loglevel", "error", "-itsoffset", String.valueOf(OFFSET), "-i", FILENAME,
+		String[] command = { ffmpeg.getPathToCommand(Ffmpeg.FFMPEG), "-y", "-loglevel", "error", "-ss", String.valueOf(OFFSET), "-i", FILENAME,
 				"-vframes", "1", "-vf", "scale=" + WIDTH + ":" + HEIGHT, outfile };
 		assertArrayEquals(command, ffmpeg.getThumbnailCommand(FILENAME, OFFSET, WIDTH, HEIGHT, outfile));
 	}
