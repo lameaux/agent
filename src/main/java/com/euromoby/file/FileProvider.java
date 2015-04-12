@@ -20,6 +20,15 @@ public class FileProvider {
 		this.config = config;
 	}
 
+	public File getTargetFile(String location) throws Exception {
+		File targetFile = new File(new File(config.getAgentFilesPath()), location);
+		File parentDir = targetFile.getParentFile();
+		if (!parentDir.exists() && !parentDir.mkdirs()) {
+			throw new Exception("Error saving file to " + targetFile.getAbsolutePath());
+		}
+		return targetFile;
+	}	
+	
 	public File getFileByLocation(String location) {
 		if (location.isEmpty()) {
 			return null;

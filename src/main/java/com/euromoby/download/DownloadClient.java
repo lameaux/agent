@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.euromoby.agent.Config;
 import com.euromoby.http.HttpClientProvider;
 
 @Component
@@ -27,16 +26,14 @@ public class DownloadClient {
 
 	private static final Logger LOG = LoggerFactory.getLogger(DownloadClient.class);
 
-	private Config config;
 	private HttpClientProvider httpClientProvider;	
 
 	@Autowired
-	public DownloadClient(Config config, HttpClientProvider httpClientProvider) {
-		this.config = config;
+	public DownloadClient(HttpClientProvider httpClientProvider) {
 		this.httpClientProvider = httpClientProvider;
 	}
 
-	public void download(String url, String location, boolean noProxy) throws Exception {
+	public void download(String url, File targetFile, boolean noProxy) throws Exception {
 		CloseableHttpClient httpclient = httpClientProvider.createHttpClient();
 		try {
 			RequestConfig.Builder requestConfigBuilder = httpClientProvider.createRequestConfigBuilder(noProxy);
@@ -57,7 +54,6 @@ public class DownloadClient {
 				HttpEntity entity = response.getEntity();
 				if (entity != null) {
 					InputStream inputStream = entity.getContent();
-					File targetFile = getTargetFile(location);
 					OutputStream outputStream = new FileOutputStream(targetFile);
 					try {
 						IOUtils.copy(inputStream, outputStream);
@@ -66,6 +62,8 @@ public class DownloadClient {
 						IOUtils.closeQuietly(inputStream);
 						IOUtils.closeQuietly(outputStream);
 					}
+				} else {
+					throw new Exception("Empty response");
 				}
 			} finally {
 				response.close();
@@ -75,13 +73,5 @@ public class DownloadClient {
 		}
 	}
 
-	private File getTargetFile(String location) throws Exception {
-		File targetFile = new File(new File(config.getAgentFilesPath()), location);
-		File parentDir = targetFile.getParentFile();
-		if (!parentDir.exists() && !parentDir.mkdirs()) {
-			throw new Exception("Error saving file to " + targetFile.getAbsolutePath());
-		}
-		return targetFile;
-	}
 
 }

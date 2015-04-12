@@ -44,6 +44,12 @@ public class ConfigTest {
 	}
 
 	@Test
+	public void testGetJarLocation() throws Exception {
+		File jarLocation = config.getJarLocation();
+		assertEquals(Config.class.getProtectionDomain().getCodeSource().getLocation().toURI(), jarLocation.toURI());
+	}
+	
+	@Test
 	public void testGetProperties() {
 		assertEquals(properties, config.getProperties());
 	}
@@ -160,7 +166,7 @@ public class ConfigTest {
 		assertEquals(config.getAgentRootPath() + File.separatorChar + Config.DEFAULT_AGENT_APP_PATH , config.getAgentAppPath());		
 		//changed
 		properties.put(Config.AGENT_APP_PATH, DUMMY_STR);
-		assertEquals(config.getAgentRootPath() + File.separatorChar + DUMMY_STR, config.getAgentAppPath());		
+		assertEquals(DUMMY_STR, config.getAgentAppPath());		
 	}
 	
 	@Test
@@ -169,7 +175,7 @@ public class ConfigTest {
 		assertEquals(config.getAgentAppPath() + File.separatorChar + Config.DEFAULT_AGENT_FILES_PATH, config.getAgentFilesPath());
 		// changed
 		properties.put(Config.AGENT_FILES_PATH, DUMMY_STR);
-		assertEquals(config.getAgentAppPath() + File.separatorChar + DUMMY_STR, config.getAgentFilesPath());
+		assertEquals(DUMMY_STR, config.getAgentFilesPath());
 	}
 
 	@Test

@@ -21,21 +21,28 @@ import com.euromoby.utils.SystemUtils;
 public class Config {
 
 	public static final String PARAM_AGENT_CONFIG = "agent.config";
-	private static final Logger LOG = LoggerFactory.getLogger(Config.class);	
-	
+	public static final String AGENT_PROPERTIES = "agent.properties";
+	private static final Logger LOG = LoggerFactory.getLogger(Config.class);
+
 	private Properties properties = new Properties();
 
 	public Config() {
+
+		File agentConfigFile = new File(getJarLocation(), AGENT_PROPERTIES);
+
 		String agentConfigLocation = System.getProperty(PARAM_AGENT_CONFIG);
 		if (!StringUtils.nullOrEmpty(agentConfigLocation)) {
+			agentConfigFile = new File(agentConfigLocation);
+		}
+
+		if (agentConfigFile.exists()) {
 			try {
-				loadExternalProperties(agentConfigLocation);
+				loadExternalProperties(agentConfigFile);
 			} catch (Exception e) {
-				LOG.error("Error loading properties from {}", agentConfigLocation);
+				LOG.error("Error loading properties from {}", agentConfigFile.getAbsolutePath());
 				loadDefaultProperties();
 			}
 		} else {
-			LOG.warn("-D{} parameter is missing.", PARAM_AGENT_CONFIG);
 			loadDefaultProperties();
 		}
 	}
@@ -44,15 +51,23 @@ public class Config {
 		this.properties = properties;
 	}
 
-	private void loadExternalProperties(String agentConfigLocation) throws Exception {
-		InputStream agentConfigInputStream = FileUtils.openInputStream(new File(agentConfigLocation));
+	protected File getJarLocation() {
+		try {
+			return new File(getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	protected void loadExternalProperties(File agentConfigFile) throws Exception {
+		InputStream agentConfigInputStream = FileUtils.openInputStream(agentConfigFile);
 		try {
 			properties.load(agentConfigInputStream);
 		} finally {
 			IOUtils.closeQuietly(agentConfigInputStream);
 		}
 	}
-	
+
 	private void loadDefaultProperties() {
 		LOG.info("Loading default properties");
 		try {
@@ -63,67 +78,67 @@ public class Config {
 	}
 
 	public static final String AGENT_BASE_PORT = "agent.base.port";
-	public static final String DEFAULT_AGENT_BASE_PORT = "21000";	
-	
+	public static final String DEFAULT_AGENT_BASE_PORT = "21000";
+
 	public static final String AGENT_HOST = "agent.host";
-	
+
 	public static final String AUTORUN = "agent.autorun";
 	public static final String DEFAULT_AUTORUN = "rest,job,ping";
 
 	public static final String AGENT_FRIENDS = "agent.friends";
 
 	public static final String LIST_SEPARATOR = ",";
-	
+
 	public static final String AGENT_ROOT_PATH = "agent.root.path";
 
 	public static final String AGENT_APP_PATH = "agent.app.path";
-	public static final String DEFAULT_AGENT_APP_PATH = "agent";	
-	
+	public static final String DEFAULT_AGENT_APP_PATH = "agent";
+
 	public static final String AGENT_FILES_PATH = "agent.files.path";
-	public static final String DEFAULT_AGENT_FILES_PATH = "files";	
-	
+	public static final String DEFAULT_AGENT_FILES_PATH = "files";
+
 	public static final String HTTP_PROXY_HOST = "agent.http.proxy.host";
 	public static final String HTTP_PROXY_PORT = "agent.http.proxy.port";
 	public static final String DEFAULT_HTTP_PROXY_PORT = "3128";
 
 	public static final String JOB_POOL_SIZE = "agent.job.pool.size";
-	public static final String DEFAULT_JOB_POOL_SIZE = "4";	
-	
+	public static final String DEFAULT_JOB_POOL_SIZE = "4";
+
 	public static final String PING_POOL_SIZE = "agent.ping.pool.size";
-	public static final String DEFAULT_PING_POOL_SIZE = "2";	
+	public static final String DEFAULT_PING_POOL_SIZE = "2";
 
 	public static final String CDN_POOL_SIZE = "agent.cdn.pool.size";
-	public static final String DEFAULT_CDN_POOL_SIZE = "4";	
+	public static final String DEFAULT_CDN_POOL_SIZE = "4";
 
 	public static final String CDN_TIMEOUT = "agent.cdn.timeout";
-	public static final String DEFAULT_CDN_TIMEOUT = "5";	
-	
-	public static final String KEYSTORE_PATH = "agent.keystore.path";
-	
-	public static final String KEYSTORE_STORE_PASSWORD = "agent.keystore.storepass";
-	public static final String DEFAULT_KEYSTORE_STORE_PASSWORD = "123456";	
+	public static final String DEFAULT_CDN_TIMEOUT = "5";
 
-	public static final String KEYSTORE_KEY_PASSWORD = "agent.keystore.keypass";	
+	public static final String KEYSTORE_PATH = "agent.keystore.path";
+
+	public static final String KEYSTORE_STORE_PASSWORD = "agent.keystore.storepass";
+	public static final String DEFAULT_KEYSTORE_STORE_PASSWORD = "123456";
+
+	public static final String KEYSTORE_KEY_PASSWORD = "agent.keystore.keypass";
 	public static final String DEFAULT_KEYSTORE_KEY_PASSWORD = "123456";
-	
+
 	public static final String AGENT_REST_SECURED = "agent.rest.secured";
 	public static final String AGENT_REST_LOGIN = "agent.rest.login";
 	public static final String AGENT_REST_PASSWORD = "agent.rest.password";
 	public static final String AGENT_REST_REALM = "agent.rest.realm";
 	public static final String DEFAULT_AGENT_REST_REALM = "Agent";
-	
+
 	public String get(String key) {
 		return properties.getProperty(key);
 	}
 
 	public Properties getProperties() {
 		return properties;
-	}	
-	
+	}
+
 	public boolean isRestSecured() {
 		return Boolean.valueOf(properties.getProperty(AGENT_REST_SECURED));
 	}
-	
+
 	public String getRestLogin() {
 		return properties.getProperty(AGENT_REST_LOGIN, "");
 	}
@@ -131,11 +146,11 @@ public class Config {
 	public String getRestPassword() {
 		return properties.getProperty(AGENT_REST_PASSWORD, "");
 	}
-	
+
 	public String getRestRealm() {
 		return properties.getProperty(AGENT_REST_REALM, DEFAULT_AGENT_REST_REALM);
 	}
-	
+
 	public String getHost() {
 		String agentHost = properties.getProperty(AGENT_HOST);
 		if (StringUtils.nullOrEmpty(agentHost)) {
@@ -143,25 +158,25 @@ public class Config {
 		}
 		return agentHost;
 	}
-	
+
 	public AgentId getAgentId() {
 		return new AgentId(getHost(), getBasePort());
-	}	
+	}
 
 	public String[] getAutorunServices() {
 		String autorun = properties.getProperty(AUTORUN, DEFAULT_AUTORUN).trim();
 		return autorun.split(LIST_SEPARATOR);
-	}	
-	
+	}
+
 	public String[] getAgentFriends() {
 		String friendIds = properties.getProperty(AGENT_FRIENDS, "").trim();
 		return friendIds.split(LIST_SEPARATOR);
 	}
-	
+
 	public int getBasePort() {
 		return Integer.parseInt(properties.getProperty(AGENT_BASE_PORT, DEFAULT_AGENT_BASE_PORT));
-	}	
-	
+	}
+
 	public int getTelnetPort() {
 		return getBasePort() + TelnetServer.TELNET_PORT;
 	}
@@ -172,32 +187,31 @@ public class Config {
 
 	public int getCdnPort() {
 		return getBasePort() + CdnServer.CDN_PORT;
-	}	
-	
+	}
+
 	public String getKeystorePath() {
 		return properties.getProperty(KEYSTORE_PATH);
-	}	
+	}
 
 	public String getKeystoreStorePass() {
 		return properties.getProperty(KEYSTORE_STORE_PASSWORD, DEFAULT_KEYSTORE_STORE_PASSWORD);
-	}	
-	
+	}
+
 	public String getKeystoreKeyPass() {
 		return properties.getProperty(KEYSTORE_KEY_PASSWORD, DEFAULT_KEYSTORE_KEY_PASSWORD);
 	}
-	
+
 	public String getHttpProxyHost() {
 		return properties.getProperty(HTTP_PROXY_HOST);
 	}
-	
+
 	public int getHttpProxyPort() {
 		return Integer.parseInt(properties.getProperty(HTTP_PROXY_PORT, DEFAULT_HTTP_PROXY_PORT));
 	}
-	
+
 	public boolean isHttpProxy() {
 		return !StringUtils.nullOrEmpty(getHttpProxyHost());
 	}
-
 
 	public String getAgentRootPath() {
 		String agentRootPath = properties.getProperty(AGENT_ROOT_PATH);
@@ -206,34 +220,39 @@ public class Config {
 		}
 		return agentRootPath;
 	}
-	
+
 	public String getAgentAppPath() {
-		String agentAppPath = properties.getProperty(AGENT_APP_PATH, DEFAULT_AGENT_APP_PATH);
-		return getAgentRootPath() + File.separatorChar + agentAppPath;
+		String agentAppPath = properties.getProperty(AGENT_APP_PATH);
+		if (StringUtils.nullOrEmpty(agentAppPath)) {
+			agentAppPath = getAgentRootPath() + File.separatorChar + DEFAULT_AGENT_APP_PATH;
+		}
+		return agentAppPath;
 	}
-	
-	
+
 	public String getAgentFilesPath() {
-		String agentFilesPath = properties.getProperty(AGENT_FILES_PATH, DEFAULT_AGENT_FILES_PATH);
-		return getAgentAppPath() + File.separatorChar + agentFilesPath;		
+		String agentFilesPath = properties.getProperty(AGENT_FILES_PATH);
+		if (StringUtils.nullOrEmpty(agentFilesPath)) {
+			agentFilesPath = getAgentAppPath() + File.separatorChar + DEFAULT_AGENT_FILES_PATH;
+		}
+		return agentFilesPath;
 	}
-	
+
 	public int getJobPoolSize() {
 		return Integer.parseInt(properties.getProperty(JOB_POOL_SIZE, DEFAULT_JOB_POOL_SIZE));
 	}
 
 	public int getPingPoolSize() {
 		return Integer.parseInt(properties.getProperty(PING_POOL_SIZE, DEFAULT_PING_POOL_SIZE));
-	}	
+	}
 
 	public int getCdnPoolSize() {
 		return Integer.parseInt(properties.getProperty(CDN_POOL_SIZE, DEFAULT_CDN_POOL_SIZE));
-	}	
+	}
 
 	public int getCdnTimeout() {
 		return Integer.parseInt(properties.getProperty(CDN_TIMEOUT, DEFAULT_CDN_TIMEOUT));
-	}	
-	
+	}
+
 	@Override
 	public String toString() {
 		return StringUtils.printProperties(properties, null);

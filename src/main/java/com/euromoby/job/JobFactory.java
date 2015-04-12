@@ -5,8 +5,11 @@ import org.springframework.stereotype.Component;
 
 import com.euromoby.download.DownloadClient;
 import com.euromoby.download.DownloadJob;
+import com.euromoby.ffmpeg.Ffmpeg;
+import com.euromoby.file.FileProvider;
 import com.euromoby.upload.UploadClient;
 import com.euromoby.upload.UploadJob;
+import com.euromoby.video.GrabVideoJob;
 
 @Component
 public class JobFactory {
@@ -15,9 +18,12 @@ public class JobFactory {
 	private DownloadClient downloadClient;
 	private GetJobsClient getJobsClient;
 	
+	private FileProvider fileProvider; 
+	private Ffmpeg ffmpeg;
+	
 	@SuppressWarnings("rawtypes")
 	private Class[] jobClasses = new Class[]{
-			DownloadJob.class, UploadJob.class, GetNewJobsJob.class
+			DownloadJob.class, UploadJob.class, GetNewJobsJob.class, GrabVideoJob.class
 	};
 	
 	@SuppressWarnings("rawtypes")
@@ -40,9 +46,22 @@ public class JobFactory {
 		this.getJobsClient = getJobsClient;
 	}
 
+	@Autowired
+	public void setFileProvider(FileProvider fileProvider) {
+		this.fileProvider = fileProvider;
+	}
+
+	@Autowired
+	public void setFfmpeg(Ffmpeg ffmpeg) {
+		this.ffmpeg = ffmpeg;
+	}	
+	
 	public Job createJob(JobDetail jobDetail) throws Exception {
 		if (DownloadJob.class.getCanonicalName().equals(jobDetail.getJobClass())) {
-			return new DownloadJob(jobDetail, downloadClient);
+			return new DownloadJob(jobDetail, downloadClient, fileProvider);
+		}
+		if (GrabVideoJob.class.getCanonicalName().equals(jobDetail.getJobClass())) {
+			return new GrabVideoJob(jobDetail, downloadClient, fileProvider, ffmpeg);
 		}
 		if (UploadJob.class.getCanonicalName().equals(jobDetail.getJobClass())) {
 			return new UploadJob(jobDetail, uploadClient);

@@ -49,7 +49,7 @@ public class DownloadClientTest {
 
 	@Before
 	public void init() {
-		downloadClient = new DownloadClient(config, httpClientProvider);
+		downloadClient = new DownloadClient(httpClientProvider);
 		Mockito.when(httpClientProvider.createHttpClient()).thenReturn(httpClient);
 		Mockito.when(httpClientProvider.createRequestConfigBuilder(true)).thenReturn(RequestConfig.custom());
 		Mockito.when(httpClientProvider.createHttpClientContext()).thenReturn(HttpClientContext.create());
@@ -66,7 +66,7 @@ public class DownloadClientTest {
 		
 		String fileName = String.valueOf(System.currentTimeMillis());
 		try {
-			downloadClient.download(URL, fileName, NO_PROXY);
+			downloadClient.download(URL, new File(fileName), NO_PROXY);
 			fail();
 		} catch (Exception e) {
 			assertEquals(status + " " + reason, e.getMessage());
@@ -87,7 +87,7 @@ public class DownloadClientTest {
 		File tmpFile = File.createTempFile("prefix", "suffix", new File(System.getProperty("java.io.tmpdir")));
 		tmpFile.deleteOnExit();
 		Mockito.when(config.getAgentFilesPath()).thenReturn(System.getProperty("java.io.tmpdir"));		
-		downloadClient.download(URL, tmpFile.getName(), NO_PROXY);
+		downloadClient.download(URL, tmpFile, NO_PROXY);
 		assertEquals(responseContent.length, tmpFile.length());
 		assertArrayEquals(responseContent, FileUtils.readFileToByteArray(tmpFile));
 	}

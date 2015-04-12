@@ -1,7 +1,9 @@
 package com.euromoby.download;
 
+import java.io.File;
 import java.util.Map;
 
+import com.euromoby.file.FileProvider;
 import com.euromoby.job.Job;
 import com.euromoby.job.JobDetail;
 import com.euromoby.job.JobState;
@@ -17,10 +19,12 @@ public class DownloadJob extends Job {
 	public static final String PARAM_NOPROXY = "noproxy";
 	
 	private DownloadClient downloadClient;
+	private FileProvider fileProvider;
 	
-	public DownloadJob(JobDetail jobDetail, DownloadClient downloadClient) {
+	public DownloadJob(JobDetail jobDetail, DownloadClient downloadClient, FileProvider fileProvider) {
 		super(jobDetail);
 		this.downloadClient = downloadClient;
+		this.fileProvider = fileProvider;
 	}
 
 	@Override
@@ -34,7 +38,8 @@ public class DownloadJob extends Job {
 			String location = parameters.get(PARAM_LOCATION);
 			boolean noProxy = Boolean.valueOf(parameters.get(PARAM_NOPROXY));			
 
-			downloadClient.download(url, location, noProxy);
+			File targetFile = fileProvider.getTargetFile(location);
+			downloadClient.download(url, targetFile, noProxy);
 			jobDetail.setState(JobState.FINISHED);
 		} catch (Exception e) {
 			jobDetail.setError(true);
