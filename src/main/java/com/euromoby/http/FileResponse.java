@@ -60,6 +60,10 @@ public class FileResponse {
 		headers.put(name, value);
 	}
 
+	protected String getHeader(String name) {
+		return headers.get(name);
+	}
+	
 	public void send(ChannelHandlerContext ctx, File file) throws RestException {
 		version = request.getProtocolVersion();
 		supportChunks = request.getProtocolVersion() == HttpVersion.HTTP_1_1;
@@ -191,13 +195,13 @@ public class FileResponse {
 		setHeader(HttpHeaders.Names.LAST_MODIFIED, dateFormatter.format(new Date(fileToCache.lastModified())));
 	}
 
-	private void setupResponseHeaders(HttpResponse response) {
+	protected void setupResponseHeaders(HttpResponse response) {
 		for (Map.Entry<String, String> entry : headers.entrySet()) {
 			response.headers().set(entry.getKey(), entry.getValue());
 		}
 	}
 
-	private boolean isSSL(ChannelHandlerContext ctx) {
+	protected boolean isSSL(ChannelHandlerContext ctx) {
         return ctx.channel().pipeline().get(SslHandler.class) != null;
     }	
 	
