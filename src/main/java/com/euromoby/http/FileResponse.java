@@ -41,6 +41,10 @@ public class FileResponse {
 
 	private static final Pattern RANGE_HEADER = Pattern.compile("bytes=(\\d+)\\-(\\d+)?");
 	private static final int HTTP_CHUNK_SIZE = 8192;
+	public static final String MAX_AGE_VALUE = "max-age=";
+	public static final String CONTENT_DISPOSITION = "Content-Disposition";
+	public static final String CONTENT_DISPOSITION_ATTACHMENT = "attachment";
+	public static final String CONTENT_DISPOSITION_INLINE = "inline";	
 
 	private HttpRequest request;
 	private MimeHelper mimeHelper;
@@ -144,17 +148,17 @@ public class FileResponse {
 
 	}
 
-	private void setHeaderContentType(File file) {
+	protected void setHeaderContentType(File file) {
 		String mimeType = mimeHelper.getContentType(file);
 		setHeader(HttpHeaders.Names.CONTENT_TYPE, mimeType + "; charset=UTF-8");
 	}
 
-	private void setHeaderContentDisposition(File file, boolean download) {
+	protected void setHeaderContentDisposition(File file, boolean download) {
 		String name = file.getName();
-		setHeader("Content-Disposition", (download ? "attachment;" : "inline;") + "filename=\"" + name.replaceAll("[^A-Za-z0-9\\-_\\.]", "_") + "\"");
+		setHeader(CONTENT_DISPOSITION, (download ? CONTENT_DISPOSITION_ATTACHMENT : CONTENT_DISPOSITION_INLINE) + ";filename=\"" + name.replaceAll("[^A-Za-z0-9\\-_\\.]", "_") + "\"");
 	}
 
-	private Tuple<Long, Long> parseRange(long availableLength) {
+	protected Tuple<Long, Long> parseRange(long availableLength) {
 		String header = request.headers().get(HttpHeaders.Names.RANGE);
 		if (StringUtils.nullOrEmpty(header)) {
 			return null;
@@ -180,7 +184,7 @@ public class FileResponse {
 		return result;
 	}
 
-	private void setDateAndCacheHeaders(File fileToCache) {
+	protected void setDateAndCacheHeaders(File fileToCache) {
 		SimpleDateFormat dateFormatter = new SimpleDateFormat(HttpUtils.HTTP_DATE_FORMAT, Locale.US);
 		dateFormatter.setTimeZone(TimeZone.getTimeZone(HttpUtils.HTTP_DATE_GMT_TIMEZONE));
 
@@ -191,7 +195,7 @@ public class FileResponse {
 		// Add cache headers
 		time.add(Calendar.SECOND, HttpUtils.HTTP_CACHE_SECONDS);
 		setHeader(HttpHeaders.Names.EXPIRES, dateFormatter.format(time.getTime()));
-		setHeader(HttpHeaders.Names.CACHE_CONTROL, "private, max-age=" + HttpUtils.HTTP_CACHE_SECONDS);
+		setHeader(HttpHeaders.Names.CACHE_CONTROL, MAX_AGE_VALUE + HttpUtils.HTTP_CACHE_SECONDS);
 		setHeader(HttpHeaders.Names.LAST_MODIFIED, dateFormatter.format(new Date(fileToCache.lastModified())));
 	}
 

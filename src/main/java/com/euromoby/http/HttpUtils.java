@@ -25,7 +25,7 @@ import com.euromoby.utils.StringUtils;
 public class HttpUtils {
     public static final String HTTP_DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
     public static final String HTTP_DATE_GMT_TIMEZONE = "GMT";
-    public static final int HTTP_CACHE_SECONDS = 24 * 60 * 60; // 1 day	
+    public static final int HTTP_CACHE_SECONDS = 30 * 24 * 60 * 60; // 30 days	
     
     
 	public static boolean ifModifiedSince(HttpRequest request, File file) {
