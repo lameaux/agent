@@ -49,11 +49,8 @@ public class FileResponse {
 	private HttpRequest request;
 	private MimeHelper mimeHelper;
 
-	private HttpVersion version = HttpVersion.HTTP_1_1;
 	private HttpResponseStatus status = HttpResponseStatus.OK;
 	private Map<String, String> headers = new HashMap<String, String>();
-	private boolean supportChunks = true;
-	private boolean compressible = false;
 
 	public FileResponse(HttpRequest request, MimeHelper mimeHelper) {
 		this.request = request;
@@ -69,21 +66,10 @@ public class FileResponse {
 	}
 	
 	public void send(ChannelHandlerContext ctx, File file) throws RestException {
-		version = request.getProtocolVersion();
-		supportChunks = request.getProtocolVersion() == HttpVersion.HTTP_1_1;
-		compressible = mimeHelper.isCompressible(file);
 
-		if (!compressible || isSSL(ctx)) {
-			setHeader(HttpHeaders.Names.CONTENT_ENCODING, HttpHeaders.Values.IDENTITY);
-		}
-		if (supportChunks /* && !isSSL(ctx) */) {
-			setHeader(HttpHeaders.Names.TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED);
-		}
-		if (HttpHeaders.isKeepAlive(request)) {
-			setHeader(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-		}
-
-		
+		setHeaderTransferEncoding();
+		setHeaderContentEncoding(file, isSSL(ctx));		
+		setHeaderKeepAlive();
 		setHeader(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
 		setHeaderContentType(file);
 		setHeaderContentDisposition(file, mimeHelper.isBinary(file));
@@ -109,7 +95,7 @@ public class FileResponse {
 				setHeader(HttpHeaders.Names.CONTENT_RANGE, "bytes " + range.getFirst() + "-" + range.getSecond() + "/" + fileLength);
 			}
 
-			HttpResponse response = new DefaultHttpResponse(version, status);
+			HttpResponse response = new DefaultHttpResponse(request.getProtocolVersion(), status);
 			setupResponseHeaders(response);
 			ctx.write(response);
 
@@ -123,7 +109,7 @@ public class FileResponse {
 			
 			if (isSSL(ctx)) {
 				ctx.write(new ChunkedFile(raf, rangeStart, rangeEnd, HTTP_CHUNK_SIZE));
-			} if (supportChunks) {
+			} else if (supportChunks()) {
 				ctx.write(new ChunkedInputAdapter(new ChunkedFile(raf, rangeStart, rangeEnd, HTTP_CHUNK_SIZE)));
 			} else {
 				ctx.write(new DefaultFileRegion(raf.getChannel(), rangeStart, rangeEnd));
@@ -148,6 +134,28 @@ public class FileResponse {
 
 	}
 
+	protected boolean supportChunks() {
+		return request.getProtocolVersion().equals(HttpVersion.HTTP_1_1);
+	}
+	
+	protected void setHeaderTransferEncoding() {
+		if (supportChunks()) {
+			setHeader(HttpHeaders.Names.TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED);
+		}		
+	}
+	
+	protected void setHeaderKeepAlive() {
+		if (HttpHeaders.isKeepAlive(request)) {
+			setHeader(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+		}		
+	}	
+	
+	protected void setHeaderContentEncoding(File file, boolean ssl) {
+		if (!mimeHelper.isCompressible(file) || ssl) {
+			setHeader(HttpHeaders.Names.CONTENT_ENCODING, HttpHeaders.Values.IDENTITY);
+		}		
+	}
+	
 	protected void setHeaderContentType(File file) {
 		String mimeType = mimeHelper.getContentType(file);
 		setHeader(HttpHeaders.Names.CONTENT_TYPE, mimeType + "; charset=UTF-8");

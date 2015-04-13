@@ -6,23 +6,34 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.atLeastOnce;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
+import io.netty.channel.DefaultFileRegion;
+import io.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.stream.ChunkedFile;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -30,6 +41,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.euromoby.file.MimeHelper;
 import com.euromoby.model.Tuple;
+import com.euromoby.rest.ChunkedInputAdapter;
+import com.euromoby.rest.RestException;
 
 @RunWith(MockitoJUnitRunner.class)
 public class FileResponseTest {
@@ -53,6 +66,10 @@ public class FileResponseTest {
 	HttpResponse httpResponse;
 	@Mock
 	HttpHeaders responseHeaders;
+	@Mock
+	ChannelFuture channelFuture;
+	@Mock
+	ChannelFuture lastContentFuture;
 
 	@Before
 	public void init() {
@@ -173,6 +190,225 @@ public class FileResponseTest {
 		Mockito.when(mimeHelper.getContentType(Matchers.eq(file))).thenReturn(contentType);
 		fileResponse.setHeaderContentType(file);
 		assertEquals(contentType + "; charset=UTF-8", fileResponse.getHeader(HttpHeaders.Names.CONTENT_TYPE));
+	}
+	
+	@Test
+	public void testSetHeaderContentEncodingCompressible() {
+		Mockito.when(mimeHelper.isCompressible(file)).thenReturn(true);
+		boolean ssl = false;
+		fileResponse.setHeaderContentEncoding(file, ssl);
+		assertNull(fileResponse.getHeader(HttpHeaders.Names.CONTENT_ENCODING));
+	}
+
+	@Test
+	public void testSetHeaderContentEncodingNonCompressibleNoSsl() {
+		Mockito.when(mimeHelper.isCompressible(file)).thenReturn(false);
+		boolean ssl = false;
+		fileResponse.setHeaderContentEncoding(file, ssl);
+		assertEquals(HttpHeaders.Values.IDENTITY, fileResponse.getHeader(HttpHeaders.Names.CONTENT_ENCODING));
+	}	
+
+	@Test
+	public void testSetHeaderContentEncodingNonCompressibleSsl() {
+		Mockito.when(mimeHelper.isCompressible(file)).thenReturn(false);
+		boolean ssl = true;
+		fileResponse.setHeaderContentEncoding(file, ssl);
+		assertEquals(HttpHeaders.Values.IDENTITY, fileResponse.getHeader(HttpHeaders.Names.CONTENT_ENCODING));
+	}	
+
+	@Test
+	public void testSetHeaderContentEncodingCompressibleSsl() {
+		Mockito.when(mimeHelper.isCompressible(file)).thenReturn(true);
+		boolean ssl = true;
+		fileResponse.setHeaderContentEncoding(file, ssl);
+		assertEquals(HttpHeaders.Values.IDENTITY, fileResponse.getHeader(HttpHeaders.Names.CONTENT_ENCODING));
+	}	
+
+	@Test
+	public void testSetHeaderConnectionKeepAlive() {
+		Mockito.when(httpRequest.getProtocolVersion()).thenReturn(HttpVersion.HTTP_1_1);
+		Mockito.when(requestHeaders.get(Matchers.eq(HttpHeaders.Names.CONNECTION))).thenReturn(HttpHeaders.Values.KEEP_ALIVE);
+		fileResponse.setHeaderKeepAlive();
+		assertEquals(HttpHeaders.Values.KEEP_ALIVE, fileResponse.getHeader(HttpHeaders.Names.CONNECTION));
+	}
+	
+	@Test
+	public void testSetHeaderConnectionClose() {
+		Mockito.when(httpRequest.getProtocolVersion()).thenReturn(HttpVersion.HTTP_1_0);
+		Mockito.when(requestHeaders.get(Matchers.eq(HttpHeaders.Names.CONNECTION))).thenReturn(HttpHeaders.Values.CLOSE);
+		fileResponse.setHeaderKeepAlive();
+		assertNull(fileResponse.getHeader(HttpHeaders.Names.CONNECTION));
+	}	
+
+	@Test
+	public void testSetHeaderTransferEncodingChunked() {
+		Mockito.when(httpRequest.getProtocolVersion()).thenReturn(HttpVersion.HTTP_1_1);
+		fileResponse.setHeaderTransferEncoding();
+		assertEquals(HttpHeaders.Values.CHUNKED, fileResponse.getHeader(HttpHeaders.Names.TRANSFER_ENCODING));
+	}
+
+	@Test
+	public void testSetHeaderTransferEncodingNotChunked() {
+		Mockito.when(httpRequest.getProtocolVersion()).thenReturn(HttpVersion.HTTP_1_0);
+		fileResponse.setHeaderTransferEncoding();
+		assertNull(fileResponse.getHeader(HttpHeaders.Names.TRANSFER_ENCODING));
+	}	
+
+	@Test(expected=RestException.class)
+	public void testSendInvalidFile() throws Exception {
+		File file = new File("/fooo/bar/foo");
+		Mockito.when(httpRequest.getProtocolVersion()).thenReturn(HttpVersion.HTTP_1_0);
+		Mockito.when(requestHeaders.get(Matchers.eq(HttpHeaders.Names.RANGE))).thenReturn("bytes=0-2000");
+		fileResponse.send(ctx, file);
+		fail();
+	}	
+	
+	@Test
+	public void testSendChunkedNotSsl() throws Exception {
+		File tempFile = File.createTempFile("prefix", "suffix");
+		tempFile.deleteOnExit();
+		
+		Mockito.when(httpRequest.getProtocolVersion()).thenReturn(HttpVersion.HTTP_1_1);
+
+		Mockito.when(ctx.writeAndFlush(Matchers.eq(DefaultLastHttpContent.EMPTY_LAST_CONTENT))).thenReturn(lastContentFuture);
+		fileResponse.send(ctx, tempFile);
+
+		ArgumentCaptor<Object> responseCaptor = ArgumentCaptor.forClass(Object.class);
+		Mockito.verify(ctx, atLeastOnce()).write(responseCaptor.capture());
+		Mockito.verify(ctx, atLeastOnce()).writeAndFlush(Matchers.eq(DefaultLastHttpContent.EMPTY_LAST_CONTENT));
+
+		List<Object> arguments = responseCaptor.getAllValues();
+		DefaultHttpResponse response = null;
+		ChunkedInputAdapter chunkedInputAdapter = null;
+		for (Object argument : arguments) {
+			if (argument instanceof DefaultHttpResponse) {
+				response = (DefaultHttpResponse) argument;
+				continue;
+			}
+			if (argument instanceof ChunkedInputAdapter) {
+				chunkedInputAdapter = (ChunkedInputAdapter) argument;
+				continue;
+			}
+			fail("Invalid argument " + argument.getClass().getName());
+		}
+		assertNotNull(response);
+		assertNotNull(chunkedInputAdapter);
+		assertEquals(String.valueOf(tempFile.length()), response.headers().get(HttpHeaders.Names.CONTENT_LENGTH));
+		assertEquals(HttpHeaders.Values.BYTES, response.headers().get(HttpHeaders.Names.ACCEPT_RANGES));
+		assertEquals(HttpHeaders.Values.CHUNKED, response.headers().get(HttpHeaders.Names.TRANSFER_ENCODING));
+		assertEquals(HttpResponseStatus.OK, response.getStatus());
+	}
+
+	@Test
+	public void testSendWithSsl() throws Exception {
+		File tempFile = File.createTempFile("prefix", "suffix");
+		tempFile.deleteOnExit();
+		Mockito.when(channelPipeline.get(Matchers.eq(SslHandler.class))).thenReturn(Mockito.mock(SslHandler.class));
+		Mockito.when(httpRequest.getProtocolVersion()).thenReturn(HttpVersion.HTTP_1_1);
+		Mockito.when(ctx.writeAndFlush(Matchers.eq(DefaultLastHttpContent.EMPTY_LAST_CONTENT))).thenReturn(lastContentFuture);
+		fileResponse.send(ctx, tempFile);
+		
+		ArgumentCaptor<Object> responseCaptor = ArgumentCaptor.forClass(Object.class);
+		Mockito.verify(ctx, atLeastOnce()).write(responseCaptor.capture());
+		Mockito.verify(ctx, atLeastOnce()).writeAndFlush(Matchers.eq(DefaultLastHttpContent.EMPTY_LAST_CONTENT));
+
+		List<Object> arguments = responseCaptor.getAllValues();
+		DefaultHttpResponse response = null;
+		ChunkedFile chunkedFile = null;
+		for (Object argument : arguments) {
+			if (argument instanceof DefaultHttpResponse) {
+				response = (DefaultHttpResponse) argument;
+				continue;
+			}
+			if (argument instanceof ChunkedFile) {
+				chunkedFile = (ChunkedFile) argument;
+				continue;
+			}
+			fail("Invalid argument " + argument.getClass().getName());
+		}
+		assertNotNull(response);
+		assertNotNull(chunkedFile);
+		assertEquals(HttpHeaders.Values.IDENTITY, response.headers().get(HttpHeaders.Names.CONTENT_ENCODING));		
+		assertEquals(HttpResponseStatus.OK, response.getStatus());	
+	}	
+
+	@Test
+	public void testSendNoChunksNoSsl() throws Exception {
+		File tempFile = File.createTempFile("prefix", "suffix");
+		tempFile.deleteOnExit();
+		Mockito.when(httpRequest.getProtocolVersion()).thenReturn(HttpVersion.HTTP_1_0);
+		Mockito.when(ctx.writeAndFlush(Matchers.eq(DefaultLastHttpContent.EMPTY_LAST_CONTENT))).thenReturn(lastContentFuture);
+		fileResponse.send(ctx, tempFile);
+		
+		ArgumentCaptor<Object> responseCaptor = ArgumentCaptor.forClass(Object.class);
+		Mockito.verify(ctx, atLeastOnce()).write(responseCaptor.capture());
+		Mockito.verify(ctx, atLeastOnce()).writeAndFlush(Matchers.eq(DefaultLastHttpContent.EMPTY_LAST_CONTENT));
+
+		List<Object> arguments = responseCaptor.getAllValues();
+		DefaultHttpResponse response = null;
+		DefaultFileRegion defaultFileRegion = null;
+		for (Object argument : arguments) {
+			if (argument instanceof DefaultHttpResponse) {
+				response = (DefaultHttpResponse) argument;
+				continue;
+			}
+			if (argument instanceof DefaultFileRegion) {
+				defaultFileRegion = (DefaultFileRegion) argument;
+				continue;
+			}
+			fail("Invalid argument " + argument.getClass().getName());
+		}
+		assertNotNull(response);
+		assertNotNull(defaultFileRegion);
+		assertNull(response.headers().get(HttpHeaders.Names.TRANSFER_ENCODING));
+		assertEquals(HttpResponseStatus.OK, response.getStatus());		
+	}	
+
+	@Test(expected=RestException.class)
+	public void testSendInvalidRange() throws Exception {
+		File tempFile = File.createTempFile("prefix", "suffix");
+		tempFile.deleteOnExit();
+		Mockito.when(httpRequest.getProtocolVersion()).thenReturn(HttpVersion.HTTP_1_0);
+		Mockito.when(requestHeaders.get(Matchers.eq(HttpHeaders.Names.RANGE))).thenReturn("bytes=0-2000");
+		fileResponse.send(ctx, tempFile);
+		fail();
+	}	
+	
+	@Test
+	public void testSendRangesChunkedNoSsl() throws Exception {
+		File tempFile = File.createTempFile("prefix", "suffix");
+		FileUtils.write(tempFile, "fooooo");
+		tempFile.deleteOnExit();
+		Mockito.when(httpRequest.getProtocolVersion()).thenReturn(HttpVersion.HTTP_1_1);
+		Mockito.when(requestHeaders.get(Matchers.eq(HttpHeaders.Names.RANGE))).thenReturn("bytes=0-5");
+		Mockito.when(ctx.writeAndFlush(Matchers.eq(DefaultLastHttpContent.EMPTY_LAST_CONTENT))).thenReturn(lastContentFuture);
+		fileResponse.send(ctx, tempFile);
+
+		ArgumentCaptor<Object> responseCaptor = ArgumentCaptor.forClass(Object.class);
+		Mockito.verify(ctx, atLeastOnce()).write(responseCaptor.capture());
+		Mockito.verify(ctx, atLeastOnce()).writeAndFlush(Matchers.eq(DefaultLastHttpContent.EMPTY_LAST_CONTENT));
+
+		List<Object> arguments = responseCaptor.getAllValues();
+		DefaultHttpResponse response = null;
+		ChunkedInputAdapter chunkedInputAdapter = null;
+		for (Object argument : arguments) {
+			if (argument instanceof DefaultHttpResponse) {
+				response = (DefaultHttpResponse) argument;
+				continue;
+			}
+			if (argument instanceof ChunkedInputAdapter) {
+				chunkedInputAdapter = (ChunkedInputAdapter) argument;
+				continue;
+			}
+			fail("Invalid argument " + argument.getClass().getName());
+		}
+		assertNotNull(response);
+		assertNotNull(chunkedInputAdapter);
+		assertEquals(String.valueOf(tempFile.length()), response.headers().get(HttpHeaders.Names.CONTENT_LENGTH));
+		assertEquals(HttpHeaders.Values.BYTES, response.headers().get(HttpHeaders.Names.ACCEPT_RANGES));
+		assertEquals(HttpHeaders.Values.CHUNKED, response.headers().get(HttpHeaders.Names.TRANSFER_ENCODING));
+		assertNotNull(response.headers().get(HttpHeaders.Names.CONTENT_RANGE));
+		assertEquals(HttpResponseStatus.PARTIAL_CONTENT, response.getStatus());
 	}
 	
 }
