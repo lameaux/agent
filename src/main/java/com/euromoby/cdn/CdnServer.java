@@ -63,7 +63,7 @@ public class CdnServer implements Service {
 		}
 	}
 
-	public void shutdown() {
+	private void shutdown() {
 		try {
 			if (serverChannel != null) {
 				serverChannel.close().sync();
