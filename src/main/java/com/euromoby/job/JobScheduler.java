@@ -20,7 +20,7 @@ public class JobScheduler implements Service {
 
 	public static final String SERVICE_NAME = "job";
 
-	private static final int SLEEP_TIME = 1000;
+	protected static final int SLEEP_TIME = 1000;
 
 	private static final Logger LOG = LoggerFactory.getLogger(JobScheduler.class);
 
@@ -44,60 +44,60 @@ public class JobScheduler implements Service {
 		completionService = new ExecutorCompletionService<JobDetail>(executor);
 	}
 
+	protected boolean isInterrupted() {
+		return interrupted;
+	}
+	
+	protected void checkCompletedJobs() throws InterruptedException {
+		// check for completed jobs
+		Future<JobDetail> jobStatusFuture = completionService.poll();
+		if (jobStatusFuture != null) {
+			try {
+				jobManager.notify(jobStatusFuture.get());
+			} catch (ExecutionException e) {
+				LOG.warn("Job terminated with error", e.getCause());
+			}
+		}		
+	}
+	
+	protected void scheduleNextJobs() {
+		// check for new job
+		if (jobManager.hasNewJob()) {
+			JobDetail jobDetail = jobManager.getNextJob();
+			jobManager.notify(jobDetail);				
+			try {
+				Job job = jobFactory.createJob(jobDetail);
+				completionService.submit(job);
+				jobDetail.setState(JobState.WAITING);
+			} catch (Exception e) {
+				jobDetail.setError(true);
+				jobDetail.setMessage(e.getMessage());
+				jobDetail.setState(JobState.FAILED);
+			} finally {
+				jobManager.notify(jobDetail);
+			}
+		}		
+	}
+	
 	@Override
 	public void run() {
-
 		interrupted = false;
 		LOG.info("JobScheduler started");
 
 		while (!interrupted) {
-
-			// check for completed jobs
-			Future<JobDetail> jobStatusFuture = completionService.poll();
-			if (jobStatusFuture != null) {
-				try {
-					jobManager.notify(jobStatusFuture.get());
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-					interrupted = true;
-					break;
-				} catch (ExecutionException e) {
-					LOG.warn("Job terminated with error", e.getCause());
-				}
-			}
-
-			// check for new job
-			if (jobManager.hasNewJob()) {
-				JobDetail jobDetail = jobManager.getNextJob();
-				jobManager.notify(jobDetail);				
-				try {
-					Job job = jobFactory.createJob(jobDetail);
-					completionService.submit(job);
-					jobDetail.setState(JobState.WAITING);
-				} catch (Exception e) {
-					jobDetail.setError(true);
-					jobDetail.setMessage(e.getMessage());
-					jobDetail.setState(JobState.FAILED);
-				} finally {
-					jobManager.notify(jobDetail);
-				}
-			}
-
-			// sleep
 			try {
+				checkCompletedJobs();
+				scheduleNextJobs();
 				Thread.sleep(SLEEP_TIME);
 			} catch (InterruptedException ie) {
 				Thread.currentThread().interrupt();
 				interrupted = true;
 				break;
 			}
-
 		}
 		serviceState = ServiceState.STOPPED;
 		LOG.info("JobScheduler stopped");
 	}
-
-
 
 	@Override
 	public void startService() {
