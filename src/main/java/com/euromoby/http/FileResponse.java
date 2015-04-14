@@ -15,7 +15,6 @@ import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedFile;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.text.SimpleDateFormat;
@@ -40,11 +39,11 @@ import com.euromoby.utils.StringUtils;
 public class FileResponse {
 
 	private static final Pattern RANGE_HEADER = Pattern.compile("bytes=(\\d+)\\-(\\d+)?");
-	private static final int HTTP_CHUNK_SIZE = 8192;
+	public static final int HTTP_CHUNK_SIZE = 8192;
 	public static final String MAX_AGE_VALUE = "max-age=";
 	public static final String CONTENT_DISPOSITION = "Content-Disposition";
 	public static final String CONTENT_DISPOSITION_ATTACHMENT = "attachment";
-	public static final String CONTENT_DISPOSITION_INLINE = "inline";	
+	public static final String CONTENT_DISPOSITION_INLINE = "inline";
 
 	private HttpRequest request;
 	private MimeHelper mimeHelper;
@@ -64,106 +63,126 @@ public class FileResponse {
 	protected String getHeader(String name) {
 		return headers.get(name);
 	}
-	
+
 	public void send(ChannelHandlerContext ctx, File file) throws RestException {
 
+		if (!file.exists()) {
+			throw new RestException(HttpResponseStatus.NOT_FOUND, "Not found");
+		}
+
 		setHeaderTransferEncoding();
-		setHeaderContentEncoding(file, isSSL(ctx));		
+		setHeaderContentEncoding(file, isSSL(ctx));
 		setHeaderKeepAlive();
 		setHeader(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
 		setHeaderContentType(file);
-		setHeaderContentDisposition(file, mimeHelper.isBinary(file));
-		setDateAndCacheHeaders(file);		
-		
-		final RandomAccessFile raf;
+		setHeaderContentDisposition(file);
+		setDateAndCacheHeaders(file);
+
+		long fileLength = file.length();
+
+		Tuple<Long, Long> range;
 		try {
-			raf = new RandomAccessFile(file, "r");
-			long fileLength = raf.length();
+			range = parseRange(fileLength);
+		} catch (IllegalArgumentException e) {
+			throw new RestException(HttpResponseStatus.REQUESTED_RANGE_NOT_SATISFIABLE, e);
+		}
 
-			Tuple<Long, Long> range;
-			try {
-				range = parseRange(fileLength);
-			} catch (IllegalArgumentException e) {
-				throw new RestException(HttpResponseStatus.REQUESTED_RANGE_NOT_SATISFIABLE, e);
-			}
+		if (range == null) {
+			setHeaderContentLength(fileLength);
+		} else {
+			status = HttpResponseStatus.PARTIAL_CONTENT;
+			setHeaderContentLength(range.getSecond() - range.getFirst() + 1);
+			setHeaderContentRange(range, fileLength);
+		}
 
-			if (range == null) {
-				setHeader(HttpHeaders.Names.CONTENT_LENGTH, String.valueOf(fileLength));
-			} else {
-				status = HttpResponseStatus.PARTIAL_CONTENT;
-				setHeader(HttpHeaders.Names.CONTENT_LENGTH, String.valueOf(range.getSecond() - range.getFirst() + 1));
-				setHeader(HttpHeaders.Names.CONTENT_RANGE, "bytes " + range.getFirst() + "-" + range.getSecond() + "/" + fileLength);
-			}
+		HttpResponse response = new DefaultHttpResponse(request.getProtocolVersion(), status);
+		setupResponseHeaders(response);
+		ctx.write(response);
 
-			HttpResponse response = new DefaultHttpResponse(request.getProtocolVersion(), status);
-			setupResponseHeaders(response);
-			ctx.write(response);
+		// calculate content range
+		long contentOffset = 0;
+		long contentLength = fileLength;
+		if (range != null) {
+			contentOffset = range.getFirst();
+			contentLength = range.getSecond() - range.getFirst() + 1;
+		}
 
-			// write content
-			long rangeStart = 0;
-			long rangeEnd = fileLength;
-			if (range != null) {
-				rangeStart = range.getFirst();
-				rangeEnd = range.getSecond() - range.getFirst() + 1;
-			}
-			
-			if (isSSL(ctx)) {
-				ctx.write(new ChunkedFile(raf, rangeStart, rangeEnd, HTTP_CHUNK_SIZE));
-			} else if (supportChunks()) {
-				ctx.write(new ChunkedInputAdapter(new ChunkedFile(raf, rangeStart, rangeEnd, HTTP_CHUNK_SIZE)));
-			} else {
-				ctx.write(new DefaultFileRegion(raf.getChannel(), rangeStart, rangeEnd));
-			}
-			
-			ChannelFuture lastContentFuture = ctx.writeAndFlush(DefaultLastHttpContent.EMPTY_LAST_CONTENT);
-			lastContentFuture.addListener(new ChannelFutureListener() {
-                @Override
-                public void operationComplete(ChannelFuture channelFuture) throws Exception {
-                	IOUtils.closeQuietly(raf);
-                }
-            });
-			if (!HttpHeaders.isKeepAlive(request)) {
-				lastContentFuture.addListener(ChannelFutureListener.CLOSE);
-			}
-			
-		} catch (FileNotFoundException e) {
-			throw new RestException(HttpResponseStatus.NOT_FOUND, "Not found");
+		try {
+			sendFileContent(ctx, file, contentOffset, contentLength);
 		} catch (IOException e) {
 			throw new RestException(HttpResponseStatus.INTERNAL_SERVER_ERROR, "Error");
 		}
 
 	}
 
+	protected void sendFileContent(ChannelHandlerContext ctx, File file, long offset, long length) throws IOException {
+
+		final RandomAccessFile raf = new RandomAccessFile(file, "r");
+		sendFileBody(ctx, raf, offset, length);
+
+		ChannelFuture lastContentFuture = ctx.writeAndFlush(DefaultLastHttpContent.EMPTY_LAST_CONTENT);
+		lastContentFuture.addListener(new ChannelFutureListener() {
+			@Override
+			public void operationComplete(ChannelFuture channelFuture) throws Exception {
+				IOUtils.closeQuietly(raf);
+			}
+		});
+		if (!HttpHeaders.isKeepAlive(request)) {
+			lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+		}
+
+	}
+
+	protected void sendFileBody(ChannelHandlerContext ctx, RandomAccessFile raf, long offset, long length) throws IOException {
+		if (isSSL(ctx)) {
+			ctx.write(new ChunkedFile(raf, offset, length, HTTP_CHUNK_SIZE));
+		} else if (supportChunks()) {
+			ctx.write(new ChunkedInputAdapter(new ChunkedFile(raf, offset, length, HTTP_CHUNK_SIZE)));
+		} else {
+			ctx.write(new DefaultFileRegion(raf.getChannel(), offset, length));
+		}		
+	}
+	
 	protected boolean supportChunks() {
 		return request.getProtocolVersion().equals(HttpVersion.HTTP_1_1);
 	}
-	
+
+	protected void setHeaderContentLength(long contentLength) {
+		setHeader(HttpHeaders.Names.CONTENT_LENGTH, String.valueOf(contentLength));
+	}
+
+	protected void setHeaderContentRange(Tuple<Long, Long> range, long contentLength) {
+		setHeader(HttpHeaders.Names.CONTENT_RANGE, "bytes " + range.getFirst() + "-" + range.getSecond() + "/" + contentLength);
+	}
+
 	protected void setHeaderTransferEncoding() {
 		if (supportChunks()) {
 			setHeader(HttpHeaders.Names.TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED);
-		}		
+		}
 	}
-	
+
 	protected void setHeaderKeepAlive() {
 		if (HttpHeaders.isKeepAlive(request)) {
 			setHeader(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-		}		
-	}	
-	
+		}
+	}
+
 	protected void setHeaderContentEncoding(File file, boolean ssl) {
 		if (!mimeHelper.isCompressible(file) || ssl) {
 			setHeader(HttpHeaders.Names.CONTENT_ENCODING, HttpHeaders.Values.IDENTITY);
-		}		
+		}
 	}
-	
+
 	protected void setHeaderContentType(File file) {
 		String mimeType = mimeHelper.getContentType(file);
 		setHeader(HttpHeaders.Names.CONTENT_TYPE, mimeType + "; charset=UTF-8");
 	}
 
-	protected void setHeaderContentDisposition(File file, boolean download) {
+	protected void setHeaderContentDisposition(File file) {
+		boolean download = mimeHelper.isBinary(file);
 		String name = file.getName();
-		setHeader(CONTENT_DISPOSITION, (download ? CONTENT_DISPOSITION_ATTACHMENT : CONTENT_DISPOSITION_INLINE) + ";filename=\"" + name.replaceAll("[^A-Za-z0-9\\-_\\.]", "_") + "\"");
+		setHeader(CONTENT_DISPOSITION,
+				(download ? CONTENT_DISPOSITION_ATTACHMENT : CONTENT_DISPOSITION_INLINE) + ";filename=\"" + name.replaceAll("[^A-Za-z0-9\\-_\\.]", "_") + "\"");
 	}
 
 	protected Tuple<Long, Long> parseRange(long availableLength) {
@@ -214,7 +233,7 @@ public class FileResponse {
 	}
 
 	protected boolean isSSL(ChannelHandlerContext ctx) {
-        return ctx.channel().pipeline().get(SslHandler.class) != null;
-    }	
-	
+		return ctx.channel().pipeline().get(SslHandler.class) != null;
+	}
+
 }
