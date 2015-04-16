@@ -164,5 +164,6 @@ public class RestServerHandlerTest {
 		Mockito.verify(restHandler).setHttpRequest(Mockito.eq(request));
 		Mockito.verifyZeroInteractions(ctx);		
 	}	
+
 	
 }
