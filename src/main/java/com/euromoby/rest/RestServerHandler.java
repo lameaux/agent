@@ -69,13 +69,13 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 		}
 	}
 
-	private void processRequest(ChannelHandlerContext ctx) {
+	private void executeRestHandler(ChannelHandlerContext ctx) {
 		if (handler != null) {
 			handler.process(ctx);
 		}
 	}
 
-	protected void processError(ChannelHandlerContext ctx, RestException e) {
+	protected void sendErrorResponse(ChannelHandlerContext ctx, RestException e) {
 		ByteBuf outputBuf = Unpooled.copiedBuffer(e.getMessage(), CharsetUtil.UTF_8);
 		
 		// Build the response object.
@@ -91,7 +91,7 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 	protected boolean processHttpRequest(ChannelHandlerContext ctx, HttpRequest request) {
 		handler = getRestHandler(request);
 		if (handler == null) {
-			processError(ctx, new RestException(HttpResponseStatus.NOT_FOUND));
+			sendErrorResponse(ctx, new RestException(HttpResponseStatus.NOT_FOUND));
 			return false;
 		}
 
@@ -111,7 +111,7 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 			// save decoder
 			handler.setHttpPostRequestDecoder(decoder);
 		} catch (ErrorDataDecoderException e) {
-			processError(ctx, new RestException(e));
+			sendErrorResponse(ctx, new RestException(e));
 			return false;
 		}	
 		
@@ -127,8 +127,7 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 			}
 		}
 
-		// check if the decoder was constructed before
-		// if not it handles the form get
+		// check if the decoder was constructed before, if not it handles GET request
 		if (decoder != null) {
 			if (msg instanceof HttpContent) {
 				// New chunk is received
@@ -136,18 +135,18 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 				try {
 					decoder.offer(chunk);
 				} catch (ErrorDataDecoderException e) {
-					processError(ctx, new RestException(e));
+					sendErrorResponse(ctx, new RestException(e));
 					return;
 				}
 
 				// last chunk arrived
 				if (chunk instanceof LastHttpContent) {
-					processRequest(ctx);
+					executeRestHandler(ctx);
 					reset();
 				}
 			}
 		} else {
-			processRequest(ctx);
+			executeRestHandler(ctx);
 		}
 	}
 
