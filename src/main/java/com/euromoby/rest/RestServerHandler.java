@@ -2,7 +2,6 @@ package com.euromoby.rest;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -32,16 +31,12 @@ import com.euromoby.rest.handler.RestHandler;
 
 public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 
-	private RestHandler handler;
-	private HttpRequest request;
-
+	public static final String TEXT_PLAIN_UTF8 = "text/plain; charset=UTF-8";
+	
 	private RestMapper restMapper;
-
-	public RestServerHandler(RestMapper restMapper) {
-		this.restMapper = restMapper;
-	}
-
-	// store on disk if > 16k
+	
+	private RestHandler handler;
+	private HttpPostRequestDecoder decoder;
 	private static final HttpDataFactory factory = new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);
 
 	static {
@@ -51,10 +46,12 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 		DiskAttribute.baseDirectory = null; // system temp directory
 	}
 
-	private HttpPostRequestDecoder decoder;
+	public RestServerHandler(RestMapper restMapper) {
+		this.restMapper = restMapper;
+	}
 
-	private RestHandler getRestHandler() {
-		String uriString = request.getUri();
+	protected RestHandler getRestHandler(HttpRequest httpRequest) {
+		String uriString = httpRequest.getUri();
 		URI uri;
 		try {
 			uri = new URI(uriString);
@@ -78,40 +75,54 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 		}
 	}
 
-	private void processError(ChannelHandlerContext ctx, RestException e) {
+	protected void processError(ChannelHandlerContext ctx, RestException e) {
 		ByteBuf outputBuf = Unpooled.copiedBuffer(e.getMessage(), CharsetUtil.UTF_8);
-		writeErrorResponse(ctx.channel(), e.getStatus(), outputBuf);
+		
+		// Build the response object.
+		FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, e.getStatus(), outputBuf);
+		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, TEXT_PLAIN_UTF8);
+
+		// Write the response.
+		ChannelFuture future = ctx.channel().writeAndFlush(response);
+		future.addListener(ChannelFutureListener.CLOSE);		
 		ctx.channel().close();
 	}
 
+	protected boolean processHttpRequest(ChannelHandlerContext ctx, HttpRequest request) {
+		handler = getRestHandler(request);
+		if (handler == null) {
+			processError(ctx, new RestException(HttpResponseStatus.NOT_FOUND));
+			return false;
+		}
+
+		if (HttpHeaders.is100ContinueExpected(request)) {
+			send100Continue(ctx);
+		}			
+		
+		// save request
+		handler.setHttpRequest(request);
+
+		// if GET Method: should not try to create a HttpPostRequestDecoder
+		if (request.getMethod().equals(HttpMethod.GET)) {
+			return false;
+		}
+		try {
+			decoder = new HttpPostRequestDecoder(factory, request);
+			// save decoder
+			handler.setHttpPostRequestDecoder(decoder);
+		} catch (ErrorDataDecoderException e) {
+			processError(ctx, new RestException(e));
+			return false;
+		}	
+		
+		return true;
+	}
+	
 	@Override
 	public void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
 		if (msg instanceof HttpRequest) {
-			request = (HttpRequest) msg;
-
-			if (HttpHeaders.is100ContinueExpected(request)) {
-				send100Continue(ctx);
-			}
-
-			handler = getRestHandler();
-			if (handler == null) {
-				processError(ctx, new RestException(HttpResponseStatus.NOT_FOUND, "Not found"));
-				return;
-			}
-
-			// save request
-			handler.setHttpRequest(request);
-
-			// if GET Method: should not try to create a HttpPostRequestDecoder
-			if (request.getMethod().equals(HttpMethod.GET)) {
-				return;
-			}
-			try {
-				decoder = new HttpPostRequestDecoder(factory, request);
-				// save decoder
-				handler.setHttpPostRequestDecoder(decoder);
-			} catch (ErrorDataDecoderException e) {
-				processError(ctx, new RestException(e));
+			HttpRequest request = (HttpRequest) msg;
+			if (!processHttpRequest(ctx, request)) {
 				return;
 			}
 		}
@@ -129,7 +140,7 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 					return;
 				}
 
-				// example of reading only if at the end
+				// last chunk arrived
 				if (chunk instanceof LastHttpContent) {
 					processRequest(ctx);
 					reset();
@@ -140,24 +151,13 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 		}
 	}
 
-	private void writeErrorResponse(Channel channel, HttpResponseStatus status, ByteBuf buf) {
-		// Build the response object.
-		FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, buf);
-		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
-
-		// Write the response.
-		ChannelFuture future = channel.writeAndFlush(response);
-		future.addListener(ChannelFutureListener.CLOSE);
-	}
-
 	private void reset() {
-		request = null;
 		handler = null;
 		decoder.destroy();
 		decoder = null;
 	}
 
-	private static void send100Continue(ChannelHandlerContext ctx) {
+	protected void send100Continue(ChannelHandlerContext ctx) {
 		FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE);
 		ctx.write(response);
 	}

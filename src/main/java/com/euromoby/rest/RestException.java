@@ -9,7 +9,7 @@ public class RestException extends Exception {
 	private HttpResponseStatus status = HttpResponseStatus.BAD_REQUEST;
 
 	public RestException() {
-		super();
+		super(HttpResponseStatus.BAD_REQUEST.reasonPhrase());
 	}
 
 	public RestException(String message) {
@@ -20,6 +20,10 @@ public class RestException extends Exception {
 		super(e);
 	}
 
+	public RestException(HttpResponseStatus status) {
+		this(status, status.reasonPhrase());
+	}
+	
 	public RestException(HttpResponseStatus status, String message) {
 		super(message);
 		this.status = status;

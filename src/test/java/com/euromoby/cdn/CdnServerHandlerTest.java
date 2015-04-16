@@ -71,6 +71,15 @@ public class CdnServerHandlerTest {
 	}
 
 	@Test
+	public void testSend100Continue() {
+		handler.send100Continue(ctx);
+		ArgumentCaptor<FullHttpResponse> captor = ArgumentCaptor.forClass(FullHttpResponse.class);
+		Mockito.verify(ctx).write(captor.capture());
+		FullHttpResponse response = captor.getValue();
+		assertEquals(HttpResponseStatus.CONTINUE, response.getStatus());
+	}	
+	
+	@Test
 	public void testInvalidHttpMethod() throws Exception {
 		Mockito.when(request.getMethod()).thenReturn(HttpMethod.POST);
 		Mockito.when(channel.writeAndFlush(Matchers.any(DefaultFullHttpResponse.class))).thenReturn(channelFuture);
@@ -135,5 +144,5 @@ public class CdnServerHandlerTest {
 		FullHttpResponse response = responseCaptor.getValue();
 		assertEquals(HttpResponseStatus.NOT_MODIFIED, response.getStatus());
 	}
-
+	
 }

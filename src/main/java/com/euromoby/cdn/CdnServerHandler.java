@@ -87,6 +87,10 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 	
 	@Override
 	public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
+
+		if (HttpHeaders.is100ContinueExpected(request)) {
+			send100Continue(ctx);
+		}		
 		
 		httpResponseProvider.setHttpRequest(request);		
 		
@@ -142,6 +146,11 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 		future.addListener(ChannelFutureListener.CLOSE);
 	}
 
+	protected void send100Continue(ChannelHandlerContext ctx) {
+		FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE);
+		ctx.write(response);
+	}	
+	
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 		ctx.channel().close();
