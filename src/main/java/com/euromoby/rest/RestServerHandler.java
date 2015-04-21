@@ -50,7 +50,16 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 		this.restMapper = restMapper;
 	}
 
-	protected RestHandler getRestHandler(HttpRequest httpRequest) {
+	protected HttpPostRequestDecoder getHttpPostRequestDecoder() {
+		return decoder;
+	}
+	
+	protected RestHandler getRestHandler() {
+		return handler;
+	}
+	
+	
+	protected RestHandler findRestHandler(HttpRequest httpRequest) {
 		String uriString = httpRequest.getUri();
 		URI uri;
 		try {
@@ -69,10 +78,11 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 		}
 	}
 
-	private void executeRestHandler(ChannelHandlerContext ctx) {
-		if (handler != null) {
-			handler.process(ctx);
+	protected void executeRestHandler(ChannelHandlerContext ctx) throws IllegalStateException {
+		if (handler == null) {
+			throw new IllegalStateException("RestHandler not configured");
 		}
+		handler.process(ctx);
 	}
 
 	protected void sendErrorResponse(ChannelHandlerContext ctx, RestException e) {
@@ -88,11 +98,11 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 		ctx.channel().close();
 	}
 
-	protected boolean processHttpRequest(ChannelHandlerContext ctx, HttpRequest request) {
-		handler = getRestHandler(request);
+	protected void processHttpRequest(ChannelHandlerContext ctx, HttpRequest request) {
+		handler = findRestHandler(request);
 		if (handler == null) {
 			sendErrorResponse(ctx, new RestException(HttpResponseStatus.NOT_FOUND));
-			return false;
+			return;
 		}
 
 		if (HttpHeaders.is100ContinueExpected(request)) {
@@ -104,7 +114,7 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 
 		// if GET Method: should not try to create a HttpPostRequestDecoder
 		if (request.getMethod().equals(HttpMethod.GET)) {
-			return false;
+			return;
 		}
 		try {
 			decoder = new HttpPostRequestDecoder(factory, request);
@@ -112,22 +122,19 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 			handler.setHttpPostRequestDecoder(decoder);
 		} catch (ErrorDataDecoderException e) {
 			sendErrorResponse(ctx, new RestException(e));
-			return false;
 		}	
 		
-		return true;
 	}
 	
 	@Override
 	public void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
 		if (msg instanceof HttpRequest) {
 			HttpRequest request = (HttpRequest) msg;
-			if (!processHttpRequest(ctx, request)) {
-				return;
-			}
+			processHttpRequest(ctx, request);
+			return;
 		}
 
-		// check if the decoder was constructed before, if not it handles GET request
+		// decoder is for POST
 		if (decoder != null) {
 			if (msg instanceof HttpContent) {
 				// New chunk is received
@@ -146,6 +153,7 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 				}
 			}
 		} else {
+			// doing GET
 			executeRestHandler(ctx);
 		}
 	}
