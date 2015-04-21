@@ -25,26 +25,25 @@ public class CdnNetwork {
 	private Config config;
 	private AgentManager agentManager;
 	private HttpClientProvider httpClientProvider;
+	private CdnResourceMapping cdnResourceMapping;
 
 	private ExecutorService executor;
 
 	@Autowired
-	public CdnNetwork(Config config, AgentManager agentManager, HttpClientProvider httpClientProvider) {
+	public CdnNetwork(Config config, AgentManager agentManager, HttpClientProvider httpClientProvider, CdnResourceMapping cdnResourceMapping) {
 		this.config = config;
 		this.agentManager = agentManager;
 		this.httpClientProvider = httpClientProvider;
+		this.cdnResourceMapping = cdnResourceMapping;
 
 		executor = Executors.newFixedThreadPool(this.config.getCdnPoolSize());
+		
 	}
+
 	
-	private boolean isAvailable(String uriPath) {
-		if (uriPath.startsWith("/thumb/")) {
-			return true;
-		}
-		if (uriPath.startsWith("/video/")) {
-			return true;
-		}
-		return false;
+	protected boolean isAvailable(String uriPath) {
+		CdnResource cdnResource = cdnResourceMapping.findByUrl(uriPath);
+		return cdnResource != null;
 	}
 
 	public String requestSourceDownload(URI uri) {
@@ -62,17 +61,22 @@ public class CdnNetwork {
 		return null;
 	}
 	
-	public FileInfo find(String uriPath) {
-		if (!isAvailable(uriPath)) {
-			return null;
-		}
-		// send requests to active agents
+	protected List<Future<FileInfo>> sendRequestsToActiveAgents(String uriPath) {
 		List<AgentId> activeAgents = agentManager.getActive();
 		List<Future<FileInfo>> futureList = new ArrayList<Future<FileInfo>>();
 		for (AgentId agentId : activeAgents) {
 			Future<FileInfo> future = executor.submit(new CdnWorker(httpClientProvider, agentId, uriPath));
 			futureList.add(future);
 		}
+		return futureList;
+	}
+	
+	public FileInfo find(String uriPath) {
+		if (!isAvailable(uriPath)) {
+			return null;
+		}
+		
+		List<Future<FileInfo>> futureList = sendRequestsToActiveAgents(uriPath);
 		
 		// lets wait 500 ms
 		try {

@@ -8,7 +8,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
-public class CdnResourceMappingTest {
+public class CdnResourceTest {
 
 	public static final String GOOD_URL_PREFIX = "/good_prefix";
 	public static final String BAD_URL_PREFIX = "/bad_prefix";
@@ -17,11 +17,11 @@ public class CdnResourceMappingTest {
 	public static final String GOOD_RESOURCE_NAME = "/good.jpg";
 	public static final String BAD_RESOURCE_NAME = "/bad.png";	
 	
-	CdnResourceMapping cdnResourceMapping;
+	CdnResource cdnResourceMapping;
 
 	@Before
 	public void init() {
-		cdnResourceMapping = new CdnResourceMapping();
+		cdnResourceMapping = new CdnResource();
 		cdnResourceMapping.setUrlPrefix(GOOD_URL_PREFIX);
 		cdnResourceMapping.setUrlPattern(URL_PATTERN);
 		cdnResourceMapping.setResourceOrigin(RESOURCE_ORIGIN);
@@ -36,7 +36,7 @@ public class CdnResourceMappingTest {
 	@Test
 	public void testMatchingAll() {
 		// default - matches all
-		cdnResourceMapping = new CdnResourceMapping();
+		cdnResourceMapping = new CdnResource();
 		
 		String goodUrl = GOOD_URL_PREFIX + GOOD_RESOURCE_NAME;
 		assertTrue(cdnResourceMapping.matches(goodUrl));
@@ -86,7 +86,7 @@ public class CdnResourceMappingTest {
 
 	@Test
 	public void testGetSet() {
-		cdnResourceMapping = new CdnResourceMapping();
+		cdnResourceMapping = new CdnResource();
 		cdnResourceMapping.setUrlPrefix(GOOD_URL_PREFIX);
 		assertEquals(GOOD_URL_PREFIX, cdnResourceMapping.getUrlPrefix());
 		cdnResourceMapping.setUrlPattern(URL_PATTERN);
