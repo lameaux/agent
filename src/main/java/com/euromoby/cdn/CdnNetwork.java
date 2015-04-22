@@ -2,14 +2,16 @@ package com.euromoby.cdn;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -22,12 +24,15 @@ import com.euromoby.rest.handler.fileinfo.FileInfo;
 @Component
 public class CdnNetwork {
 
+	private static final Logger log = LoggerFactory.getLogger(CdnNetwork.class);
+	
 	private Config config;
 	private AgentManager agentManager;
 	private HttpClientProvider httpClientProvider;
 	private CdnResourceMapping cdnResourceMapping;
 
 	private ExecutorService executor;
+	private ExecutorCompletionService<FileInfo> completionService;
 
 	@Autowired
 	public CdnNetwork(Config config, AgentManager agentManager, HttpClientProvider httpClientProvider, CdnResourceMapping cdnResourceMapping) {
@@ -37,6 +42,7 @@ public class CdnNetwork {
 		this.cdnResourceMapping = cdnResourceMapping;
 
 		executor = Executors.newFixedThreadPool(this.config.getCdnPoolSize());
+		completionService = new ExecutorCompletionService<FileInfo>(executor);
 		
 	}
 
@@ -61,14 +67,51 @@ public class CdnNetwork {
 		return null;
 	}
 	
-	protected List<Future<FileInfo>> sendRequestsToActiveAgents(String uriPath) {
+	protected int sendRequestsToActiveAgents(String uriPath) {
 		List<AgentId> activeAgents = agentManager.getActive();
-		List<Future<FileInfo>> futureList = new ArrayList<Future<FileInfo>>();
 		for (AgentId agentId : activeAgents) {
-			Future<FileInfo> future = executor.submit(new CdnWorker(httpClientProvider, agentId, uriPath));
-			futureList.add(future);
+			completionService.submit(new CdnWorker(httpClientProvider, agentId, uriPath));
 		}
-		return futureList;
+		return activeAgents.size();
+	}
+	
+	protected List<FileInfo> getResponsesFromAgents(int agentCount) {
+		List<FileInfo> fileInfoResult = new ArrayList<FileInfo>();
+		
+		long timeoutMillis = config.getCdnTimeout();
+		long endTime = System.currentTimeMillis() + timeoutMillis;
+		
+		while (agentCount > 0) {
+			long timeout = Math.max(0, endTime - System.currentTimeMillis());
+			try {
+				Future<FileInfo> future = completionService.poll(timeout, TimeUnit.MILLISECONDS);
+				if (future == null) {
+					break;
+				}
+				agentCount--;
+				FileInfo fileInfo = future.get();
+				if (fileInfo != null) {
+					fileInfoResult.add(fileInfo);
+				}
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				break;
+			} catch (ExecutionException e) {
+				log.debug("Request failed", e);
+				continue;
+			}
+		}
+		
+		return fileInfoResult;
+	}
+	
+	protected FileInfo chooseBestSource(List<FileInfo> fileInfoList) {
+		if (fileInfoList.isEmpty()) {
+			return null;
+		}
+		
+		// TODO choose best source
+		return fileInfoList.get(0);
 	}
 	
 	public FileInfo find(String uriPath) {
@@ -76,54 +119,10 @@ public class CdnNetwork {
 			return null;
 		}
 		
-		List<Future<FileInfo>> futureList = sendRequestsToActiveAgents(uriPath);
+		int agentCount = sendRequestsToActiveAgents(uriPath);
+		List<FileInfo> fileInfoResult = getResponsesFromAgents(agentCount);
 		
-		// lets wait 500 ms
-		try {
-			Thread.sleep(500);
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			return null;
-		}		
-		// gather results from agents with timeout
-		long endTime = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(config.getCdnTimeout());
-		List<FileInfo> fileInfoResult = new ArrayList<FileInfo>();
-		while (endTime > System.currentTimeMillis()) {
-			Iterator<Future<FileInfo>> futureIterator = futureList.iterator();
-			if (!futureIterator.hasNext()) {
-				break;
-			}
-			while (futureIterator.hasNext()) {
-				Future<FileInfo> future = futureIterator.next();
-				if (future.isDone()) {
-					try {
-						FileInfo fileInfo = future.get();
-						if (fileInfo != null) {
-							fileInfoResult.add(fileInfo);
-						}
-						futureIterator.remove();
-					} catch (InterruptedException e) {
-						Thread.currentThread().interrupt();
-						break;
-					} catch (ExecutionException e) {
-						futureIterator.remove();
-					}
-				}
-			}
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-				break;
-			}
-		}
-		
-		if (fileInfoResult.isEmpty()) {
-			return null;
-		}
-		
-		// TODO choose best source
-		return fileInfoResult.get(0);
+		return chooseBestSource(fileInfoResult);
 	}
 
 }

@@ -111,7 +111,7 @@ public class Config {
 	public static final String DEFAULT_CDN_POOL_SIZE = "4";
 
 	public static final String CDN_TIMEOUT = "agent.cdn.timeout";
-	public static final String DEFAULT_CDN_TIMEOUT = "5";
+	public static final String DEFAULT_CDN_TIMEOUT = "3000";
 
 	public static final String KEYSTORE_PATH = "agent.keystore.path";
 
