@@ -1,6 +1,5 @@
 package com.euromoby.cdn;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -19,6 +18,7 @@ import com.euromoby.agent.AgentManager;
 import com.euromoby.agent.Config;
 import com.euromoby.http.HttpClientProvider;
 import com.euromoby.model.AgentId;
+import com.euromoby.model.Tuple;
 import com.euromoby.rest.handler.fileinfo.FileInfo;
 
 @Component
@@ -46,27 +46,6 @@ public class CdnNetwork {
 		
 	}
 
-	
-	protected boolean isAvailable(String uriPath) {
-		CdnResource cdnResource = cdnResourceMapping.findByUrl(uriPath);
-		return cdnResource != null;
-	}
-
-	public String requestSourceDownload(URI uri) {
-		if (!isAvailable(uri.getPath())) {
-			return null;
-		}		
-		return null;
-	}
-	
-	public String findSourceUrl(URI uri) {
-		
-		// TODO Stream (+ store local) from source location if defined, no range if not synced, or 404 if not found in source
-		
-		
-		return null;
-	}
-	
 	protected int sendRequestsToActiveAgents(String uriPath) {
 		List<AgentId> activeAgents = agentManager.getActive();
 		for (AgentId agentId : activeAgents) {
@@ -109,20 +88,29 @@ public class CdnNetwork {
 		if (fileInfoList.isEmpty()) {
 			return null;
 		}
-		
-		// TODO choose best source
+		// first arrived
 		return fileInfoList.get(0);
 	}
+
 	
-	public FileInfo find(String uriPath) {
-		if (!isAvailable(uriPath)) {
-			return null;
+	public Tuple<CdnResource, FileInfo> find(String uriPath) {
+		
+		Tuple<CdnResource, FileInfo> searchResult = Tuple.empty();
+		
+		CdnResource cdnResource = cdnResourceMapping.findByUrl(uriPath);
+		if (cdnResource == null) {
+			return searchResult;
 		}
-		
-		int agentCount = sendRequestsToActiveAgents(uriPath);
-		List<FileInfo> fileInfoResult = getResponsesFromAgents(agentCount);
-		
-		return chooseBestSource(fileInfoResult);
+		searchResult.setFirst(cdnResource);
+
+		if (cdnResource.isAvailableInNetwork()) {
+			int agentCount = sendRequestsToActiveAgents(uriPath);
+			List<FileInfo> fileInfoResult = getResponsesFromAgents(agentCount);
+			FileInfo fileInfo = chooseBestSource(fileInfoResult);
+			searchResult.setSecond(fileInfo);
+		}
+
+		return searchResult;
 	}
 
 }

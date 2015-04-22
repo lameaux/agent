@@ -25,6 +25,7 @@ import com.euromoby.http.FileResponse;
 import com.euromoby.http.HttpResponseProvider;
 import com.euromoby.http.HttpUtils;
 import com.euromoby.model.AgentId;
+import com.euromoby.model.Tuple;
 import com.euromoby.rest.RestException;
 import com.euromoby.rest.handler.fileinfo.FileInfo;
 import com.euromoby.utils.StringUtils;
@@ -48,7 +49,15 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 		
 		// Ask other agents if they have file
 		LOG.debug("Asking other agents for {}", uri.getPath());
-		FileInfo fileInfo = cdnNetwork.find(uri.getPath());
+		Tuple<CdnResource, FileInfo> searchResult = cdnNetwork.find(uri.getPath());
+		
+		CdnResource cdnResource = searchResult.getFirst();
+		if (cdnResource == null) {
+			writeErrorResponse(ctx, HttpResponseStatus.NOT_FOUND);
+			return;
+		}
+		
+		FileInfo fileInfo = searchResult.getSecond();
 		if (fileInfo != null) {
 			AgentId agentId = fileInfo.getAgentId();
 			String agentUrl = String.format("http://%s:%d%s", agentId.getHost(), agentId.getBasePort() + CdnServer.CDN_PORT, uri.getPath()); 
@@ -64,7 +73,7 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 					
 		
 		// create download job or start streaming
-		String sourceUrl = cdnNetwork.requestSourceDownload(uri);
+		String sourceUrl = cdnResource.getSourceUrl(uri.getPath());
 		if (sourceUrl != null) {
 			LOG.debug("Redirecting to {}", sourceUrl);
 			FullHttpResponse response = httpResponseProvider.createRedirectResponse(sourceUrl);

@@ -1,9 +1,11 @@
 package com.euromoby.cdn;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -29,6 +31,7 @@ import com.euromoby.agent.AgentManager;
 import com.euromoby.agent.Config;
 import com.euromoby.http.HttpClientProvider;
 import com.euromoby.model.AgentId;
+import com.euromoby.model.Tuple;
 import com.euromoby.rest.handler.fileinfo.FileInfo;
 import com.google.gson.Gson;
 
@@ -70,16 +73,6 @@ public class CdnNetworkTest {
 	}
 	
 	@Test
-	public void testUrlIsAvailable() {
-		assertTrue(cdnNetwork.isAvailable(GOOD_URL));
-	}
-
-	@Test
-	public void testUrlIsNotAvailable() {
-		assertFalse(cdnNetwork.isAvailable(BAD_URL));
-	}
-	
-	@Test
 	public void testSendAndReceiveNotFound() throws Exception {
 		List<AgentId> agentList = Collections.singletonList(AGENT1);
 		Mockito.when(agentManager.getActive()).thenReturn(agentList);
@@ -87,13 +80,26 @@ public class CdnNetworkTest {
 		Mockito.when(httpClientProvider.createRequestConfigBuilder(Matchers.eq(false))).thenReturn(requestConfigBuilder);
 		Mockito.when(httpClient.execute(Matchers.any(HttpUriRequest.class), Matchers.any(HttpClientContext.class))).thenReturn(response);
 		Mockito.when(response.getStatusLine()).thenReturn(new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_FOUND, "Not found"));
+		Mockito.when(config.getCdnTimeout()).thenReturn(500);
+		
 		int agentCount = cdnNetwork.sendRequestsToActiveAgents(GOOD_URL);
 		assertEquals(agentList.size(), agentCount);
-		Mockito.when(config.getCdnTimeout()).thenReturn(500);
 		List<FileInfo> fileInfoList = cdnNetwork.getResponsesFromAgents(agentCount);
 		// 404 not found = null
 		assertTrue(fileInfoList.isEmpty());
 	}
+
+	@Test
+	public void testSendAndReceiveNoAgents() throws Exception {
+		List<AgentId> agentList = Collections.emptyList();
+		Mockito.when(agentManager.getActive()).thenReturn(agentList);
+		
+		int agentCount = cdnNetwork.sendRequestsToActiveAgents(GOOD_URL);
+		assertEquals(agentList.size(), agentCount);
+		List<FileInfo> fileInfoList = cdnNetwork.getResponsesFromAgents(agentCount);
+		// 404 not found = null
+		assertTrue(fileInfoList.isEmpty());
+	}	
 	
 	@Test
 	public void testSendAndReceiveFound() throws Exception {
@@ -107,15 +113,60 @@ public class CdnNetworkTest {
 		fileInfo.setAgentId(AGENT1);		
 		ByteArrayEntity bae = new ByteArrayEntity(GSON.toJson(fileInfo).getBytes());
 		Mockito.when(response.getEntity()).thenReturn(bae);
-
+		Mockito.when(config.getCdnTimeout()).thenReturn(500);
+		
 		int agentCount = cdnNetwork.sendRequestsToActiveAgents(GOOD_URL);
 		assertEquals(agentList.size(), agentCount);
-		Mockito.when(config.getCdnTimeout()).thenReturn(500);
-
 
 		List<FileInfo> fileInfoList = cdnNetwork.getResponsesFromAgents(agentCount);
 		// should be found
 		assertEquals(agentList.size(), fileInfoList.size());
+	}	
+	
+	@Test
+	public void testChooseBestSource() {
+		FileInfo fileInfo = new FileInfo();
+		List<FileInfo> fileInfoList = new ArrayList<FileInfo>();
+		assertNull(cdnNetwork.chooseBestSource(fileInfoList));
+		fileInfoList.add(fileInfo);
+		assertEquals(fileInfo, cdnNetwork.chooseBestSource(fileInfoList));
+	}
+
+	@Test
+	public void testMappingNotExist() {
+		Tuple<CdnResource, FileInfo> result = cdnNetwork.find(BAD_URL);
+		assertNull(result.getFirst());
+		assertNull(result.getSecond());			
+	}	
+	
+	@Test
+	public void testUrlNotAvailable() {
+		Mockito.when(cdnResource.isAvailableInNetwork()).thenReturn(false);
+		Tuple<CdnResource, FileInfo> result = cdnNetwork.find(GOOD_URL); 
+		assertNotNull(result.getFirst());
+		assertNull(result.getSecond());		
+	}	
+	
+
+	@Test
+	public void testUrlIsAvailableInNetwork() throws Exception {
+		Mockito.when(cdnResource.isAvailableInNetwork()).thenReturn(true);
+		
+		List<AgentId> agentList = Arrays.asList(AGENT1, AGENT2);
+		Mockito.when(agentManager.getActive()).thenReturn(agentList);
+		Mockito.when(httpClientProvider.createHttpClient()).thenReturn(httpClient);
+		Mockito.when(httpClientProvider.createRequestConfigBuilder(Matchers.eq(false))).thenReturn(requestConfigBuilder);
+		Mockito.when(httpClient.execute(Matchers.any(HttpUriRequest.class), Matchers.any(HttpClientContext.class))).thenReturn(response);
+		Mockito.when(response.getStatusLine()).thenReturn(new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "Found"));
+		FileInfo fileInfo = new FileInfo();
+		fileInfo.setAgentId(AGENT1);		
+		ByteArrayEntity bae = new ByteArrayEntity(GSON.toJson(fileInfo).getBytes());
+		Mockito.when(response.getEntity()).thenReturn(bae);
+		Mockito.when(config.getCdnTimeout()).thenReturn(500);		
+		
+		Tuple<CdnResource, FileInfo> result = cdnNetwork.find(GOOD_URL); 
+		assertNotNull(result.getFirst());
+		assertNotNull(result.getSecond());
 	}	
 	
 }

@@ -17,86 +17,88 @@ public class CdnResourceTest {
 	public static final String GOOD_RESOURCE_NAME = "/good.jpg";
 	public static final String BAD_RESOURCE_NAME = "/bad.png";	
 	
-	CdnResource cdnResourceMapping;
+	CdnResource cdnResource;
 
 	@Before
 	public void init() {
-		cdnResourceMapping = new CdnResource();
-		cdnResourceMapping.setUrlPrefix(GOOD_URL_PREFIX);
-		cdnResourceMapping.setUrlPattern(URL_PATTERN);
-		cdnResourceMapping.setResourceOrigin(RESOURCE_ORIGIN);
+		cdnResource = new CdnResource();
+		cdnResource.setUrlPrefix(GOOD_URL_PREFIX);
+		cdnResource.setUrlPattern(URL_PATTERN);
+		cdnResource.setResourceOrigin(RESOURCE_ORIGIN);
 	}
 
 
 	@Test
 	public void testNotMatchingEmptyUrl() {
-		assertFalse(cdnResourceMapping.matches(null));
+		assertFalse(cdnResource.matches(null));
 	}
 	
 	@Test
 	public void testMatchingAll() {
 		// default - matches all
-		cdnResourceMapping = new CdnResource();
+		cdnResource = new CdnResource();
 		
 		String goodUrl = GOOD_URL_PREFIX + GOOD_RESOURCE_NAME;
-		assertTrue(cdnResourceMapping.matches(goodUrl));
+		assertTrue(cdnResource.matches(goodUrl));
 		
 		String badUrl = BAD_URL_PREFIX + BAD_RESOURCE_NAME;
-		assertTrue(cdnResourceMapping.matches(badUrl));
+		assertTrue(cdnResource.matches(badUrl));
 		
-		assertTrue(cdnResourceMapping.matches("foobar"));		
+		assertTrue(cdnResource.matches("foobar"));		
 	}	
 	
 	@Test
 	public void testMatchGoodUrl() {
 		String goodUrl = GOOD_URL_PREFIX + GOOD_RESOURCE_NAME;
-		assertTrue(cdnResourceMapping.matches(goodUrl));
+		assertTrue(cdnResource.matches(goodUrl));
 	}	
 	
 	@Test
 	public void testNotMatchingUrlPrefix() {
 		String badUrl = BAD_URL_PREFIX + GOOD_RESOURCE_NAME;		
-		assertFalse(cdnResourceMapping.matches(badUrl));
+		assertFalse(cdnResource.matches(badUrl));
 	}
 
 	@Test
 	public void testNotMatchingUrlPattern() {
 		String badUrl = GOOD_URL_PREFIX + BAD_RESOURCE_NAME;		
-		assertFalse(cdnResourceMapping.matches(badUrl));
+		assertFalse(cdnResource.matches(badUrl));
 	}	
 	
 	@Test
 	public void testSourceUrl() {
 		String goodUrl = GOOD_URL_PREFIX + GOOD_RESOURCE_NAME;
-		assertEquals(RESOURCE_ORIGIN + GOOD_RESOURCE_NAME, cdnResourceMapping.getSourceUrl(goodUrl));
+		assertEquals(RESOURCE_ORIGIN + GOOD_RESOURCE_NAME, cdnResource.getSourceUrl(goodUrl));
 		
-		cdnResourceMapping.setUrlPrefix(null);
-		assertEquals(RESOURCE_ORIGIN + GOOD_URL_PREFIX + GOOD_RESOURCE_NAME, cdnResourceMapping.getSourceUrl(goodUrl));
+		cdnResource.setUrlPrefix(null);
+		assertEquals(RESOURCE_ORIGIN + GOOD_URL_PREFIX + GOOD_RESOURCE_NAME, cdnResource.getSourceUrl(goodUrl));
 		
 	}
 
 	@Test
 	public void testNoSourceUrl() {
-		assertNull(cdnResourceMapping.getSourceUrl(null));
+		assertNull(cdnResource.getSourceUrl(null));
 		
-		cdnResourceMapping.setResourceOrigin(null);
+		cdnResource.setResourceOrigin(null);
 		String goodUrl = GOOD_URL_PREFIX + GOOD_RESOURCE_NAME;		
-		assertNull(cdnResourceMapping.getSourceUrl(goodUrl));
+		assertNull(cdnResource.getSourceUrl(goodUrl));
 	}	
 
 	@Test
 	public void testGetSet() {
-		cdnResourceMapping = new CdnResource();
-		cdnResourceMapping.setUrlPrefix(GOOD_URL_PREFIX);
-		assertEquals(GOOD_URL_PREFIX, cdnResourceMapping.getUrlPrefix());
-		cdnResourceMapping.setUrlPattern(URL_PATTERN);
-		assertEquals(URL_PATTERN, cdnResourceMapping.getUrlPattern());
-		cdnResourceMapping.setResourceOrigin(RESOURCE_ORIGIN);
-		assertEquals(RESOURCE_ORIGIN, cdnResourceMapping.getResourceOrigin());		
-		cdnResourceMapping.setDownloadIfMissing(true);
-		assertTrue(cdnResourceMapping.isDownloadIfMissing());
-		cdnResourceMapping.setStreamable(true);
-		assertTrue(cdnResourceMapping.isStreamable());		
+		cdnResource = new CdnResource();
+		cdnResource.setUrlPrefix(GOOD_URL_PREFIX);
+		assertEquals(GOOD_URL_PREFIX, cdnResource.getUrlPrefix());
+		cdnResource.setUrlPattern(URL_PATTERN);
+		assertEquals(URL_PATTERN, cdnResource.getUrlPattern());
+		cdnResource.setResourceOrigin(RESOURCE_ORIGIN);
+		assertEquals(RESOURCE_ORIGIN, cdnResource.getResourceOrigin());		
+		cdnResource.setDownloadIfMissing(true);
+		assertTrue(cdnResource.isDownloadIfMissing());
+		cdnResource.setStreamable(true);
+		assertTrue(cdnResource.isStreamable());	
+		cdnResource.setAvailableInNetwork(true);
+		assertTrue(cdnResource.isAvailableInNetwork());			
 	}
 	
 }

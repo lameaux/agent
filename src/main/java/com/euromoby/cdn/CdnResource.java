@@ -10,10 +10,17 @@ public class CdnResource {
 	 */
 	private String urlPattern = ".*";
 	private String resourceOrigin;
+	
 	/**
 	 * stream or redirect?
 	 */
 	private boolean streamable = false;
+	
+	/**
+	 * Could be available in network?
+	 */
+	private boolean availableInNetwork = true;
+	
 	/**
 	 * should we download missing item?
 	 */
@@ -90,4 +97,12 @@ public class CdnResource {
 		this.downloadIfMissing = downloadIfMissing;
 	}
 
+	public boolean isAvailableInNetwork() {
+		return availableInNetwork;
+	}
+
+	public void setAvailableInNetwork(boolean availableInNetwork) {
+		this.availableInNetwork = availableInNetwork;
+	}
+	
 }
