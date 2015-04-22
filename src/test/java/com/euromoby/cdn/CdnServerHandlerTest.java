@@ -17,6 +17,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 
 import java.io.File;
+import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -34,7 +35,10 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.euromoby.file.FileProvider;
 import com.euromoby.file.MimeHelper;
 import com.euromoby.http.HttpUtils;
+import com.euromoby.model.AgentId;
+import com.euromoby.model.Tuple;
 import com.euromoby.rest.ChunkedInputAdapter;
+import com.euromoby.rest.handler.fileinfo.FileInfo;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CdnServerHandlerTest {
@@ -171,13 +175,73 @@ public class CdnServerHandlerTest {
 		Mockito.when(targetFile.lastModified()).thenReturn(lastModified);
 		Mockito.when(headers.get(Matchers.eq(HttpHeaders.Names.IF_MODIFIED_SINCE))).thenReturn(
 				new SimpleDateFormat(HttpUtils.HTTP_DATE_FORMAT, Locale.US).format(new Date(lastModified)));
-		ArgumentCaptor<DefaultFullHttpResponse> responseCaptor = ArgumentCaptor.forClass(DefaultFullHttpResponse.class);
 		Mockito.when(fileProvider.getFileByLocation(Matchers.eq(FILE))).thenReturn(targetFile);
 
 		handler.channelRead0(ctx, request);
+		ArgumentCaptor<DefaultFullHttpResponse> responseCaptor = ArgumentCaptor.forClass(DefaultFullHttpResponse.class);
 		Mockito.verify(channel).writeAndFlush(responseCaptor.capture());
 		FullHttpResponse response = responseCaptor.getValue();
 		assertEquals(HttpResponseStatus.NOT_MODIFIED, response.getStatus());
 	}
+
+	
+	@Test
+	public void testNotExistInCdn() throws Exception {
+		URI uri = new URI("http://example.com/file.html");
+		Tuple<CdnResource, FileInfo> searchResult = Tuple.empty();
+		Mockito.when(cdnNetwork.find(uri.getPath())).thenReturn(searchResult);
+		Mockito.when(channel.writeAndFlush(Matchers.any(DefaultFullHttpResponse.class))).thenReturn(channelFuture);
+
+		handler.manageCdnRequest(ctx, request, uri);
+
+		ArgumentCaptor<DefaultFullHttpResponse> responseCaptor = ArgumentCaptor.forClass(DefaultFullHttpResponse.class);
+		Mockito.verify(channel).writeAndFlush(responseCaptor.capture());
+		FullHttpResponse response = responseCaptor.getValue();
+		assertEquals(HttpResponseStatus.NOT_FOUND, response.getStatus());
+	}
+
+	@Test
+	public void testFoundInNetwork() throws Exception {
+		String FILE = "/file.html";
+		URI uri = new URI("http://example.com" + FILE);
+		Tuple<CdnResource, FileInfo> searchResult = Tuple.empty();
+		searchResult.setFirst(new CdnResource());
+		FileInfo fileInfo = new FileInfo();
+		AgentId agentId = new AgentId("agent1:21000");
+		fileInfo.setAgentId(agentId);
+		searchResult.setSecond(fileInfo);
+		Mockito.when(cdnNetwork.find(uri.getPath())).thenReturn(searchResult);
+		Mockito.when(channel.writeAndFlush(Matchers.any(DefaultFullHttpResponse.class))).thenReturn(channelFuture);
+		Mockito.when(headers.contains(Matchers.eq(HttpHeaders.Names.CONNECTION), Matchers.eq(HttpHeaders.Values.CLOSE), Matchers.eq(true))).thenReturn(true);
+
+		handler.manageCdnRequest(ctx, request, uri);
+		
+		ArgumentCaptor<DefaultFullHttpResponse> responseCaptor = ArgumentCaptor.forClass(DefaultFullHttpResponse.class);
+		Mockito.verify(channel).writeAndFlush(responseCaptor.capture());
+		FullHttpResponse response = responseCaptor.getValue();
+		assertEquals(HttpResponseStatus.FOUND, response.getStatus());
+		String agentUrl = String.format("http://%s:%d%s", agentId.getHost(), agentId.getBasePort() + CdnServer.CDN_PORT, uri.getPath());
+		assertEquals(agentUrl, response.headers().get(HttpHeaders.Names.LOCATION));
+	}
+
+	@Test
+	public void testExistInCdnButNotFoundInNetwork() throws Exception {
+		String FILE = "/file.html";
+		URI uri = new URI("http://example.com" + FILE);
+		Tuple<CdnResource, FileInfo> searchResult = Tuple.empty();
+		searchResult.setFirst(new CdnResource());
+
+		Mockito.when(cdnNetwork.find(uri.getPath())).thenReturn(searchResult);
+		Mockito.when(channel.writeAndFlush(Matchers.any(DefaultFullHttpResponse.class))).thenReturn(channelFuture);
+		Mockito.when(headers.contains(Matchers.eq(HttpHeaders.Names.CONNECTION), Matchers.eq(HttpHeaders.Values.CLOSE), Matchers.eq(true))).thenReturn(true);
+
+		handler.manageCdnRequest(ctx, request, uri);
+
+		ArgumentCaptor<DefaultFullHttpResponse> responseCaptor = ArgumentCaptor.forClass(DefaultFullHttpResponse.class);
+		Mockito.verify(channel).writeAndFlush(responseCaptor.capture());
+		FullHttpResponse response = responseCaptor.getValue();
+		assertEquals(HttpResponseStatus.NOT_FOUND, response.getStatus());
+	}	
+	
 	
 }

@@ -37,7 +37,6 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 	private FileProvider fileProvider;
 	private MimeHelper mimeHelper;	
 	private CdnNetwork cdnNetwork;
-	private HttpResponseProvider httpResponseProvider = new HttpResponseProvider();
 
 	public CdnServerHandler(FileProvider fileProvider, MimeHelper mimeHelper, CdnNetwork cdnNetwork) {
 		this.fileProvider = fileProvider;
@@ -45,7 +44,9 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 		this.cdnNetwork = cdnNetwork;
 	}
 	
-	protected void manageCdnRequest(ChannelHandlerContext ctx, URI uri) {
+	protected void manageCdnRequest(ChannelHandlerContext ctx, FullHttpRequest httpRequest, URI uri) {
+		
+		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(httpRequest);
 		
 		// Ask other agents if they have file
 		LOG.debug("Asking other agents for {}", uri.getPath());
@@ -67,14 +68,20 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 			return;
 		}
 
-		// TODO Stream (+ store local) from source location if defined, 
-		// no range if not synced, 
-		// or 404 if not found in source
-					
 		
-		// create download job or start streaming
+		// has origin?
 		String sourceUrl = cdnResource.getSourceUrl(uri.getPath());
 		if (sourceUrl != null) {
+
+			// add Query part if exists
+			
+			// TODO
+			//cdnResource.isStreamable();
+			// Stream or redirect?
+			
+			//cdnResource.isDownloadIfMissing();
+			// start download job			
+			
 			LOG.debug("Redirecting to {}", sourceUrl);
 			FullHttpResponse response = httpResponseProvider.createRedirectResponse(sourceUrl);
 			httpResponseProvider.writeResponse(ctx, response);				
@@ -101,8 +108,6 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 			send100Continue(ctx);
 		}		
 		
-		httpResponseProvider.setHttpRequest(request);		
-		
 		if (!request.getMethod().equals(HttpMethod.GET)) {
 			writeErrorResponse(ctx, HttpResponseStatus.NOT_IMPLEMENTED);
 			return;
@@ -128,12 +133,13 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 
 		File targetFile = fileProvider.getFileByLocation(fileLocation);
 		if (targetFile == null) {
-			manageCdnRequest(ctx, uri);
+			manageCdnRequest(ctx, request, uri);
 			return;
 		}
 		
         // Cache Validation
 		if (!HttpUtils.ifModifiedSince(request, targetFile)) {
+			HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
 			FullHttpResponse response = httpResponseProvider.createNotModifiedResponse();
 			httpResponseProvider.writeResponse(ctx, response);
         	return;			

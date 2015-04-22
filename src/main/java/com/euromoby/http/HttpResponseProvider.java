@@ -23,18 +23,11 @@ import com.euromoby.rest.RestException;
 public class HttpResponseProvider {
 	
 	private HttpRequest request;
-
-	public HttpResponseProvider() {
-	}	
 	
 	public HttpResponseProvider(HttpRequest request) {
 		this.request = request;
 	}
 
-	public void setHttpRequest(HttpRequest request) {
-		this.request = request;
-	}	
-	
 	public FullHttpResponse createHttpResponse() {
 		return createHttpResponse(HttpResponseStatus.OK);
 	}
@@ -48,7 +41,7 @@ public class HttpResponseProvider {
 		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html; charset=UTF-8");
 
 		// Decide whether to close the connection or not.
-		boolean close = request.headers().contains(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.CLOSE, true)
+		boolean close = request.headers().contains(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.CLOSE, true) 
 				|| request.getProtocolVersion().equals(HttpVersion.HTTP_1_0)
 				&& !request.headers().contains(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE, true);
 
