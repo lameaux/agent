@@ -1,20 +1,25 @@
 package com.euromoby.cdn;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import org.junit.Before;
@@ -29,6 +34,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.euromoby.file.FileProvider;
 import com.euromoby.file.MimeHelper;
 import com.euromoby.http.HttpUtils;
+import com.euromoby.rest.ChunkedInputAdapter;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CdnServerHandlerTest {
@@ -51,6 +57,8 @@ public class CdnServerHandlerTest {
 	HttpHeaders headers;
 	@Mock
 	ChannelFuture channelFuture;
+	@Mock
+	ChannelPipeline channelPipeline;
 	@Mock
 	File targetFile;
 
@@ -78,6 +86,33 @@ public class CdnServerHandlerTest {
 		FullHttpResponse response = captor.getValue();
 		assertEquals(HttpResponseStatus.CONTINUE, response.getStatus());
 	}	
+	
+	@Test
+	public void testManageFileResponseNotFound() {
+		Mockito.when(channel.writeAndFlush(Matchers.any(FullHttpResponse.class))).thenReturn(channelFuture);
+		handler.manageFileResponse(ctx, request, targetFile);
+		ArgumentCaptor<FullHttpResponse> captor = ArgumentCaptor.forClass(FullHttpResponse.class);
+		Mockito.verify(channel).writeAndFlush(captor.capture());
+		FullHttpResponse response = captor.getValue();
+		assertEquals(HttpResponseStatus.NOT_FOUND, response.getStatus());
+	}
+
+	@Test
+	public void testManageFileResponseOK() throws Exception {
+		File tmpFile = File.createTempFile("foo", "bar");
+		tmpFile.deleteOnExit();
+		Mockito.when(ctx.writeAndFlush(Matchers.any(DefaultLastHttpContent.class))).thenReturn(channelFuture);
+		Mockito.when(channel.pipeline()).thenReturn(channelPipeline);
+		handler.manageFileResponse(ctx, request, tmpFile);
+		ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
+		Mockito.verify(ctx, Mockito.times(2)).write(captor.capture());
+		List<Object> responseParts= captor.getAllValues();
+		HttpResponse response = (HttpResponse)responseParts.get(0);
+		assertEquals(HttpResponseStatus.OK, response.getStatus());
+		assertTrue(responseParts.get(1) instanceof ChunkedInputAdapter);
+	}
+
+	
 	
 	@Test
 	public void testInvalidHttpMethod() throws Exception {

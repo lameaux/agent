@@ -90,7 +90,7 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 		try {
 			fileResponse.send(ctx, targetFile);		
 		} catch (RestException e) {
-			writeErrorResponse(ctx, HttpResponseStatus.BAD_REQUEST, e.getMessage());
+			writeErrorResponse(ctx, e.getStatus(), e.getMessage());
 		}		
 	}
 	
