@@ -44,9 +44,7 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 		this.cdnNetwork = cdnNetwork;
 	}
 	
-	protected void manageCdnRequest(ChannelHandlerContext ctx, FullHttpRequest httpRequest, URI uri) {
-		
-		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(httpRequest);
+	protected void manageCdnRequest(ChannelHandlerContext ctx, FullHttpRequest httpRequest, URI uri, String fileLocation) {
 		
 		// Ask other agents if they have file
 		LOG.debug("Asking other agents for {}", uri.getPath());
@@ -60,36 +58,57 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 		
 		FileInfo fileInfo = searchResult.getSecond();
 		if (fileInfo != null) {
-			AgentId agentId = fileInfo.getAgentId();
-			String agentUrl = String.format("http://%s:%d%s", agentId.getHost(), agentId.getBasePort() + CdnServer.CDN_PORT, uri.getPath()); 
-			LOG.debug("Redirecting to {}", agentId);
-			FullHttpResponse response = httpResponseProvider.createRedirectResponse(agentUrl);
-			httpResponseProvider.writeResponse(ctx, response);				
+			manageRedirect(ctx, httpRequest, buildAgentUrlLocation(fileInfo.getAgentId(), getPathWithQuery(uri)));
 			return;
 		}
 
-		
 		// has origin?
-		String sourceUrl = cdnResource.getSourceUrl(uri.getPath());
+		String sourceUrl = cdnResource.getSourceUrl(getPathWithQuery(uri));
 		if (sourceUrl != null) {
 
-			// add Query part if exists
+			if (cdnResource.isDownloadIfMissing()) {
+				createDownloadJob(sourceUrl, fileLocation);
+			}
 			
-			// TODO
-			//cdnResource.isStreamable();
-			// Stream or redirect?
+			if (cdnResource.isProxyable()) {
+				manageContentProxying(ctx, httpRequest, sourceUrl);
+			} else {
+				manageRedirect(ctx, httpRequest, sourceUrl);
+			}
 			
-			//cdnResource.isDownloadIfMissing();
-			// start download job			
-			
-			LOG.debug("Redirecting to {}", sourceUrl);
-			FullHttpResponse response = httpResponseProvider.createRedirectResponse(sourceUrl);
-			httpResponseProvider.writeResponse(ctx, response);				
 			return;				
 		}
 		
 		// nothing found
 		writeErrorResponse(ctx, HttpResponseStatus.NOT_FOUND);		
+	}
+	
+	protected String getPathWithQuery(URI uri) {
+		String pathWithQuery = uri.getPath();
+		String queryPart = uri.getQuery();
+		if (!StringUtils.nullOrEmpty(queryPart)) {
+			pathWithQuery = pathWithQuery + "?" + queryPart;
+		}
+		return pathWithQuery;
+	}
+	
+	protected String buildAgentUrlLocation(AgentId agentId, String urlPathWithQuery) {
+		return String.format("http://%s:%d%s", agentId.getHost(), agentId.getBasePort() + CdnServer.CDN_PORT, urlPathWithQuery);
+	}
+	
+	protected void createDownloadJob(String sourceUrl, String fileLocation) {
+		LOG.debug("Download Job Created {} -> {}", sourceUrl, fileLocation);
+	}
+	
+	protected void manageContentProxying(ChannelHandlerContext ctx, FullHttpRequest httpRequest, String sourceUrl) {
+		LOG.debug("Streaming file {}", sourceUrl);		
+	}
+	
+	protected void manageRedirect(ChannelHandlerContext ctx, FullHttpRequest httpRequest, String sourceUrl) {
+		LOG.debug("Redirecting to {}", sourceUrl);
+		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(httpRequest);		
+		FullHttpResponse response = httpResponseProvider.createRedirectResponse(sourceUrl);
+		httpResponseProvider.writeResponse(ctx, response);		
 	}
 	
 	protected void manageFileResponse(ChannelHandlerContext ctx, FullHttpRequest request, File targetFile) {
@@ -133,7 +152,7 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 
 		File targetFile = fileProvider.getFileByLocation(fileLocation);
 		if (targetFile == null) {
-			manageCdnRequest(ctx, request, uri);
+			manageCdnRequest(ctx, request, uri, fileLocation);
 			return;
 		}
 		

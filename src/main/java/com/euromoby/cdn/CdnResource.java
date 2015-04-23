@@ -12,9 +12,9 @@ public class CdnResource {
 	private String resourceOrigin;
 	
 	/**
-	 * stream or redirect?
+	 * proxy or redirect?
 	 */
-	private boolean streamable = false;
+	private boolean proxyable = false;
 	
 	/**
 	 * Could be available in network?
@@ -81,12 +81,12 @@ public class CdnResource {
 		this.resourceOrigin = resourceOrigin;
 	}
 
-	public boolean isStreamable() {
-		return streamable;
+	public boolean isProxyable() {
+		return proxyable;
 	}
 
-	public void setStreamable(boolean streamable) {
-		this.streamable = streamable;
+	public void setProxyable(boolean proxyable) {
+		this.proxyable = proxyable;
 	}
 
 	public boolean isDownloadIfMissing() {

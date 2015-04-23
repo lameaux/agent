@@ -76,6 +76,29 @@ public class CdnServerHandlerTest {
 		handler = new CdnServerHandler(fileProvider, mimeHelper, cdnNetwork);
 	}
 
+	
+	@Test
+	public void testGetPathWithQuery() throws Exception {
+		String PATH = "/path";
+		URI uri = new URI("http://example.com" + PATH);
+		assertEquals(PATH, handler.getPathWithQuery(uri));
+
+		String PATH_WITH_QUERY = "/path?query=query";
+		URI uriWithPath = new URI("http://example.com" + PATH_WITH_QUERY);
+		assertEquals(PATH_WITH_QUERY, handler.getPathWithQuery(uriWithPath));
+	}
+	
+	@Test
+	public void testBuildAgentUrlLocation() {
+		String URL_PATH = "/path";
+		String HOST = "agent1";
+		int PORT = 21000;
+		AgentId agentId = new AgentId(HOST, PORT);
+		String AGENT_URL = "http://" + HOST + ":" + (PORT + CdnServer.CDN_PORT) + URL_PATH;
+		
+		assertEquals(AGENT_URL, handler.buildAgentUrlLocation(agentId, URL_PATH));
+	}
+	
 	@Test
 	public void testExceptionCaught() throws Exception {
 		handler.exceptionCaught(ctx, new Exception());
@@ -184,15 +207,43 @@ public class CdnServerHandlerTest {
 		assertEquals(HttpResponseStatus.NOT_MODIFIED, response.getStatus());
 	}
 
+	@Test
+	public void testSendFileNotCachedWithContinue() throws Exception {
+		String FILE = "file";
+		File tmpFile = File.createTempFile("foo", "bar");
+		tmpFile.deleteOnExit();
+		Mockito.when(ctx.writeAndFlush(Matchers.any(DefaultLastHttpContent.class))).thenReturn(channelFuture);
+		Mockito.when(channel.pipeline()).thenReturn(channelPipeline);		
+		Mockito.when(request.getMethod()).thenReturn(HttpMethod.GET);
+		Mockito.when(headers.get(Matchers.refEq(HttpHeaders.newEntity(HttpHeaders.Names.EXPECT)))).thenReturn(HttpHeaders.Values.CONTINUE);		
+		Mockito.when(request.getUri()).thenReturn("/" + FILE);
+		Mockito.when(headers.get(Matchers.eq(HttpHeaders.Names.IF_MODIFIED_SINCE))).thenReturn(null);
+		Mockito.when(fileProvider.getFileByLocation(Matchers.eq(FILE))).thenReturn(tmpFile);
+
+		handler.channelRead0(ctx, request);
+		
+		ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
+		Mockito.verify(ctx, Mockito.times(3)).write(captor.capture());
+		List<Object> responseParts= captor.getAllValues();
+		HttpResponse continueResponse = (HttpResponse)responseParts.get(0);
+		assertEquals(HttpResponseStatus.CONTINUE, continueResponse.getStatus());
+		
+		HttpResponse response = (HttpResponse)responseParts.get(1);		
+		assertEquals(HttpResponseStatus.OK, response.getStatus());
+		assertTrue(responseParts.get(2) instanceof ChunkedInputAdapter);		
+		
+	}
+	
 	
 	@Test
 	public void testNotExistInCdn() throws Exception {
+		String FILE = "file.html";
 		URI uri = new URI("http://example.com/file.html");
 		Tuple<CdnResource, FileInfo> searchResult = Tuple.empty();
 		Mockito.when(cdnNetwork.find(uri.getPath())).thenReturn(searchResult);
 		Mockito.when(channel.writeAndFlush(Matchers.any(DefaultFullHttpResponse.class))).thenReturn(channelFuture);
 
-		handler.manageCdnRequest(ctx, request, uri);
+		handler.manageCdnRequest(ctx, request, uri, FILE);
 
 		ArgumentCaptor<DefaultFullHttpResponse> responseCaptor = ArgumentCaptor.forClass(DefaultFullHttpResponse.class);
 		Mockito.verify(channel).writeAndFlush(responseCaptor.capture());
@@ -202,8 +253,8 @@ public class CdnServerHandlerTest {
 
 	@Test
 	public void testFoundInNetwork() throws Exception {
-		String FILE = "/file.html";
-		URI uri = new URI("http://example.com" + FILE);
+		String FILE = "file.html";
+		URI uri = new URI("http://example.com" + "/" + FILE);
 		Tuple<CdnResource, FileInfo> searchResult = Tuple.empty();
 		searchResult.setFirst(new CdnResource());
 		FileInfo fileInfo = new FileInfo();
@@ -214,7 +265,7 @@ public class CdnServerHandlerTest {
 		Mockito.when(channel.writeAndFlush(Matchers.any(DefaultFullHttpResponse.class))).thenReturn(channelFuture);
 		Mockito.when(headers.contains(Matchers.eq(HttpHeaders.Names.CONNECTION), Matchers.eq(HttpHeaders.Values.CLOSE), Matchers.eq(true))).thenReturn(true);
 
-		handler.manageCdnRequest(ctx, request, uri);
+		handler.manageCdnRequest(ctx, request, uri, FILE);
 		
 		ArgumentCaptor<DefaultFullHttpResponse> responseCaptor = ArgumentCaptor.forClass(DefaultFullHttpResponse.class);
 		Mockito.verify(channel).writeAndFlush(responseCaptor.capture());
@@ -226,8 +277,8 @@ public class CdnServerHandlerTest {
 
 	@Test
 	public void testExistInCdnButNotFoundInNetwork() throws Exception {
-		String FILE = "/file.html";
-		URI uri = new URI("http://example.com" + FILE);
+		String FILE = "file.html";
+		URI uri = new URI("http://example.com" + "/" + FILE);
 		Tuple<CdnResource, FileInfo> searchResult = Tuple.empty();
 		searchResult.setFirst(new CdnResource());
 
@@ -235,7 +286,7 @@ public class CdnServerHandlerTest {
 		Mockito.when(channel.writeAndFlush(Matchers.any(DefaultFullHttpResponse.class))).thenReturn(channelFuture);
 		Mockito.when(headers.contains(Matchers.eq(HttpHeaders.Names.CONNECTION), Matchers.eq(HttpHeaders.Values.CLOSE), Matchers.eq(true))).thenReturn(true);
 
-		handler.manageCdnRequest(ctx, request, uri);
+		handler.manageCdnRequest(ctx, request, uri, FILE);
 
 		ArgumentCaptor<DefaultFullHttpResponse> responseCaptor = ArgumentCaptor.forClass(DefaultFullHttpResponse.class);
 		Mockito.verify(channel).writeAndFlush(responseCaptor.capture());

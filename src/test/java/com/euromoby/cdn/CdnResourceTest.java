@@ -95,8 +95,8 @@ public class CdnResourceTest {
 		assertEquals(RESOURCE_ORIGIN, cdnResource.getResourceOrigin());		
 		cdnResource.setDownloadIfMissing(true);
 		assertTrue(cdnResource.isDownloadIfMissing());
-		cdnResource.setStreamable(true);
-		assertTrue(cdnResource.isStreamable());	
+		cdnResource.setProxyable(true);
+		assertTrue(cdnResource.isProxyable());	
 		cdnResource.setAvailableInNetwork(true);
 		assertTrue(cdnResource.isAvailableInNetwork());			
 	}
