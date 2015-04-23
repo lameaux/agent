@@ -1,7 +1,6 @@
 package com.euromoby.cdn;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -42,6 +41,7 @@ import com.euromoby.job.JobDetail;
 import com.euromoby.job.JobManager;
 import com.euromoby.model.AgentId;
 import com.euromoby.model.Tuple;
+import com.euromoby.proxy.ProxyResponseProvider;
 import com.euromoby.rest.ChunkedInputAdapter;
 import com.euromoby.rest.handler.fileinfo.FileInfo;
 
@@ -72,6 +72,8 @@ public class CdnServerHandlerTest {
 	ChannelPipeline channelPipeline;
 	@Mock
 	File targetFile;
+	@Mock
+	ProxyResponseProvider proxyResponseProvider;
 
 	CdnServerHandler handler;
 
@@ -80,7 +82,7 @@ public class CdnServerHandlerTest {
 		Mockito.when(ctx.channel()).thenReturn(channel);
 		Mockito.when(request.headers()).thenReturn(headers);
 		Mockito.when(request.getProtocolVersion()).thenReturn(HttpVersion.HTTP_1_1);
-		handler = new CdnServerHandler(fileProvider, mimeHelper, cdnNetwork, jobManager);
+		handler = new CdnServerHandler(fileProvider, mimeHelper, cdnNetwork, jobManager, proxyResponseProvider);
 	}
 
 	
@@ -308,10 +310,8 @@ public class CdnServerHandlerTest {
 		Mockito.when(channel.writeAndFlush(Matchers.any(DefaultFullHttpResponse.class))).thenReturn(channelFuture);
 		handler.manageContentProxying(ctx, request, SOURCE_URL);
 		
-		ArgumentCaptor<DefaultFullHttpResponse> responseCaptor = ArgumentCaptor.forClass(DefaultFullHttpResponse.class);
-		Mockito.verify(channel).writeAndFlush(responseCaptor.capture());
-		FullHttpResponse response = responseCaptor.getValue();
-		assertEquals(HttpResponseStatus.GATEWAY_TIMEOUT, response.getStatus());
+		Mockito.verify(proxyResponseProvider).proxy(Matchers.eq(ctx), Matchers.eq(request), Matchers.eq(SOURCE_URL));
+		
 	}
 	
 	@Test
@@ -417,13 +417,8 @@ public class CdnServerHandlerTest {
 		handler.manageCdnRequest(ctx, request, uri, FILE);
 		
 		Mockito.verify(jobManager).submit(Matchers.any(JobDetail.class));
+		Mockito.verify(proxyResponseProvider).proxy(Matchers.eq(ctx), Matchers.eq(request), Matchers.eq(ORIGIN_FILE_URL));
 		
-		ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
-		Mockito.verify(channel, Mockito.atLeastOnce()).writeAndFlush(captor.capture());
-		List<Object> responseParts = captor.getAllValues();
-		
-		HttpResponse response = (HttpResponse)responseParts.get(0);		
-		assertNotEquals(HttpResponseStatus.FOUND, response.getStatus());
 	}	
 	
 	

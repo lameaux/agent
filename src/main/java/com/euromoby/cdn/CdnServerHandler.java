@@ -31,6 +31,7 @@ import com.euromoby.job.JobDetail;
 import com.euromoby.job.JobManager;
 import com.euromoby.model.AgentId;
 import com.euromoby.model.Tuple;
+import com.euromoby.proxy.ProxyResponseProvider;
 import com.euromoby.rest.RestException;
 import com.euromoby.rest.handler.fileinfo.FileInfo;
 import com.euromoby.utils.StringUtils;
@@ -43,12 +44,14 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 	private MimeHelper mimeHelper;	
 	private CdnNetwork cdnNetwork;
 	private JobManager jobManager;
+	private ProxyResponseProvider proxyResponseProvider;
 
-	public CdnServerHandler(FileProvider fileProvider, MimeHelper mimeHelper, CdnNetwork cdnNetwork, JobManager jobManager) {
+	public CdnServerHandler(FileProvider fileProvider, MimeHelper mimeHelper, CdnNetwork cdnNetwork, JobManager jobManager, ProxyResponseProvider proxyResponseProvider) {
 		this.fileProvider = fileProvider;
 		this.mimeHelper = mimeHelper;
 		this.cdnNetwork = cdnNetwork;
 		this.jobManager = jobManager;
+		this.proxyResponseProvider = proxyResponseProvider;
 	}
 	
 	protected void manageCdnRequest(ChannelHandlerContext ctx, FullHttpRequest httpRequest, URI uri, String fileLocation) {
@@ -114,8 +117,7 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 	}
 	
 	protected void manageContentProxying(ChannelHandlerContext ctx, FullHttpRequest httpRequest, String sourceUrl) {
-		// TODO real proxying (AsyncClient)
-		writeErrorResponse(ctx, HttpResponseStatus.GATEWAY_TIMEOUT);
+		proxyResponseProvider.proxy(ctx, httpRequest, sourceUrl);	
 	}
 	
 	protected void manageRedirect(ChannelHandlerContext ctx, FullHttpRequest httpRequest, String sourceUrl) {

@@ -15,6 +15,7 @@ import com.euromoby.file.MimeHelper;
 import com.euromoby.http.AgentHttpResponseEncoder;
 import com.euromoby.http.SmartHttpContentCompressor;
 import com.euromoby.job.JobManager;
+import com.euromoby.proxy.ProxyResponseProvider;
 
 @Component
 public class CdnServerInitializer extends ChannelInitializer<SocketChannel> {
@@ -23,13 +24,15 @@ public class CdnServerInitializer extends ChannelInitializer<SocketChannel> {
 	private MimeHelper mimeHelper;
 	private CdnNetwork cdnNetwork;
 	private JobManager jobManager;
+	private ProxyResponseProvider proxyResponseProvider;
 	
 	@Autowired
-	public CdnServerInitializer(FileProvider fileProvider, MimeHelper mimeHelper, CdnNetwork cdnNetwork, JobManager jobManager) {
+	public CdnServerInitializer(FileProvider fileProvider, MimeHelper mimeHelper, CdnNetwork cdnNetwork, JobManager jobManager, ProxyResponseProvider proxyResponseProvider) {
 		this.fileProvider = fileProvider;
 		this.mimeHelper = mimeHelper;
 		this.cdnNetwork = cdnNetwork;
 		this.jobManager = jobManager;
+		this.proxyResponseProvider = proxyResponseProvider;
 	}
 
 	@Override
@@ -42,6 +45,6 @@ public class CdnServerInitializer extends ChannelInitializer<SocketChannel> {
 		// TODO IdleStateHandler
 		p.addLast("compressor", new SmartHttpContentCompressor());
 		p.addLast("chunked", new ChunkedWriteHandler());
-		p.addLast("cdn", new CdnServerHandler(fileProvider, mimeHelper, cdnNetwork, jobManager));
+		p.addLast("cdn", new CdnServerHandler(fileProvider, mimeHelper, cdnNetwork, jobManager, proxyResponseProvider));
 	}
 }
