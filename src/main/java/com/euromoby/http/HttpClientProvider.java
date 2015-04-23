@@ -30,7 +30,7 @@ import com.euromoby.rest.RestServer;
 @Component
 public class HttpClientProvider {
 
-	private static final String HTTPS = "https";
+	public static final String HTTPS = "https";
 	
 	private Config config;
 	private AgentManager agentManager;
