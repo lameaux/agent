@@ -1,6 +1,7 @@
 package com.euromoby.cdn;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -22,6 +23,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -32,9 +34,12 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import com.euromoby.download.DownloadJob;
 import com.euromoby.file.FileProvider;
 import com.euromoby.file.MimeHelper;
 import com.euromoby.http.HttpUtils;
+import com.euromoby.job.JobDetail;
+import com.euromoby.job.JobManager;
 import com.euromoby.model.AgentId;
 import com.euromoby.model.Tuple;
 import com.euromoby.rest.ChunkedInputAdapter;
@@ -51,6 +56,8 @@ public class CdnServerHandlerTest {
 	MimeHelper mimeHelper;
 	@Mock
 	CdnNetwork cdnNetwork;
+	@Mock
+	JobManager jobManager;
 	@Mock
 	ChannelHandlerContext ctx;
 	@Mock
@@ -73,7 +80,7 @@ public class CdnServerHandlerTest {
 		Mockito.when(ctx.channel()).thenReturn(channel);
 		Mockito.when(request.headers()).thenReturn(headers);
 		Mockito.when(request.getProtocolVersion()).thenReturn(HttpVersion.HTTP_1_1);
-		handler = new CdnServerHandler(fileProvider, mimeHelper, cdnNetwork);
+		handler = new CdnServerHandler(fileProvider, mimeHelper, cdnNetwork, jobManager);
 	}
 
 	
@@ -231,9 +238,81 @@ public class CdnServerHandlerTest {
 		HttpResponse response = (HttpResponse)responseParts.get(1);		
 		assertEquals(HttpResponseStatus.OK, response.getStatus());
 		assertTrue(responseParts.get(2) instanceof ChunkedInputAdapter);		
+	}
+
+	@Test
+	public void testGetOriginRedirectFromCdn() throws Exception {
+		String FILE = "file.html";
+		String ORIGIN_URL = "http://example.com";
+		String ORIGIN_FILE_URL = ORIGIN_URL + "/" + FILE + "?query=query";
+		URI uri = new URI(ORIGIN_FILE_URL);
+		Tuple<CdnResource, FileInfo> searchResult = Tuple.empty();
+		CdnResource cdnResource = new CdnResource();
+		cdnResource.setResourceOrigin(ORIGIN_URL);
+		cdnResource.setProxyable(false); // do redirect
+		searchResult.setFirst(cdnResource);
+		Mockito.when(cdnNetwork.find(uri.getPath())).thenReturn(searchResult);
 		
+		Mockito.when(ctx.writeAndFlush(Matchers.any(DefaultLastHttpContent.class))).thenReturn(channelFuture);
+		Mockito.when(channel.pipeline()).thenReturn(channelPipeline);		
+		Mockito.when(request.getMethod()).thenReturn(HttpMethod.GET);
+		Mockito.when(headers.get(Matchers.refEq(HttpHeaders.newEntity(HttpHeaders.Names.EXPECT)))).thenReturn(HttpHeaders.Values.CONTINUE);		
+		Mockito.when(request.getUri()).thenReturn(ORIGIN_FILE_URL);
+		Mockito.when(headers.get(Matchers.eq(HttpHeaders.Names.IF_MODIFIED_SINCE))).thenReturn(null);
+		Mockito.when(fileProvider.getFileByLocation(Matchers.eq(FILE))).thenReturn(null);
+
+		handler.channelRead0(ctx, request);
+		
+		ArgumentCaptor<DefaultFullHttpResponse> responseCaptor = ArgumentCaptor.forClass(DefaultFullHttpResponse.class);
+		Mockito.verify(channel).writeAndFlush(responseCaptor.capture());
+		FullHttpResponse response = responseCaptor.getValue();
+		assertEquals(HttpResponseStatus.FOUND, response.getStatus());
+		assertEquals(ORIGIN_FILE_URL, response.headers().get(HttpHeaders.Names.LOCATION));		
+	}	
+
+	
+	@Test
+	public void testManageRedirect() {
+		String SOURCE_URL = "http://example.com/file.html";
+		
+		Mockito.when(channel.writeAndFlush(Matchers.any(DefaultFullHttpResponse.class))).thenReturn(channelFuture);
+
+		handler.manageRedirect(ctx, request, SOURCE_URL);
+		
+		ArgumentCaptor<DefaultFullHttpResponse> responseCaptor = ArgumentCaptor.forClass(DefaultFullHttpResponse.class);
+		Mockito.verify(channel).writeAndFlush(responseCaptor.capture());
+		FullHttpResponse response = responseCaptor.getValue();
+		assertEquals(HttpResponseStatus.FOUND, response.getStatus());
+		assertEquals(SOURCE_URL, response.headers().get(HttpHeaders.Names.LOCATION));		
 	}
 	
+	@Test
+	public void testScheduleDownloadJob() {
+		String FILE = "file.html";
+		String SOURCE_URL = "http://example.com/" + FILE;
+		
+		handler.scheduleDownloadJob(SOURCE_URL, FILE);
+		ArgumentCaptor<JobDetail> captor = ArgumentCaptor.forClass(JobDetail.class);		
+		Mockito.verify(jobManager).submit(captor.capture());
+		JobDetail jobDetail = captor.getValue();
+		assertEquals(DownloadJob.class.getCanonicalName(), jobDetail.getJobClass());
+		Map<String, String> params = jobDetail.getParameters();
+		assertEquals(SOURCE_URL, params.get(DownloadJob.PARAM_URL));
+		assertEquals(FILE, params.get(DownloadJob.PARAM_LOCATION));		
+	}
+	
+	@Test
+	public void testManageContentProxying() {
+		String SOURCE_URL = "http://example.com/file.html";		
+		
+		Mockito.when(channel.writeAndFlush(Matchers.any(DefaultFullHttpResponse.class))).thenReturn(channelFuture);
+		handler.manageContentProxying(ctx, request, SOURCE_URL);
+		
+		ArgumentCaptor<DefaultFullHttpResponse> responseCaptor = ArgumentCaptor.forClass(DefaultFullHttpResponse.class);
+		Mockito.verify(channel).writeAndFlush(responseCaptor.capture());
+		FullHttpResponse response = responseCaptor.getValue();
+		assertEquals(HttpResponseStatus.GATEWAY_TIMEOUT, response.getStatus());
+	}
 	
 	@Test
 	public void testNotExistInCdn() throws Exception {
@@ -292,6 +371,59 @@ public class CdnServerHandlerTest {
 		Mockito.verify(channel).writeAndFlush(responseCaptor.capture());
 		FullHttpResponse response = responseCaptor.getValue();
 		assertEquals(HttpResponseStatus.NOT_FOUND, response.getStatus());
+	}	
+	
+	@Test
+	public void testNotFoundInNetworkRedirectToOrigin() throws Exception {
+		String FILE = "file.html";
+		String ORIGIN_URL = "http://example.com";
+		String ORIGIN_FILE_URL = ORIGIN_URL + "/" + FILE + "?query=query";
+		URI uri = new URI(ORIGIN_FILE_URL);
+		Tuple<CdnResource, FileInfo> searchResult = Tuple.empty();
+		CdnResource cdnResource = new CdnResource();
+		cdnResource.setResourceOrigin(ORIGIN_URL);
+		cdnResource.setProxyable(false); // do redirect
+		searchResult.setFirst(cdnResource);
+		Mockito.when(cdnNetwork.find(uri.getPath())).thenReturn(searchResult);
+		Mockito.when(channel.writeAndFlush(Matchers.any(DefaultFullHttpResponse.class))).thenReturn(channelFuture);
+		Mockito.when(headers.contains(Matchers.eq(HttpHeaders.Names.CONNECTION), Matchers.eq(HttpHeaders.Values.CLOSE), Matchers.eq(true))).thenReturn(true);
+
+		handler.manageCdnRequest(ctx, request, uri, FILE);
+		
+		ArgumentCaptor<DefaultFullHttpResponse> responseCaptor = ArgumentCaptor.forClass(DefaultFullHttpResponse.class);
+		Mockito.verify(channel).writeAndFlush(responseCaptor.capture());
+		FullHttpResponse response = responseCaptor.getValue();
+		assertEquals(HttpResponseStatus.FOUND, response.getStatus());
+		assertEquals(ORIGIN_FILE_URL, response.headers().get(HttpHeaders.Names.LOCATION));
+	}
+	
+
+	@Test
+	public void testNotFoundInNetworkProxyContentAndDownload() throws Exception {
+		String FILE = "file.html";
+		String ORIGIN_URL = "http://example.com";
+		String ORIGIN_FILE_URL = ORIGIN_URL + "/" + FILE + "?query=query";
+		URI uri = new URI(ORIGIN_FILE_URL);
+		Tuple<CdnResource, FileInfo> searchResult = Tuple.empty();
+		CdnResource cdnResource = new CdnResource();
+		cdnResource.setResourceOrigin(ORIGIN_URL);
+		cdnResource.setProxyable(true); // do redirect
+		cdnResource.setDownloadIfMissing(true); // create download job
+		searchResult.setFirst(cdnResource);
+		Mockito.when(cdnNetwork.find(uri.getPath())).thenReturn(searchResult);
+		Mockito.when(channel.writeAndFlush(Matchers.any(DefaultFullHttpResponse.class))).thenReturn(channelFuture);
+		Mockito.when(headers.contains(Matchers.eq(HttpHeaders.Names.CONNECTION), Matchers.eq(HttpHeaders.Values.CLOSE), Matchers.eq(true))).thenReturn(true);
+
+		handler.manageCdnRequest(ctx, request, uri, FILE);
+		
+		Mockito.verify(jobManager).submit(Matchers.any(JobDetail.class));
+		
+		ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
+		Mockito.verify(channel, Mockito.atLeastOnce()).writeAndFlush(captor.capture());
+		List<Object> responseParts = captor.getAllValues();
+		
+		HttpResponse response = (HttpResponse)responseParts.get(0);		
+		assertNotEquals(HttpResponseStatus.FOUND, response.getStatus());
 	}	
 	
 	

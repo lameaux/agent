@@ -15,15 +15,20 @@ import io.netty.handler.codec.http.HttpVersion;
 import java.io.File;
 import java.net.URI;
 import java.net.URLDecoder;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.euromoby.download.DownloadJob;
 import com.euromoby.file.FileProvider;
 import com.euromoby.file.MimeHelper;
 import com.euromoby.http.FileResponse;
 import com.euromoby.http.HttpResponseProvider;
 import com.euromoby.http.HttpUtils;
+import com.euromoby.job.JobDetail;
+import com.euromoby.job.JobManager;
 import com.euromoby.model.AgentId;
 import com.euromoby.model.Tuple;
 import com.euromoby.rest.RestException;
@@ -37,11 +42,13 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 	private FileProvider fileProvider;
 	private MimeHelper mimeHelper;	
 	private CdnNetwork cdnNetwork;
+	private JobManager jobManager;
 
-	public CdnServerHandler(FileProvider fileProvider, MimeHelper mimeHelper, CdnNetwork cdnNetwork) {
+	public CdnServerHandler(FileProvider fileProvider, MimeHelper mimeHelper, CdnNetwork cdnNetwork, JobManager jobManager) {
 		this.fileProvider = fileProvider;
 		this.mimeHelper = mimeHelper;
 		this.cdnNetwork = cdnNetwork;
+		this.jobManager = jobManager;
 	}
 	
 	protected void manageCdnRequest(ChannelHandlerContext ctx, FullHttpRequest httpRequest, URI uri, String fileLocation) {
@@ -67,7 +74,7 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 		if (sourceUrl != null) {
 
 			if (cdnResource.isDownloadIfMissing()) {
-				createDownloadJob(sourceUrl, fileLocation);
+				scheduleDownloadJob(sourceUrl, fileLocation);
 			}
 			
 			if (cdnResource.isProxyable()) {
@@ -96,16 +103,22 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 		return String.format("http://%s:%d%s", agentId.getHost(), agentId.getBasePort() + CdnServer.CDN_PORT, urlPathWithQuery);
 	}
 	
-	protected void createDownloadJob(String sourceUrl, String fileLocation) {
-		LOG.debug("Download Job Created {} -> {}", sourceUrl, fileLocation);
+	protected void scheduleDownloadJob(String sourceUrl, String fileLocation) {
+		Map<String, String> parameters = new HashMap<String, String>();	
+		parameters.put(DownloadJob.PARAM_URL, sourceUrl);
+		parameters.put(DownloadJob.PARAM_LOCATION, fileLocation);
+		JobDetail jobDetail = new JobDetail(DownloadJob.class, parameters);
+		// TODO choose best agent
+		//jobDetail.setRecipient(recipient);
+		jobManager.submit(jobDetail);		
 	}
 	
 	protected void manageContentProxying(ChannelHandlerContext ctx, FullHttpRequest httpRequest, String sourceUrl) {
-		LOG.debug("Streaming file {}", sourceUrl);		
+		// TODO real proxying (AsyncClient)
+		writeErrorResponse(ctx, HttpResponseStatus.GATEWAY_TIMEOUT);
 	}
 	
 	protected void manageRedirect(ChannelHandlerContext ctx, FullHttpRequest httpRequest, String sourceUrl) {
-		LOG.debug("Redirecting to {}", sourceUrl);
 		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(httpRequest);		
 		FullHttpResponse response = httpResponseProvider.createRedirectResponse(sourceUrl);
 		httpResponseProvider.writeResponse(ctx, response);		

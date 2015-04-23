@@ -28,6 +28,10 @@ public class JobDetail implements Comparable<JobDetail> {
 
 	public JobDetail() {
 	}
+
+	public JobDetail(Class<? extends Job> jobClass) {
+		this.jobClass = jobClass.getCanonicalName();
+	}	
 	
 	public JobDetail(Class<? extends Job> jobClass, Map<String, String> parameters) {
 		this.jobClass = jobClass.getCanonicalName();
