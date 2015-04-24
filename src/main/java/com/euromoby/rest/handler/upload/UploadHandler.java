@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.Config;
+import com.euromoby.http.HttpResponseProvider;
 import com.euromoby.http.HttpUtils;
 import com.euromoby.rest.RestException;
 import com.euromoby.rest.handler.RestHandlerBase;
@@ -54,6 +55,7 @@ public class UploadHandler extends RestHandlerBase {
 		pageContent = pageContent.replace("%UPLOAD_PATH%", uploadPath);
 		pageContent = pageContent.replace("%FILE_SEPARATOR%", File.separator);
 		ByteBuf content = Unpooled.copiedBuffer(pageContent, CharsetUtil.UTF_8);
+		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
 		return httpResponseProvider.createHttpResponse(HttpResponseStatus.OK, content);
 	}
 
@@ -83,6 +85,7 @@ public class UploadHandler extends RestHandlerBase {
 		FileUtils.copyFile(tempUploadedFile, targetFile);
 		LOG.info("Uploaded file " + targetFile.getPath());
 
+		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
 		return httpResponseProvider.createHttpResponse(HttpResponseStatus.OK, HttpUtils.fromString("OK"));
 	}
 

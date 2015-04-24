@@ -13,6 +13,7 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.euromoby.http.HttpResponseProvider;
 import com.euromoby.job.JobDetail;
 import com.euromoby.job.JobManager;
 import com.euromoby.job.JobState;
@@ -71,6 +72,7 @@ public class JobListHandler extends RestHandlerBase {
 		pageContent = pageContent.replace("%JOBS%", sb.toString());
 
 		ByteBuf content = Unpooled.copiedBuffer(pageContent, CharsetUtil.UTF_8);
+		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
 		return httpResponseProvider.createHttpResponse(HttpResponseStatus.OK, content);
 	}
 

@@ -12,6 +12,7 @@ import java.net.URI;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.Agent;
+import com.euromoby.http.HttpResponseProvider;
 import com.euromoby.rest.handler.RestHandlerBase;
 import com.euromoby.utils.IOUtils;
 
@@ -33,6 +34,7 @@ public class WelcomeHandler extends RestHandlerBase {
 		pageContent = pageContent.replace("%AGENT%", Agent.TITLE);
 		pageContent = pageContent.replace("%VERSION%", Agent.VERSION);
 		ByteBuf content = Unpooled.copiedBuffer(pageContent, CharsetUtil.UTF_8);
+		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
 		return httpResponseProvider.createHttpResponse(HttpResponseStatus.OK, content);		
 	}
 }

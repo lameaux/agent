@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.AgentManager;
+import com.euromoby.http.HttpResponseProvider;
 import com.euromoby.job.JobDetail;
 import com.euromoby.model.AgentId;
 import com.euromoby.rest.RestException;
@@ -65,6 +66,7 @@ public class GetJobsHandler extends RestHandlerBase {
 		
 		String jsonResponse = gson.toJson(jobDetails);
 		ByteBuf content = Unpooled.copiedBuffer(jsonResponse, CharsetUtil.UTF_8);
+		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
 		FullHttpResponse response = httpResponseProvider.createHttpResponse(HttpResponseStatus.OK, content);
 		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/json; charset=UTF-8");
 		return response;		

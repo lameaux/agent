@@ -15,6 +15,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.euromoby.http.HttpResponseProvider;
 import com.euromoby.processor.CommandProcessor;
 import com.euromoby.rest.handler.RestHandlerBase;
 import com.euromoby.utils.IOUtils;
@@ -42,6 +43,7 @@ public class CliHandler extends RestHandlerBase {
 	public FullHttpResponse doGet() {
 		InputStream is = CliHandler.class.getResourceAsStream("cli.html");
 		ByteBuf content = Unpooled.copiedBuffer(IOUtils.streamToString(is), CharsetUtil.UTF_8);
+		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
 		return httpResponseProvider.createHttpResponse(HttpResponseStatus.OK, content);
 	}
 
@@ -55,6 +57,7 @@ public class CliHandler extends RestHandlerBase {
 		Gson gson = new Gson();
 		String jsonResponse = gson.toJson(new CliResponse(message));
 		ByteBuf content = Unpooled.copiedBuffer(jsonResponse, CharsetUtil.UTF_8);
+		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
 		FullHttpResponse response = httpResponseProvider.createHttpResponse(HttpResponseStatus.OK, content);
 		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/json; charset=UTF-8");
 		return response;

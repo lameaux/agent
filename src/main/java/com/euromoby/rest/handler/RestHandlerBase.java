@@ -38,7 +38,6 @@ import com.euromoby.rest.RestException;
 public abstract class RestHandlerBase implements RestHandler {
 
 	protected HttpRequest request;
-	protected HttpResponseProvider httpResponseProvider;
 	protected HttpPostRequestDecoder decoder;
 	protected InetAddress clientInetAddress;
 
@@ -59,6 +58,10 @@ public abstract class RestHandlerBase implements RestHandler {
 		return requestParameters;
 	}
 
+	public void setRequestParameters(Map<String, String> requestParameters) {
+		this.requestParameters = requestParameters;
+	}
+	
 	public Map<String, File> getRequestFiles() {
 		return requestFiles;
 	}
@@ -72,7 +75,7 @@ public abstract class RestHandlerBase implements RestHandler {
 			throw new RuntimeException("No HttpRequest");
 		}
 
-		httpResponseProvider = new HttpResponseProvider(request);
+		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
 		clientInetAddress = ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress();
 
 		FullHttpResponse response;
@@ -99,10 +102,12 @@ public abstract class RestHandlerBase implements RestHandler {
 	}
 
 	public FullHttpResponse doGet() throws Exception {
+		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
 		return httpResponseProvider.createHttpResponse(HttpResponseStatus.NOT_IMPLEMENTED);
 	}
 
 	public FullHttpResponse doPost() throws Exception {
+		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
 		return httpResponseProvider.createHttpResponse(HttpResponseStatus.NOT_IMPLEMENTED);
 	}
 
@@ -111,6 +116,7 @@ public abstract class RestHandlerBase implements RestHandler {
 	}
 	
 	public void doGetChunked(ChannelHandlerContext ctx) throws Exception {
+		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
 		writeResponse(ctx.channel(), httpResponseProvider.createHttpResponse(HttpResponseStatus.NOT_IMPLEMENTED));
 	}
 	

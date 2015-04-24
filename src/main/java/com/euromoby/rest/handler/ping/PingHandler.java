@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.AgentManager;
+import com.euromoby.http.HttpResponseProvider;
 import com.euromoby.model.PingInfo;
 import com.euromoby.ping.PingInfoProvider;
 import com.euromoby.rest.RestException;
@@ -74,6 +75,7 @@ public class PingHandler extends RestHandlerBase {
 	private FullHttpResponse createPingResponse() {
 		String jsonResponse = gson.toJson(pingInfoProvider.createPingInfo());
 		ByteBuf content = Unpooled.copiedBuffer(jsonResponse, CharsetUtil.UTF_8);
+		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
 		FullHttpResponse response = httpResponseProvider.createHttpResponse(HttpResponseStatus.OK, content);
 		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/json; charset=UTF-8");
 		return response;		

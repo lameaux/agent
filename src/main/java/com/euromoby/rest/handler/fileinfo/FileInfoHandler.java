@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.Config;
 import com.euromoby.file.FileProvider;
+import com.euromoby.http.HttpResponseProvider;
 import com.euromoby.rest.RestException;
 import com.euromoby.rest.handler.RestHandlerBase;
 import com.google.gson.Gson;
@@ -74,6 +75,7 @@ public class FileInfoHandler extends RestHandlerBase {
 		
 		String jsonResponse = gson.toJson(fileInfoResponse);
 		ByteBuf content = Unpooled.copiedBuffer(jsonResponse, CharsetUtil.UTF_8);
+		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
 		FullHttpResponse response = httpResponseProvider.createHttpResponse(HttpResponseStatus.OK, content);
 		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/json; charset=UTF-8");
 		return response;
