@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.Config;
-import com.euromoby.processor.CommandProcessor;
 import com.euromoby.service.Service;
 import com.euromoby.service.ServiceState;
 
@@ -30,14 +29,14 @@ public class TelnetServer implements Service {
 
 	private volatile ServiceState serviceState = ServiceState.STOPPED;
 	private Config config;
-	private CommandProcessor commandProcessor;
+	private TelnetServerInitializer initializer;
 
 	private static final Logger LOG = LoggerFactory.getLogger(TelnetServer.class); 	
 	
 	@Autowired
-	public TelnetServer(Config config, CommandProcessor commandProcessor) {
+	public TelnetServer(Config config, TelnetServerInitializer initializer) {
 		this.config = config;
-		this.commandProcessor = commandProcessor;
+		this.initializer = initializer;
 	}
 
 	@Override
@@ -52,7 +51,7 @@ public class TelnetServer implements Service {
 			b.group(bossGroup, workerGroup);
 			b.channel(NioServerSocketChannel.class);
 			b.handler(new LoggingHandler(LogLevel.INFO));
-			b.childHandler(new TelnetServerInitializer(commandProcessor));
+			b.childHandler(initializer);
 
 			serverChannel = b.bind(config.getTelnetPort()).sync().channel();
 
@@ -91,7 +90,16 @@ public class TelnetServer implements Service {
 
 	@Override
 	public void startService() {
-		new Thread(this).start();
+		if (serviceState == ServiceState.RUNNING) {
+			return;
+		}		
+		Thread thread = new Thread(this);
+		thread.start();
+			try {
+				thread.join();
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
 	}
 
 	@Override

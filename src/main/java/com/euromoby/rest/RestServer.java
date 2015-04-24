@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.Config;
-import com.euromoby.http.SSLContextProvider;
 import com.euromoby.service.Service;
 import com.euromoby.service.ServiceState;
 
@@ -25,21 +24,20 @@ public class RestServer implements Service {
 	public static final int REST_PORT = 443;
 	
 	private Config config;
-	private RestMapper restMapper; 
+	private RestServerInitializer initializer;
+	
 	private EventLoopGroup bossGroup;
 	private EventLoopGroup workerGroup;
 	private volatile ServiceState serviceState = ServiceState.STOPPED;
 
 	private Channel serverChannel;
-	private SSLContextProvider sslContextProvider;
 
 	private static final Logger LOG = LoggerFactory.getLogger(RestServer.class); 
 	
 	@Autowired
-	public RestServer(Config config, SSLContextProvider sslContextProvider, RestMapper restMapper) {
+	public RestServer(Config config, RestServerInitializer initializer) {
 		this.config = config;
-		this.restMapper = restMapper;
-		this.sslContextProvider = sslContextProvider;
+		this.initializer = initializer;
 	}
 
 	@Override
@@ -54,7 +52,7 @@ public class RestServer implements Service {
 			b.group(bossGroup, workerGroup);
 			b.channel(NioServerSocketChannel.class);
 			b.handler(new LoggingHandler(LogLevel.INFO));
-			b.childHandler(new RestServerInitializer(config, sslContextProvider, restMapper));
+			b.childHandler(initializer);
 
 			serverChannel = b.bind(config.getRestPort()).sync().channel();
 
@@ -93,7 +91,16 @@ public class RestServer implements Service {
 
 	@Override
 	public void startService() {
-		new Thread(this).start();
+		if (serviceState == ServiceState.RUNNING) {
+			return;
+		}		
+		Thread thread = new Thread(this);
+		thread.start();
+			try {
+				thread.join();
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
 	}
 
 	@Override

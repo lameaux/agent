@@ -1,4 +1,4 @@
-package com.euromoby.cdn;
+package com.euromoby.rest;
 
 import static org.junit.Assert.assertEquals;
 
@@ -13,21 +13,21 @@ import com.euromoby.agent.Config;
 import com.euromoby.service.ServiceState;
 
 @RunWith(MockitoJUnitRunner.class)
-public class CdnServerTest {
+public class RestServerTest {
 
 
 	@Mock
 	Config config;
 	@Mock
-	CdnServerInitializer cdnServerInitializer;
+	RestServerInitializer restServerInitializer;
 
 
-	CdnServer server;
+	RestServer server;
 
 	@Before
 	public void init() {
-		Mockito.when(config.getCdnPort()).thenReturn(Integer.parseInt(Config.DEFAULT_AGENT_BASE_PORT) + CdnServer.CDN_PORT);
-		server = new CdnServer(config, cdnServerInitializer);
+		Mockito.when(config.getRestPort()).thenReturn(Integer.parseInt(Config.DEFAULT_AGENT_BASE_PORT) + RestServer.REST_PORT);
+		server = new RestServer(config, restServerInitializer);
 	}
 
 	@Test
@@ -37,7 +37,7 @@ public class CdnServerTest {
 
 	@Test
 	public void testGetServiceName() {
-		assertEquals(CdnServer.SERVICE_NAME, server.getServiceName());
+		assertEquals(RestServer.SERVICE_NAME, server.getServiceName());
 	}	
 
 	@Test

@@ -25,7 +25,10 @@ public class JobScheduler implements Service {
 	private static final Logger LOG = LoggerFactory.getLogger(JobScheduler.class);
 
 	private volatile ServiceState serviceState = ServiceState.STOPPED;
-	private volatile boolean interrupted = false;
+	private Object startLock = new Object();
+	private volatile Thread thread = null;
+	
+	private volatile boolean interrupted = true;
 
 	private JobManager jobManager;
 	private JobFactory jobFactory;
@@ -47,7 +50,7 @@ public class JobScheduler implements Service {
 	protected boolean isInterrupted() {
 		return interrupted;
 	}
-	
+
 	protected void checkCompletedJobs() throws InterruptedException {
 		// check for completed jobs
 		Future<JobDetail> jobStatusFuture = completionService.poll();
@@ -57,14 +60,14 @@ public class JobScheduler implements Service {
 			} catch (ExecutionException e) {
 				LOG.warn("Job terminated with error", e.getCause());
 			}
-		}		
+		}
 	}
-	
+
 	protected void scheduleNextJobs() {
 		// check for new job
 		if (jobManager.hasNewJob()) {
 			JobDetail jobDetail = jobManager.getNextJob();
-			jobManager.notify(jobDetail);				
+			jobManager.notify(jobDetail);
 			try {
 				Job job = jobFactory.createJob(jobDetail);
 				completionService.submit(job);
@@ -76,12 +79,16 @@ public class JobScheduler implements Service {
 			} finally {
 				jobManager.notify(jobDetail);
 			}
-		}		
+		}
 	}
-	
+
 	@Override
 	public void run() {
-		interrupted = false;
+		synchronized (startLock) {
+			interrupted = false;
+			serviceState = ServiceState.RUNNING;
+			startLock.notifyAll();
+		}
 		LOG.info("JobScheduler started");
 
 		while (!interrupted) {
@@ -101,16 +108,29 @@ public class JobScheduler implements Service {
 
 	@Override
 	public void startService() {
-		serviceState = ServiceState.RUNNING;
-		new Thread(this).start();
+		if (serviceState == ServiceState.RUNNING) {
+			return;
+		}
+		synchronized (startLock) {
+			thread = new Thread(this);
+			thread.start();
+			try {
+				startLock.wait();
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+		}
 	}
 
 	@Override
 	public void stopService() {
 		interrupted = true;
 		try {
-			Thread.sleep(SLEEP_TIME);
-		} catch (InterruptedException ie) {
+			if (thread != null) {
+				thread.join();
+				thread = null;
+			}
+		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
 	}

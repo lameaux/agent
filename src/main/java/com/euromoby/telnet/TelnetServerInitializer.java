@@ -8,17 +8,22 @@ import io.netty.handler.codec.Delimiters;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.euromoby.processor.CommandProcessor;
 
+@Component
 public class TelnetServerInitializer extends ChannelInitializer<SocketChannel> {
 
 	private static final StringDecoder DECODER = new StringDecoder();
 	private static final StringEncoder ENCODER = new StringEncoder();
 
-	private final TelnetServerHandler serverHandler;
+	private CommandProcessor commandProcessor;
 
+	@Autowired
 	public TelnetServerInitializer(CommandProcessor commandProcessor) {
-		serverHandler = new TelnetServerHandler(commandProcessor);
+		this.commandProcessor = commandProcessor;
 	}
 
 	@Override
@@ -32,6 +37,6 @@ public class TelnetServerInitializer extends ChannelInitializer<SocketChannel> {
 		pipeline.addLast(ENCODER);
 
 		// and then business logic.
-		pipeline.addLast(serverHandler);
+		pipeline.addLast(new TelnetServerHandler(commandProcessor));
 	}
 }

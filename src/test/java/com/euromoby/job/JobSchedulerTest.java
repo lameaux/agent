@@ -49,7 +49,6 @@ public class JobSchedulerTest {
 
 	@Test
 	public void testStopService() {
-		assertFalse(jobScheduler.isInterrupted());
 		jobScheduler.stopService();
 		assertTrue(jobScheduler.isInterrupted());		
 	}	
@@ -104,15 +103,26 @@ public class JobSchedulerTest {
 	
 	@Test
 	public void startAndStop() throws Exception {
+		jobScheduler.stopService();
+		assertTrue(jobScheduler.isInterrupted());
+		assertEquals(ServiceState.STOPPED, jobScheduler.getServiceState());		
+		
 		jobScheduler.startService();
 		assertFalse(jobScheduler.isInterrupted());
 		assertEquals(ServiceState.RUNNING, jobScheduler.getServiceState());	
-		
-		Thread.sleep(JobScheduler.SLEEP_TIME);
+
+		jobScheduler.startService();
+		assertFalse(jobScheduler.isInterrupted());
+		assertEquals(ServiceState.RUNNING, jobScheduler.getServiceState());			
 		
 		jobScheduler.stopService();
 		assertTrue(jobScheduler.isInterrupted());
 		assertEquals(ServiceState.STOPPED, jobScheduler.getServiceState());		
+
+		jobScheduler.stopService();
+		assertTrue(jobScheduler.isInterrupted());
+		assertEquals(ServiceState.STOPPED, jobScheduler.getServiceState());			
+	
 	}
 	
 }

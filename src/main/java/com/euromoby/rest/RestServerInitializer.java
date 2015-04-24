@@ -7,17 +7,22 @@ import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.euromoby.agent.Config;
 import com.euromoby.http.AgentHttpResponseEncoder;
 import com.euromoby.http.AuthenticationHandler;
 import com.euromoby.http.SSLContextProvider;
 
+@Component
 public class RestServerInitializer extends ChannelInitializer<SocketChannel> {
 	
 	private final Config config;
 	private final SSLContextProvider sslContextProvider;	
 	private final RestMapper restMapper;
 
+	@Autowired
 	public RestServerInitializer(Config config, SSLContextProvider sslContextProvider, RestMapper restMapper) {
 		this.config = config;
 		this.sslContextProvider = sslContextProvider;

@@ -29,7 +29,10 @@ public class PingScheduler implements Service {
 	private static final Logger LOG = LoggerFactory.getLogger(PingScheduler.class);
 
 	private volatile ServiceState serviceState = ServiceState.STOPPED;
-	private volatile boolean interrupted = false;
+	private Object startLock = new Object();
+	private volatile Thread thread = null;
+	
+	private volatile boolean interrupted = true;
 
 	private AgentManager agentManager;
 	private Config config;
@@ -50,10 +53,13 @@ public class PingScheduler implements Service {
 
 	@Override
 	public void run() {
-
-		interrupted = false;
+		synchronized (startLock) {
+			interrupted = false;
+			serviceState = ServiceState.RUNNING;
+			startLock.notifyAll();
+		}
 		LOG.info("PingScheduler started");
-
+		
 		while (!interrupted) {
 
 			// check for received pings
@@ -93,16 +99,29 @@ public class PingScheduler implements Service {
 
 	@Override
 	public void startService() {
-		serviceState = ServiceState.RUNNING;
-		new Thread(this).start();
+		if (serviceState == ServiceState.RUNNING) {
+			return;
+		}
+		synchronized (startLock) {
+			thread = new Thread(this);
+			thread.start();
+			try {
+				startLock.wait();
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+		}
 	}
 
 	@Override
 	public void stopService() {
 		interrupted = true;
 		try {
-			Thread.sleep(SLEEP_TIME);
-		} catch (InterruptedException ie) {
+			if (thread != null) {
+				thread.join();
+				thread = null;
+			}
+		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
 	}

@@ -42,25 +42,24 @@ public class CdnServer implements Service {
 
 	@Override
 	public void run() {
-
-		try {
-			bossGroup = new NioEventLoopGroup(1);
-			workerGroup = new NioEventLoopGroup();
-
-			ServerBootstrap b = new ServerBootstrap();
-			b.group(bossGroup, workerGroup);
-			b.channel(NioServerSocketChannel.class);
-			b.handler(new LoggingHandler(LogLevel.INFO));
-			b.childHandler(initializer);
-
-			serverChannel = b.bind(config.getCdnPort()).sync().channel();
-
-			serviceState = ServiceState.RUNNING;
-			LOG.info("CdnServer started on port {}", config.getCdnPort());
-		} catch (Exception e) {
-			LOG.error("Error starting CdnServer on port " + config.getCdnPort(), e);
-			shutdown();
-		}
+			try {
+				bossGroup = new NioEventLoopGroup(1);
+				workerGroup = new NioEventLoopGroup();
+	
+				ServerBootstrap b = new ServerBootstrap();
+				b.group(bossGroup, workerGroup);
+				b.channel(NioServerSocketChannel.class);
+				b.handler(new LoggingHandler(LogLevel.INFO));
+				b.childHandler(initializer);
+	
+				serverChannel = b.bind(config.getCdnPort()).sync().channel();
+	
+				serviceState = ServiceState.RUNNING;
+				LOG.info("CdnServer started on port {}", config.getCdnPort());
+			} catch (Exception e) {
+				LOG.error("Error starting CdnServer on port " + config.getCdnPort(), e);
+				shutdown();
+			}
 	}
 
 	private void shutdown() {
@@ -90,7 +89,16 @@ public class CdnServer implements Service {
 
 	@Override
 	public void startService() {
-		new Thread(this).start();
+		if (serviceState == ServiceState.RUNNING) {
+			return;
+		}		
+		Thread thread = new Thread(this);
+		thread.start();
+			try {
+				thread.join();
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
 	}
 
 	@Override
