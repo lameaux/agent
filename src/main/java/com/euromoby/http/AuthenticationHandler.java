@@ -6,7 +6,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 
 import org.apache.commons.codec.Charsets;
@@ -16,7 +15,7 @@ import com.euromoby.agent.Config;
 import com.euromoby.model.Tuple;
 import com.euromoby.utils.StringUtils;
 
-public class AuthenticationHandler extends SimpleChannelInboundHandler<HttpObject> {
+public class AuthenticationHandler extends SimpleChannelInboundHandler<HttpRequest> {
 
 	public static final String AUTH_BASIC = "Basic";
 	
@@ -26,23 +25,20 @@ public class AuthenticationHandler extends SimpleChannelInboundHandler<HttpObjec
 	}
 	
 	@Override
-	public void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
+	public void channelRead0(ChannelHandlerContext ctx, HttpRequest request) throws Exception {
 		if (config.isRestSecured()) {
-			if (msg instanceof HttpRequest) {
-				HttpRequest request = (HttpRequest) msg;
-				if (!isAuthenticated(request)) {
-					HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
-					FullHttpResponse response = httpResponseProvider.createUnauthorizedResponse(config.getRestRealm());
-					ChannelFuture future = ctx.channel().writeAndFlush(response);
-					future.addListener(ChannelFutureListener.CLOSE);					
-					return;
-				}
+			if (!isAuthenticated(request)) {
+				HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
+				FullHttpResponse response = httpResponseProvider.createUnauthorizedResponse(config.getRestRealm());
+				ChannelFuture future = ctx.channel().writeAndFlush(response);
+				future.addListener(ChannelFutureListener.CLOSE);
+				return;
 			}
 		}
-		ctx.fireChannelRead(msg);
+		ctx.fireChannelRead(request);
 	}
 	
-	private boolean isAuthenticated(HttpRequest request) {
+	protected boolean isAuthenticated(HttpRequest request) {
 		String authorization = request.headers().get(HttpHeaders.Names.AUTHORIZATION);
 		if (StringUtils.nullOrEmpty(authorization)) {
 			return false;
