@@ -129,6 +129,10 @@ public class Config {
 
 	public static final String AGENT_FFMPEG_PATH = "agent.ffmpeg.path";	
 	
+	public static final String TWITTER_CONSUMER_KEY = "agent.twitter.key";
+	public static final String TWITTER_CONSUMER_SECRET = "agent.twitter.secret";
+	
+	
 	public String get(String key) {
 		return properties.getProperty(key);
 	}
@@ -258,6 +262,14 @@ public class Config {
 	public String getFfmpegPath() {
 		return properties.getProperty(AGENT_FFMPEG_PATH);
 	}
+
+	public String getTwitterConsumerKey() {
+		return properties.getProperty(TWITTER_CONSUMER_KEY);
+	}	
+
+	public String getTwitterConsumerSecret() {
+		return properties.getProperty(TWITTER_CONSUMER_SECRET);
+	}	
 	
 	@Override
 	public String toString() {

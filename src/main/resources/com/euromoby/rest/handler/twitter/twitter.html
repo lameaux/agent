@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Agent Twitter</title>
+<script src="//code.jquery.com/jquery.js"></script>
+<style>
+	div.error {
+		background:red;
+		color:white;
+		padding: 10px;
+		margin-bottom:15px;
+	}
+
+	div.success {
+		background:green;
+		color:white;
+		padding: 10px;
+		margin-bottom:15px;		
+	}
+	
+	.hidden {
+		display:none;
+	}
+</style>
+<script>
+	$(function() {
+		$('#twitter_form').submit(function(event) {
+			$('div#error, div#success').addClass('hidden');
+		});
+		
+		$('#twitter_iframe').load(function(event){
+			var result = $(this).contents().find('body').html().trim();
+			if (result == 'OK') {
+				$('div#success').removeClass('hidden');
+			} else {
+				$('div#error').html(result);
+				$('div#error').removeClass('hidden');
+			}
+		});
+	});
+</script>
+</head>
+<body>
+	<h1>Twitter</h1>
+	<div id="error" class="error hidden">Sending failed</div>
+	<div id="success" class="success hidden">Message successfully send</div>
+	<form id="twitter_form" target="twitter_iframe" method="post" action="/twitter">
+		Screen Name: <select name="screen_name">%SCREEN_NAMES%</select> <a href="/twitter/register">Register</a>
+		<br><br>
+		<textarea name="text" rows=4 cols=40 maxlength="140" placeholder="Message, max. 140 charatcters"></textarea> <br>
+		<br> <input type="submit" value="Send Message" />
+	</form>
+	<iframe name="twitter_iframe" id="twitter_iframe" class="hidden"></iframe>	
+</body>
+</html>
