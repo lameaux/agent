@@ -10,11 +10,11 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.euromoby.download.DownloadScheduler;
 import com.euromoby.file.FileProvider;
 import com.euromoby.file.MimeHelper;
 import com.euromoby.http.AgentHttpResponseEncoder;
 import com.euromoby.http.SmartHttpContentCompressor;
-import com.euromoby.job.JobManager;
 import com.euromoby.proxy.ProxyResponseProvider;
 
 @Component
@@ -23,15 +23,15 @@ public class CdnServerInitializer extends ChannelInitializer<SocketChannel> {
 	private FileProvider fileProvider;
 	private MimeHelper mimeHelper;
 	private CdnNetwork cdnNetwork;
-	private JobManager jobManager;
+	private DownloadScheduler downloadScheduler;
 	private ProxyResponseProvider proxyResponseProvider;
 	
 	@Autowired
-	public CdnServerInitializer(FileProvider fileProvider, MimeHelper mimeHelper, CdnNetwork cdnNetwork, JobManager jobManager, ProxyResponseProvider proxyResponseProvider) {
+	public CdnServerInitializer(FileProvider fileProvider, MimeHelper mimeHelper, CdnNetwork cdnNetwork, DownloadScheduler downloadScheduler, ProxyResponseProvider proxyResponseProvider) {
 		this.fileProvider = fileProvider;
 		this.mimeHelper = mimeHelper;
 		this.cdnNetwork = cdnNetwork;
-		this.jobManager = jobManager;
+		this.downloadScheduler = downloadScheduler;
 		this.proxyResponseProvider = proxyResponseProvider;
 	}
 
@@ -45,6 +45,6 @@ public class CdnServerInitializer extends ChannelInitializer<SocketChannel> {
 		// TODO IdleStateHandler
 		p.addLast("compressor", new SmartHttpContentCompressor());
 		p.addLast("chunked", new ChunkedWriteHandler());
-		p.addLast("cdn", new CdnServerHandler(fileProvider, mimeHelper, cdnNetwork, jobManager, proxyResponseProvider));
+		p.addLast("cdn", new CdnServerHandler(fileProvider, mimeHelper, cdnNetwork, downloadScheduler, proxyResponseProvider));
 	}
 }

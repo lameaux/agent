@@ -15,20 +15,16 @@ import io.netty.handler.codec.http.HttpVersion;
 import java.io.File;
 import java.net.URI;
 import java.net.URLDecoder;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.euromoby.download.DownloadJob;
+import com.euromoby.download.DownloadScheduler;
 import com.euromoby.file.FileProvider;
 import com.euromoby.file.MimeHelper;
 import com.euromoby.http.FileResponse;
 import com.euromoby.http.HttpResponseProvider;
 import com.euromoby.http.HttpUtils;
-import com.euromoby.job.JobDetail;
-import com.euromoby.job.JobManager;
 import com.euromoby.model.AgentId;
 import com.euromoby.model.Tuple;
 import com.euromoby.proxy.ProxyResponseProvider;
@@ -43,14 +39,14 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 	private FileProvider fileProvider;
 	private MimeHelper mimeHelper;	
 	private CdnNetwork cdnNetwork;
-	private JobManager jobManager;
+	private DownloadScheduler downloadScheduler;
 	private ProxyResponseProvider proxyResponseProvider;
 
-	public CdnServerHandler(FileProvider fileProvider, MimeHelper mimeHelper, CdnNetwork cdnNetwork, JobManager jobManager, ProxyResponseProvider proxyResponseProvider) {
+	public CdnServerHandler(FileProvider fileProvider, MimeHelper mimeHelper, CdnNetwork cdnNetwork, DownloadScheduler downloadScheduler, ProxyResponseProvider proxyResponseProvider) {
 		this.fileProvider = fileProvider;
 		this.mimeHelper = mimeHelper;
 		this.cdnNetwork = cdnNetwork;
-		this.jobManager = jobManager;
+		this.downloadScheduler = downloadScheduler;
 		this.proxyResponseProvider = proxyResponseProvider;
 	}
 	
@@ -77,7 +73,7 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 		if (sourceUrl != null) {
 
 			if (cdnResource.isDownloadIfMissing()) {
-				scheduleDownloadJob(sourceUrl, fileLocation);
+				addToDownloadScheduler(sourceUrl, fileLocation);
 			}
 			
 			if (cdnResource.isProxyable()) {
@@ -106,14 +102,8 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 		return String.format("http://%s:%d%s", agentId.getHost(), agentId.getBasePort() + CdnServer.CDN_PORT, urlPathWithQuery);
 	}
 	
-	protected void scheduleDownloadJob(String sourceUrl, String fileLocation) {
-		Map<String, String> parameters = new HashMap<String, String>();	
-		parameters.put(DownloadJob.PARAM_URL, sourceUrl);
-		parameters.put(DownloadJob.PARAM_LOCATION, fileLocation);
-		JobDetail jobDetail = new JobDetail(DownloadJob.class, parameters);
-		// TODO choose best agent
-		//jobDetail.setRecipient(recipient);
-		jobManager.submit(jobDetail);		
+	protected void addToDownloadScheduler(String sourceUrl, String fileLocation) {
+		downloadScheduler.addDownloadRequest(sourceUrl, fileLocation);
 	}
 	
 	protected void manageContentProxying(ChannelHandlerContext ctx, FullHttpRequest httpRequest, String sourceUrl) {

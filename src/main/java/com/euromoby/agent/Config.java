@@ -97,6 +97,9 @@ public class Config {
 	public static final String AGENT_FILES_PATH = "agent.files.path";
 	public static final String DEFAULT_AGENT_FILES_PATH = "files";
 
+	public static final String AGENT_DATABASE_PATH = "agent.db.path";
+	public static final String DEFAULT_AGENT_DATABASE_PATH = "db";	
+	
 	public static final String HTTP_PROXY_HOST = "agent.http.proxy.host";
 	public static final String HTTP_PROXY_PORT = "agent.http.proxy.port";
 	public static final String DEFAULT_HTTP_PROXY_PORT = "3128";
@@ -243,6 +246,14 @@ public class Config {
 		return agentFilesPath;
 	}
 
+	public String getAgentDatabasePath() {
+		String agentDatabasePath = properties.getProperty(AGENT_DATABASE_PATH);
+		if (StringUtils.nullOrEmpty(agentDatabasePath)) {
+			agentDatabasePath = getAgentAppPath() + File.separatorChar + DEFAULT_AGENT_DATABASE_PATH;
+		}
+		return agentDatabasePath;
+	}	
+	
 	public int getJobPoolSize() {
 		return Integer.parseInt(properties.getProperty(JOB_POOL_SIZE, DEFAULT_JOB_POOL_SIZE));
 	}

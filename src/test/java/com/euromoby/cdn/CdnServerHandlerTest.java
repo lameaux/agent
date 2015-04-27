@@ -22,7 +22,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -33,12 +32,10 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.euromoby.download.DownloadJob;
+import com.euromoby.download.DownloadScheduler;
 import com.euromoby.file.FileProvider;
 import com.euromoby.file.MimeHelper;
 import com.euromoby.http.HttpUtils;
-import com.euromoby.job.JobDetail;
-import com.euromoby.job.JobManager;
 import com.euromoby.model.AgentId;
 import com.euromoby.model.Tuple;
 import com.euromoby.proxy.ProxyResponseProvider;
@@ -57,7 +54,7 @@ public class CdnServerHandlerTest {
 	@Mock
 	CdnNetwork cdnNetwork;
 	@Mock
-	JobManager jobManager;
+	DownloadScheduler downloadScheduler;
 	@Mock
 	ChannelHandlerContext ctx;
 	@Mock
@@ -82,7 +79,7 @@ public class CdnServerHandlerTest {
 		Mockito.when(ctx.channel()).thenReturn(channel);
 		Mockito.when(request.headers()).thenReturn(headers);
 		Mockito.when(request.getProtocolVersion()).thenReturn(HttpVersion.HTTP_1_1);
-		handler = new CdnServerHandler(fileProvider, mimeHelper, cdnNetwork, jobManager, proxyResponseProvider);
+		handler = new CdnServerHandler(fileProvider, mimeHelper, cdnNetwork, downloadScheduler, proxyResponseProvider);
 	}
 
 	
@@ -292,15 +289,8 @@ public class CdnServerHandlerTest {
 	public void testScheduleDownloadJob() {
 		String FILE = "file.html";
 		String SOURCE_URL = "http://example.com/" + FILE;
-		
-		handler.scheduleDownloadJob(SOURCE_URL, FILE);
-		ArgumentCaptor<JobDetail> captor = ArgumentCaptor.forClass(JobDetail.class);		
-		Mockito.verify(jobManager).submit(captor.capture());
-		JobDetail jobDetail = captor.getValue();
-		assertEquals(DownloadJob.class.getCanonicalName(), jobDetail.getJobClass());
-		Map<String, String> params = jobDetail.getParameters();
-		assertEquals(SOURCE_URL, params.get(DownloadJob.PARAM_URL));
-		assertEquals(FILE, params.get(DownloadJob.PARAM_LOCATION));		
+		handler.addToDownloadScheduler(SOURCE_URL, FILE);
+		Mockito.verify(downloadScheduler).addDownloadRequest(Mockito.eq(SOURCE_URL), Mockito.eq(FILE));
 	}
 	
 	@Test
@@ -416,7 +406,7 @@ public class CdnServerHandlerTest {
 
 		handler.manageCdnRequest(ctx, request, uri, FILE);
 		
-		Mockito.verify(jobManager).submit(Matchers.any(JobDetail.class));
+		Mockito.verify(downloadScheduler).addDownloadRequest(Mockito.eq(ORIGIN_FILE_URL), Mockito.eq(FILE));
 		Mockito.verify(proxyResponseProvider).proxy(Matchers.eq(ctx), Matchers.eq(request), Matchers.eq(ORIGIN_FILE_URL));
 		
 	}	
