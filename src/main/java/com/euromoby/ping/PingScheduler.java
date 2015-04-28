@@ -24,7 +24,7 @@ public class PingScheduler implements Service {
 
 	public static final String SERVICE_NAME = "ping";
 
-	private static final int SLEEP_TIME = 1000;
+	public static final int SLEEP_TIME = 1000;
 
 	private static final Logger LOG = LoggerFactory.getLogger(PingScheduler.class);
 
@@ -51,6 +51,31 @@ public class PingScheduler implements Service {
 		completionService = new ExecutorCompletionService<PingInfo>(executor);
 	}
 
+	protected boolean isInterrupted() {
+		return interrupted;
+	}	
+	
+	protected void checkReceivedPings() throws InterruptedException {
+		// check for received pings
+		Future<PingInfo> pingInfoFuture = completionService.poll();
+		if (pingInfoFuture != null) {
+			try {
+				agentManager.notifyPingSendSuccess(pingInfoFuture.get());
+			} catch (ExecutionException e) {
+				LOG.debug("Pinged with error: {}", e.getMessage());
+			}
+		}		
+	}
+	
+	protected void scheduleNextPings() {
+		// check for new pings
+		List<AgentId> agentsToPing = agentManager.getAllForPing();
+		for (AgentId agentId : agentsToPing) {
+			completionService.submit(new PingWorker(agentId, pingSender));
+			agentManager.notifyPingSendAttempt(agentId);
+		}		
+	}
+
 	@Override
 	public void run() {
 		synchronized (startLock) {
@@ -61,42 +86,20 @@ public class PingScheduler implements Service {
 		LOG.info("PingScheduler started");
 		
 		while (!interrupted) {
-
-			// check for received pings
-			Future<PingInfo> pingInfoFuture = completionService.poll();
-			if (pingInfoFuture != null) {
-				try {
-					agentManager.notifyPingSendSuccess(pingInfoFuture.get());
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-					interrupted = true;
-					break;
-				} catch (ExecutionException e) {
-					LOG.debug("Pinged with error: {}", e.getMessage());
-				}
-			}
-
-			// check for new pings
-			List<AgentId> agentsToPing = agentManager.getAllForPing();
-			for (AgentId agentId : agentsToPing) {
-				completionService.submit(new PingWorker(agentId, pingSender));
-				agentManager.notifyPingSendAttempt(agentId);
-			}
-
-			// sleep
 			try {
+				checkReceivedPings();
+				scheduleNextPings();
 				Thread.sleep(SLEEP_TIME);
 			} catch (InterruptedException ie) {
 				Thread.currentThread().interrupt();
 				interrupted = true;
 				break;
 			}
-
 		}
 		serviceState = ServiceState.STOPPED;
 		LOG.info("PingScheduler stopped");
-	}
-
+	}	
+	
 	@Override
 	public void startService() {
 		if (serviceState == ServiceState.RUNNING) {
