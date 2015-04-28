@@ -66,6 +66,11 @@ public abstract class RestHandlerBase implements RestHandler {
 		return requestFiles;
 	}
 
+	public void setRequestFiles(Map<String, File> requestFiles) {
+		this.requestFiles = requestFiles;
+	}
+	
+	
 	@Override
 	public abstract boolean matchUri(URI uri);	
 	
@@ -74,9 +79,10 @@ public abstract class RestHandlerBase implements RestHandler {
 		if (request == null) {
 			throw new RuntimeException("No HttpRequest");
 		}
-
+		
+		setClientInetAddress(((InetSocketAddress) ctx.channel().remoteAddress()).getAddress());
+		
 		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
-		clientInetAddress = ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress();
 
 		FullHttpResponse response;
 		try {
@@ -137,6 +143,10 @@ public abstract class RestHandlerBase implements RestHandler {
 		return clientInetAddress;
 	}
 
+	protected void setClientInetAddress(InetAddress clientInetAddress) {
+		this.clientInetAddress = clientInetAddress;
+	}	
+	
 	public Map<String, List<String>> getUriAttributes() {
 		QueryStringDecoder decoderQuery = new QueryStringDecoder(request.getUri());
 		return decoderQuery.parameters();
@@ -196,7 +206,7 @@ public abstract class RestHandlerBase implements RestHandler {
 		}
 	}
 
-	private void deleteTempFiles() {
+	protected void deleteTempFiles() {
 		for (File tempFile : requestFiles.values()) {
 			tempFile.delete();
 		}
