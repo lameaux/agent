@@ -10,11 +10,9 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.euromoby.agent.Config;
-import com.euromoby.service.ServiceState;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TelnetServerTest {
-
 
 	@Mock
 	Config config;
@@ -30,28 +28,8 @@ public class TelnetServerTest {
 	}
 
 	@Test
-	public void shouldBeStopped() {
-		assertEquals(ServiceState.STOPPED, server.getServiceState());
-	}
-
-	@Test
 	public void testGetServiceName() {
 		assertEquals(TelnetServer.SERVICE_NAME, server.getServiceName());
-	}	
-
-	@Test
-	public void testStartAndStop() throws Exception {
-		server.stopService();
-		assertEquals(ServiceState.STOPPED, server.getServiceState());
-		server.startService();
-		assertEquals(ServiceState.RUNNING, server.getServiceState());
-		server.startService();
-		assertEquals(ServiceState.RUNNING, server.getServiceState());
-		server.stopService();
-		assertEquals(ServiceState.STOPPED, server.getServiceState());		
-		server.stopService();
-		assertEquals(ServiceState.STOPPED, server.getServiceState());		
 	}
-	
-	
+
 }

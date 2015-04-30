@@ -1,8 +1,6 @@
 package com.euromoby.ping;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -21,7 +19,6 @@ import com.euromoby.agent.Config;
 import com.euromoby.model.AgentId;
 import com.euromoby.model.PingInfo;
 import com.euromoby.rest.RestServer;
-import com.euromoby.service.ServiceState;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PingSchedulerTest {
@@ -40,22 +37,11 @@ public class PingSchedulerTest {
 		Mockito.when(config.getPingPoolSize()).thenReturn(Integer.parseInt(Config.DEFAULT_PING_POOL_SIZE));
 		pingScheduler = new PingScheduler(config, agentManager, pingSender);
 	}
-	
-	@Test
-	public void shouldBeStopped() {
-		assertEquals(ServiceState.STOPPED, pingScheduler.getServiceState());
-	}
 
 	@Test
 	public void testGetServiceName() {
 		assertEquals(PingScheduler.SERVICE_NAME, pingScheduler.getServiceName());
 	}
-
-	@Test
-	public void testStopService() {
-		pingScheduler.stopService();
-		assertTrue(pingScheduler.isInterrupted());		
-	}	
 	
 	@Test
 	public void shouldBeNoNewPings() throws Exception {
@@ -86,7 +72,7 @@ public class PingSchedulerTest {
 		
 		pingScheduler.scheduleNextPings();
 		
-		Thread.sleep(PingScheduler.SLEEP_TIME);
+		Thread.sleep(PingScheduler.DEFAULT_SLEEP_TIME);
 		
 		Mockito.verify(agentManager, Mockito.times(agentList.size())).notifyPingSendAttempt(Matchers.any(AgentId.class));
 		
@@ -110,29 +96,6 @@ public class PingSchedulerTest {
 		Mockito.verify(agentManager, Mockito.times(1)).getAllForPing();
 		
 	}	
-	
-	@Test
-	public void startAndStop() throws Exception {
-		pingScheduler.stopService();
-		assertTrue(pingScheduler.isInterrupted());
-		assertEquals(ServiceState.STOPPED, pingScheduler.getServiceState());		
-		
-		pingScheduler.startService();
-		assertFalse(pingScheduler.isInterrupted());
-		assertEquals(ServiceState.RUNNING, pingScheduler.getServiceState());	
 
-		pingScheduler.startService();
-		assertFalse(pingScheduler.isInterrupted());
-		assertEquals(ServiceState.RUNNING, pingScheduler.getServiceState());			
-		
-		pingScheduler.stopService();
-		assertTrue(pingScheduler.isInterrupted());
-		assertEquals(ServiceState.STOPPED, pingScheduler.getServiceState());		
-
-		pingScheduler.stopService();
-		assertTrue(pingScheduler.isInterrupted());
-		assertEquals(ServiceState.STOPPED, pingScheduler.getServiceState());			
-	
-	}
 	
 }

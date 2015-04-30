@@ -10,7 +10,6 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.euromoby.agent.Config;
-import com.euromoby.service.ServiceState;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RestServerTest {
@@ -31,28 +30,8 @@ public class RestServerTest {
 	}
 
 	@Test
-	public void shouldBeStopped() {
-		assertEquals(ServiceState.STOPPED, server.getServiceState());
-	}
-
-	@Test
 	public void testGetServiceName() {
 		assertEquals(RestServer.SERVICE_NAME, server.getServiceName());
 	}	
-
-	@Test
-	public void testStartAndStop() throws Exception {
-		server.stopService();
-		assertEquals(ServiceState.STOPPED, server.getServiceState());
-		server.startService();
-		assertEquals(ServiceState.RUNNING, server.getServiceState());
-		server.startService();
-		assertEquals(ServiceState.RUNNING, server.getServiceState());
-		server.stopService();
-		assertEquals(ServiceState.STOPPED, server.getServiceState());		
-		server.stopService();
-		assertEquals(ServiceState.STOPPED, server.getServiceState());		
-	}
-	
 	
 }

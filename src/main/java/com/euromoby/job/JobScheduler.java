@@ -12,23 +12,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.Config;
-import com.euromoby.service.Service;
-import com.euromoby.service.ServiceState;
+import com.euromoby.service.SchedulerService;
 
 @Component
-public class JobScheduler implements Service {
+public class JobScheduler extends SchedulerService {
 
 	public static final String SERVICE_NAME = "job";
 
-	protected static final int SLEEP_TIME = 1000;
-
 	private static final Logger LOG = LoggerFactory.getLogger(JobScheduler.class);
-
-	private volatile ServiceState serviceState = ServiceState.STOPPED;
-	private Object startLock = new Object();
-	private volatile Thread thread = null;
-	
-	private volatile boolean interrupted = true;
 
 	private JobManager jobManager;
 	private JobFactory jobFactory;
@@ -47,10 +38,12 @@ public class JobScheduler implements Service {
 		completionService = new ExecutorCompletionService<JobDetail>(executor);
 	}
 
-	protected boolean isInterrupted() {
-		return interrupted;
+	@Override
+	public void executeInternal() throws InterruptedException {
+		checkCompletedJobs();
+		scheduleNextJobs();
 	}
-
+	
 	protected void checkCompletedJobs() throws InterruptedException {
 		// check for completed jobs
 		Future<JobDetail> jobStatusFuture = completionService.poll();
@@ -83,66 +76,8 @@ public class JobScheduler implements Service {
 	}
 
 	@Override
-	public void run() {
-		synchronized (startLock) {
-			interrupted = false;
-			serviceState = ServiceState.RUNNING;
-			startLock.notifyAll();
-		}
-		LOG.info("JobScheduler started");
-
-		while (!interrupted) {
-			try {
-				checkCompletedJobs();
-				scheduleNextJobs();
-				Thread.sleep(SLEEP_TIME);
-			} catch (InterruptedException ie) {
-				Thread.currentThread().interrupt();
-				interrupted = true;
-				break;
-			}
-		}
-		serviceState = ServiceState.STOPPED;
-		LOG.info("JobScheduler stopped");
-	}
-
-	@Override
-	public void startService() {
-		if (serviceState == ServiceState.RUNNING) {
-			return;
-		}
-		synchronized (startLock) {
-			thread = new Thread(this);
-			thread.start();
-			try {
-				startLock.wait();
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-			}
-		}
-	}
-
-	@Override
-	public void stopService() {
-		interrupted = true;
-		try {
-			if (thread != null) {
-				thread.join();
-				thread = null;
-			}
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-		}
-	}
-
-	@Override
 	public String getServiceName() {
 		return SERVICE_NAME;
-	}
-
-	@Override
-	public ServiceState getServiceState() {
-		return serviceState;
 	}
 
 }
