@@ -115,7 +115,15 @@ public class Config {
 
 	public static final String CDN_TIMEOUT = "agent.cdn.timeout";
 	public static final String DEFAULT_CDN_TIMEOUT = "3000";
+	
+	public static final String SERVER_TIMEOUT = "agent.server.timeout";
+	public static final String DEFAULT_SERVER_TIMEOUT = "30";
 
+	public static final String HTTP_CLIENT_TIMEOUT = "agent.httpclient.timeout";
+	public static final String DEFAULT_HTTP_CLIENT_TIMEOUT = "5000";
+	
+	
+	
 	public static final String KEYSTORE_PATH = "agent.keystore.path";
 
 	public static final String KEYSTORE_STORE_PASSWORD = "agent.keystore.storepass";
@@ -270,6 +278,14 @@ public class Config {
 		return Integer.parseInt(properties.getProperty(CDN_TIMEOUT, DEFAULT_CDN_TIMEOUT));
 	}
 
+	public int getServerTimeout() {
+		return Integer.parseInt(properties.getProperty(SERVER_TIMEOUT, DEFAULT_SERVER_TIMEOUT));
+	}	
+
+	public int getHttpClientTimeout() {
+		return Integer.parseInt(properties.getProperty(HTTP_CLIENT_TIMEOUT, DEFAULT_HTTP_CLIENT_TIMEOUT));
+	}	
+	
 	public String getFfmpegPath() {
 		return properties.getProperty(AGENT_FFMPEG_PATH);
 	}

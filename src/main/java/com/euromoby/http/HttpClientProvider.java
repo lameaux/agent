@@ -74,7 +74,10 @@ public class HttpClientProvider {
 	}
 	
 	public RequestConfig.Builder createRequestConfigBuilder(boolean noProxy) {
-		RequestConfig.Builder requestConfigBuilder = RequestConfig.custom().setSocketTimeout(3000).setConnectTimeout(3000);
+		
+		int timeout = config.getHttpClientTimeout();
+		
+		RequestConfig.Builder requestConfigBuilder = RequestConfig.custom().setSocketTimeout(timeout).setConnectTimeout(timeout);
 		if (!noProxy && config.isHttpProxy()) {
 			requestConfigBuilder.setProxy(new HttpHost(config.getHttpProxyHost(), config.getHttpProxyPort()));
 		}
