@@ -97,6 +97,9 @@ public class Config {
 	public static final String AGENT_FILES_PATH = "agent.files.path";
 	public static final String DEFAULT_AGENT_FILES_PATH = "files";
 
+	public static final String AGENT_MAIL_PATH = "agent.mail.path";
+	public static final String DEFAULT_AGENT_MAIL_PATH = "mail";	
+	
 	public static final String AGENT_DATABASE_PATH = "agent.db.path";
 	public static final String DEFAULT_AGENT_DATABASE_PATH = "db";	
 	
@@ -253,6 +256,14 @@ public class Config {
 		return agentFilesPath;
 	}
 
+	public String getAgentMailPath() {
+		String agentMailPath = properties.getProperty(AGENT_MAIL_PATH);
+		if (StringUtils.nullOrEmpty(agentMailPath)) {
+			agentMailPath = getAgentAppPath() + File.separatorChar + DEFAULT_AGENT_MAIL_PATH;
+		}
+		return agentMailPath;
+	}	
+	
 	public String getAgentDatabasePath() {
 		String agentDatabasePath = properties.getProperty(AGENT_DATABASE_PATH);
 		if (StringUtils.nullOrEmpty(agentDatabasePath)) {

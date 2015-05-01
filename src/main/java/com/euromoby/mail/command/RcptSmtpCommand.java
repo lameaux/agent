@@ -3,8 +3,10 @@ package com.euromoby.mail.command;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.euromoby.mail.MailManager;
 import com.euromoby.mail.MailSession;
 import com.euromoby.mail.util.DSNStatus;
 import com.euromoby.model.Tuple;
@@ -21,6 +23,14 @@ public class RcptSmtpCommand extends SmtpCommandBase implements SmtpCommand {
 	public static final String RESPONSE_553_SYNTAX_ERROR_RECIPIENT = "553 " + DSNStatus.getStatus(DSNStatus.PERMANENT, DSNStatus.ADDRESS_SYNTAX) + " Syntax error in recipient address";
 	public static final String RESPONSE_550_RECIPIENT_NOT_ALLOWED = "550 " + DSNStatus.getStatus(DSNStatus.PERMANENT, DSNStatus.SECURITY_AUTH) + " Recipient does not exist";
 	public static final String RESPONSE_250_RECIPIENT_OK = "250 " + DSNStatus.getStatus(DSNStatus.SUCCESS, DSNStatus.ADDRESS_VALID) + " Recipient OK";
+	
+	private MailManager mailManager;
+	
+	@Autowired
+	public RcptSmtpCommand(MailManager mailManager) {
+		this.mailManager = mailManager;
+		
+	}
 	
 	@Override
 	public String name() {
@@ -61,7 +71,7 @@ public class RcptSmtpCommand extends SmtpCommandBase implements SmtpCommand {
 	}
 
 	protected boolean isAllowedRecipient(Tuple<String, String> recipient) {
-		return true;
+		return mailManager.find(recipient) != null;
 	}
 
 }

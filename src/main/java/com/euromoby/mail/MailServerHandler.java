@@ -46,8 +46,6 @@ public class MailServerHandler extends SimpleChannelInboundHandler<String> {
 	@Override
 	public void channelRead0(ChannelHandlerContext ctx, String line) throws Exception {
 
-		LOG.debug("IN: {}", line);
-		
 		if (!mailSession.isCommandMode()) {
 			try {
 				boolean endOfTransfer = mailSession.processDataLine(line);
@@ -56,7 +54,6 @@ public class MailServerHandler extends SimpleChannelInboundHandler<String> {
 					mailSession.reset();
 					String response = "250 " + DSNStatus.getStatus(DSNStatus.SUCCESS, DSNStatus.CONTENT_OTHER) + " Message received";
 					ctx.write(response + StringUtils.CRLF);
-					LOG.debug("OUT: {}", response);
 				}
 			} catch (MailSizeException e) {
 				mailSession.reset();
@@ -71,7 +68,6 @@ public class MailServerHandler extends SimpleChannelInboundHandler<String> {
 
 		String response = mailCommandProcessor.process(mailSession, request);
 		ChannelFuture future = ctx.write(response + StringUtils.CRLF);
-		LOG.debug("OUT: {}", response);
 		
 		if (QuitSmtpCommand.COMMAND_NAME.equals(command)) {
 			future.addListener(ChannelFutureListener.CLOSE);
