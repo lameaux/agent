@@ -27,9 +27,9 @@ public class MailFileProvider {
 		return targetDir;
 	}
 	
-	public File getNewTargetFile(Tuple<String, String> recipient) throws Exception {
+	public File getNewTargetFile(Tuple<String, String> recipient, int messageId) throws Exception {
 		File inboxDirectory = getInboxDirectory(recipient);
-		return new File(inboxDirectory, System.currentTimeMillis() + ".msg");
+		return new File(inboxDirectory, messageId + ".msg");
 	}
 	
 }

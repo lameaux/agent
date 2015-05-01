@@ -2,24 +2,34 @@ package com.euromoby.mail;
 
 public class MailAccount {
 
-	private String user;
+	private Integer id;
+	private String login;
 	private String domain;
 
 	public MailAccount() {
 
 	}
 
-	public MailAccount(String user, String domain) {
-		this.user = user;
+	public MailAccount(Integer id, String login, String domain) {
+		this.id = id;
+		this.login = login;
 		this.domain = domain;
 	}
 
-	public String getUser() {
-		return user;
+	public Integer getId() {
+		return id;
 	}
 
-	public void setUser(String user) {
-		this.user = user;
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	public String getLogin() {
+		return login;
+	}
+
+	public void setLogin(String login) {
+		this.login = login;
 	}
 
 	public String getDomain() {
@@ -29,5 +39,7 @@ public class MailAccount {
 	public void setDomain(String domain) {
 		this.domain = domain;
 	}
+
+
 
 }

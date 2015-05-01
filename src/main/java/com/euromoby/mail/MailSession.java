@@ -1,7 +1,11 @@
 package com.euromoby.mail;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.commons.io.IOUtils;
 
 import com.euromoby.model.Tuple;
 import com.euromoby.utils.StringUtils;
@@ -16,27 +20,40 @@ public class MailSession {
 	private Tuple<String, String> recipient = Tuple.empty();
 	private int declaredMailSize = 0;
 	private int realMailSize = 0;
-
 	private boolean processingHeaders = true;
 	private List<String> headers = new ArrayList<String>();
-	private List<String> body = new ArrayList<String>();
+	private File tempFile = null;
 
-	public boolean processDataLine(String line) throws MailSizeException {
+	public boolean processDataLine(String line) throws Exception {
 		realMailSize += line.length();
 		if (realMailSize > MAX_MESSAGE_SIZE) {
 			throw new MailSizeException();
 		}
-		if (StringUtils.nullOrEmpty(line) && processingHeaders) {
-			processingHeaders = false;
-			return false;
+
+		if (tempFile == null) {
+			tempFile = File.createTempFile("mail", ".msg");
+			tempFile.deleteOnExit();
 		}
-		if (processingHeaders) {
-			headers.add(line);
-		} else {
-			if (isEndOfTransfer(line)) {
-				return true;
+
+		FileWriter fileWriter = new FileWriter(tempFile, true);
+		try {
+			if (processingHeaders) {
+				if (StringUtils.nullOrEmpty(line)) {
+					processingHeaders = false;
+				} else {
+					headers.add(line);
+				}
+				fileWriter.write(line);
+				fileWriter.write(StringUtils.CRLF);
+			} else {
+				if (isEndOfTransfer(line)) {
+					return true;
+				}
+				fileWriter.write(line);
+				fileWriter.write(StringUtils.CRLF);
 			}
-			body.add(line);
+		} finally {
+			IOUtils.closeQuietly(fileWriter);
 		}
 		return false;
 	}
@@ -54,7 +71,10 @@ public class MailSession {
 		realMailSize = 0;
 		processingHeaders = true;
 		headers.clear();
-		body.clear();
+		if (tempFile != null) {
+			tempFile.delete();
+			tempFile = null;
+		}
 	}
 
 	public boolean isCommandMode() {
@@ -121,12 +141,12 @@ public class MailSession {
 		this.headers = headers;
 	}
 
-	public List<String> getBody() {
-		return body;
+	public File getTempFile() {
+		return tempFile;
 	}
 
-	public void setBody(List<String> body) {
-		this.body = body;
+	public void setTempFile(File tempFile) {
+		this.tempFile = tempFile;
 	}
 
 }

@@ -6,8 +6,13 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.File;
+
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
+
+import com.euromoby.utils.StringUtils;
 
 public class MailSessionTest {
 
@@ -35,7 +40,7 @@ public class MailSessionTest {
 		assertEquals(0, mailSession.getRealMailSize());
 		assertTrue(mailSession.isProcessingHeaders());
 		assertTrue(mailSession.getHeaders().isEmpty());
-		assertTrue(mailSession.getBody().isEmpty());
+		assertNull(mailSession.getTempFile());
 	}
 
 	@Test
@@ -49,21 +54,32 @@ public class MailSessionTest {
 	
 	@Test
 	public void testReceiveMail() throws Exception {
+		
+		File tempFile = File.createTempFile("foo", "bar");
+		tempFile.deleteOnExit();
+		mailSession.setTempFile(tempFile);
+		String fileContent = "";
+		
 		String HEADER_SUBJECT = "Subject: hello";
 		assertTrue(mailSession.isProcessingHeaders());
 		assertFalse(mailSession.processDataLine(HEADER_SUBJECT));
+		fileContent += HEADER_SUBJECT + StringUtils.CRLF;
+		assertEquals(fileContent, FileUtils.readFileToString(tempFile));
 		assertTrue(mailSession.getHeaders().contains(HEADER_SUBJECT));
 		assertFalse(mailSession.processDataLine(""));
 		assertFalse(mailSession.isProcessingHeaders());
+		fileContent += StringUtils.CRLF;
+		assertEquals(fileContent, FileUtils.readFileToString(tempFile));
 		
 		String BODY_LINE = "Hello World!";
 		assertFalse(mailSession.processDataLine(BODY_LINE));
-		assertTrue(mailSession.getBody().contains(BODY_LINE));
+		fileContent += BODY_LINE + StringUtils.CRLF;
+		assertEquals(fileContent, FileUtils.readFileToString(tempFile));		
 		assertFalse(mailSession.processDataLine(""));
-		assertFalse(mailSession.isProcessingHeaders());
-		assertTrue(mailSession.getBody().contains(""));
-		
+		fileContent += StringUtils.CRLF;
+		assertEquals(fileContent, FileUtils.readFileToString(tempFile));		
 		assertTrue(mailSession.processDataLine("."));
+		assertEquals(fileContent, FileUtils.readFileToString(tempFile));		
 		
 	}
 

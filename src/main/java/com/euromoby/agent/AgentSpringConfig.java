@@ -1,9 +1,15 @@
 package com.euromoby.agent;
 
+import java.beans.PropertyVetoException;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 
+import com.euromoby.database.ComboPooledDataSourceFactory;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 
@@ -15,13 +21,28 @@ public class AgentSpringConfig {
 		return new Config();
 	}
 	
-	@Bean(destroyMethod="close")
-	public ComboPooledDataSource dataSource() throws Exception {
-		Config config = config();
+	@Bean(destroyMethod="shutdown")
+	public EmbeddedDatabase dataSource() {
+		EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
+		builder.setType(EmbeddedDatabaseType.H2);
+		builder.setDataSourceFactory(comboPooledDataSourceFactory(config()));
+		builder.addScript("classpath:com/euromoby/agent/schema.sql");
+		return builder.build();
+	}
+	
+	public ComboPooledDataSourceFactory comboPooledDataSourceFactory(Config config) {
+		return new ComboPooledDataSourceFactory(comboPooledDataSource(config));
+	}
+	
+	public ComboPooledDataSource comboPooledDataSource(Config config) {
 		String databasePath = config.getAgentDatabasePath();
 		
 		ComboPooledDataSource dataSource = new ComboPooledDataSource();
-		dataSource.setDriverClass("org.h2.Driver");
+		try {
+			dataSource.setDriverClass("org.h2.Driver");
+		} catch (PropertyVetoException e) {
+			throw new RuntimeException(e);
+		}
 		dataSource.setJdbcUrl("jdbc:h2:" + databasePath);
 		dataSource.setUser("SA");
 		dataSource.setPassword("");

@@ -19,11 +19,11 @@ import com.euromoby.utils.StringUtils;
 public class MailServerHandler extends SimpleChannelInboundHandler<String> {
 
 	private static final Logger LOG = LoggerFactory.getLogger(MailServerHandler.class);
-	
-	private Config config;	
+
+	private Config config;
 	private SmtpCommandProcessor mailCommandProcessor;
 	private MailManager mailManager;
-	
+
 	private MailSession mailSession;
 
 	public MailServerHandler(Config config, SmtpCommandProcessor mailCommandProcessor, MailManager mailManager) {
@@ -35,12 +35,19 @@ public class MailServerHandler extends SimpleChannelInboundHandler<String> {
 	protected MailSession getMailSession() {
 		return mailSession;
 	}
-	
+
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
 		mailSession = new MailSession();
 		String greeting = "220 " + config.getAgentId().getHost() + " ESMTP " + Agent.TITLE + " " + Agent.VERSION;
 		ctx.writeAndFlush(greeting + StringUtils.CRLF);
+	}
+
+	@Override
+	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+		if (mailSession != null) {
+			mailSession.reset();
+		}
 	}
 
 	@Override
@@ -68,7 +75,7 @@ public class MailServerHandler extends SimpleChannelInboundHandler<String> {
 
 		String response = mailCommandProcessor.process(mailSession, request);
 		ChannelFuture future = ctx.write(response + StringUtils.CRLF);
-		
+
 		if (QuitSmtpCommand.COMMAND_NAME.equals(command)) {
 			future.addListener(ChannelFutureListener.CLOSE);
 			mailSession = null;

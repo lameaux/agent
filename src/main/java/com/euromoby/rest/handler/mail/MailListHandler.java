@@ -46,8 +46,8 @@ public class MailListHandler extends RestHandlerBase {
 
 		for (MailAccount account : accounts) {
 			sb.append("<tr>");
-			sb.append("<td>").append(account.getUser()).append("</td>");
 			sb.append("<td>").append(account.getDomain()).append("</td>");
+			sb.append("<td>").append(account.getLogin()).append("@").append(account.getDomain()).append("</td>");
 			sb.append("<td>View | Edit</td>");				
 			sb.append("</tr>");
 		}
