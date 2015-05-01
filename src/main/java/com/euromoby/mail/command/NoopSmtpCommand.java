@@ -10,6 +10,7 @@ import com.euromoby.model.Tuple;
 public class NoopSmtpCommand extends SmtpCommandBase implements SmtpCommand {
 
 	public static final String COMMAND_NAME = "NOOP";
+	public static final String RESPONSE_250_OK = "250 " + DSNStatus.getStatus(DSNStatus.SUCCESS, DSNStatus.UNDEFINED_STATUS) + " OK";
 
 	@Override
 	public String name() {
@@ -18,7 +19,7 @@ public class NoopSmtpCommand extends SmtpCommandBase implements SmtpCommand {
 
 	@Override
 	public String execute(MailSession mailSession, Tuple<String, String> request) {
-		return "250 " + DSNStatus.getStatus(DSNStatus.SUCCESS, DSNStatus.UNDEFINED_STATUS) + " OK";
+		return RESPONSE_250_OK;
 	}
 
 }

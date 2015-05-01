@@ -18,6 +18,8 @@ import com.euromoby.utils.StringUtils;
 
 public class MailServerHandler extends SimpleChannelInboundHandler<String> {
 
+	private static final Logger LOG = LoggerFactory.getLogger(MailServerHandler.class);
+	
 	private Config config;	
 	private SmtpCommandProcessor mailCommandProcessor;
 	private MailManager mailManager;
@@ -30,8 +32,10 @@ public class MailServerHandler extends SimpleChannelInboundHandler<String> {
 		this.mailManager = mailManager;
 	}
 
-	private static final Logger LOG = LoggerFactory.getLogger(MailServerHandler.class);
-
+	protected MailSession getMailSession() {
+		return mailSession;
+	}
+	
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
 		mailSession = new MailSession();

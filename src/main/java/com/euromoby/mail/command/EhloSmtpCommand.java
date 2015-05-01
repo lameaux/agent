@@ -13,7 +13,8 @@ import com.euromoby.utils.StringUtils;
 public class EhloSmtpCommand extends SmtpCommandBase implements SmtpCommand {
 
 	public static final String COMMAND_NAME = "EHLO";
-
+	public static final String RESPONSE_501_INVALID_DOMAIN = "501 " + DSNStatus.getStatus(DSNStatus.PERMANENT, DSNStatus.DELIVERY_INVALID_ARG) + " Invalid domain name";
+	public static final String RESPONSE_250_DASH = "250-";
 	private Config config;
 	
 	@Autowired
@@ -32,15 +33,14 @@ public class EhloSmtpCommand extends SmtpCommandBase implements SmtpCommand {
 
 		String domain = request.getSecond();
 		if (StringUtils.nullOrEmpty(domain)) {
-			return "501 " + DSNStatus.getStatus(DSNStatus.PERMANENT, DSNStatus.DELIVERY_INVALID_ARG) + " Invalid domain name";
+			return RESPONSE_501_INVALID_DOMAIN;
 		}
 		mailSession.setDomain(domain);
 
 		StringBuffer sb = new StringBuffer();
-		sb.append("250-").append(config.getAgentId().getHost()).append(StringUtils.CRLF);
+		sb.append(RESPONSE_250_DASH).append(config.getAgentId().getHost()).append(StringUtils.CRLF);
 		sb.append("250-SIZE " + MailSession.MAX_MESSAGE_SIZE).append(StringUtils.CRLF);
 		sb.append("250 ENHANCEDSTATUSCODES");
-
 		return sb.toString();
 	}
 

@@ -10,6 +10,7 @@ import com.euromoby.model.Tuple;
 public class QuitSmtpCommand extends SmtpCommandBase implements SmtpCommand {
 
 	public static final String COMMAND_NAME = "QUIT";
+	public static final String RESPONSE_221_BYE = "221 " + DSNStatus.getStatus(DSNStatus.SUCCESS, DSNStatus.UNDEFINED_STATUS) + " Bye!";
 
 	@Override
 	public String name() {
@@ -18,7 +19,7 @@ public class QuitSmtpCommand extends SmtpCommandBase implements SmtpCommand {
 
 	@Override
 	public String execute(MailSession mailSession, Tuple<String, String> request) {
-		return "221 " + DSNStatus.getStatus(DSNStatus.SUCCESS, DSNStatus.UNDEFINED_STATUS) + " Bye!";
+		return RESPONSE_221_BYE;
 	}
 
 }
