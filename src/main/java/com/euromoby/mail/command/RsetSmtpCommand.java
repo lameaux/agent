@@ -7,9 +7,9 @@ import com.euromoby.mail.util.DSNStatus;
 import com.euromoby.model.Tuple;
 
 @Component
-public class ExpnSmtpCommand extends SmtpCommandBase implements SmtpCommand {
+public class RsetSmtpCommand extends SmtpCommandBase implements SmtpCommand {
 
-	public static final String COMMAND_NAME = "EXPN";
+	public static final String COMMAND_NAME = "RSET";
 
 	@Override
 	public String name() {
@@ -18,7 +18,8 @@ public class ExpnSmtpCommand extends SmtpCommandBase implements SmtpCommand {
 
 	@Override
 	public String execute(MailSession mailSession, Tuple<String, String> request) {
-		return "502 " + DSNStatus.getStatus(DSNStatus.PERMANENT, DSNStatus.SYSTEM_NOT_CAPABLE) + " Command is not supported";
+		mailSession.reset();
+		return "250 "+DSNStatus.getStatus(DSNStatus.SUCCESS,DSNStatus.UNDEFINED_STATUS)+" OK";
 	}
 
 }

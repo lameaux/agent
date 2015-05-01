@@ -143,7 +143,6 @@ public class Config {
 	public static final String TWITTER_CONSUMER_KEY = "agent.twitter.key";
 	public static final String TWITTER_CONSUMER_SECRET = "agent.twitter.secret";
 	
-	
 	public String get(String key) {
 		return properties.getProperty(key);
 	}

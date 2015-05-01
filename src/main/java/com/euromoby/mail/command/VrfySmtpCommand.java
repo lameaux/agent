@@ -7,9 +7,9 @@ import com.euromoby.mail.util.DSNStatus;
 import com.euromoby.model.Tuple;
 
 @Component
-public class ExpnSmtpCommand extends SmtpCommandBase implements SmtpCommand {
+public class VrfySmtpCommand extends SmtpCommandBase implements SmtpCommand {
 
-	public static final String COMMAND_NAME = "EXPN";
+	public static final String COMMAND_NAME = "VRFY";
 
 	@Override
 	public String name() {

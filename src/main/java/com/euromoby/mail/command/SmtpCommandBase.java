@@ -34,19 +34,5 @@ public abstract class SmtpCommandBase implements SmtpCommand {
 		return SYNTAX_ERROR + StringUtils.CRLF + help();
 	}
 
-	public String[] parameters(String request) {
-
-		String nameWithSeparator = name() + SEPARATOR;
-		if (!request.startsWith(nameWithSeparator)) {
-			return new String[0];
-		}
-
-		String[] params = request.substring(nameWithSeparator.length()).trim().split(SEPARATOR);
-		// trim
-		for (int i = 0; i < params.length; i++) {
-			params[i] = params[i].trim();
-		}
-		return params;
-	}
 
 }

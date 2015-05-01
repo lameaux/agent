@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.euromoby.processor.CommandProcessor;
+import com.euromoby.processor.ExitCommand;
 import com.euromoby.utils.StringUtils;
 
 public class TelnetServerHandler extends SimpleChannelInboundHandler<String> {
@@ -25,28 +26,15 @@ public class TelnetServerHandler extends SimpleChannelInboundHandler<String> {
 	
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
-		// Send greeting for a new connection.
-		ctx.write("Agent on " + InetAddress.getLocalHost().getHostName() + StringUtils.CRLF);
-		ctx.flush();
+		ctx.writeAndFlush("Agent on " + InetAddress.getLocalHost().getHostName() + StringUtils.CRLF);
 	}
 
 	@Override
 	public void channelRead0(ChannelHandlerContext ctx, String request) throws Exception {
-		// Generate and write a response.
-		String response;
-		boolean close = false;
-		if (request.isEmpty()) {
-			response = StringUtils.CRLF;
-		} else if ("exit".equals(request.toLowerCase())) {
-			response = "Bye!" + StringUtils.CRLF;
-			close = true;
-		} else {
-			response = commandProcessor.process(request) + StringUtils.CRLF;
-		}
-
+		String response = commandProcessor.process(request) + StringUtils.CRLF;
 		ChannelFuture future = ctx.write(response);
-
-		if (close) {
+		
+		if (ExitCommand.NAME.equals(request.toLowerCase())) {
 			future.addListener(ChannelFutureListener.CLOSE);
 		}
 	}

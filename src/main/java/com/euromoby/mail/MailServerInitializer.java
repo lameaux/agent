@@ -21,29 +21,27 @@ public class MailServerInitializer extends ChannelInitializer<SocketChannel> {
 	private static final StringDecoder DECODER = new StringDecoder();
 	private static final StringEncoder ENCODER = new StringEncoder();
 
-	private SmtpCommandProcessor mailCommandProcessor;
 	private Config config;
+	private SmtpCommandProcessor mailCommandProcessor;
+	private MailManager mailManager;
 
 	@Autowired
-	public MailServerInitializer(Config config, SmtpCommandProcessor mailCommandProcessor) {
+	public MailServerInitializer(Config config, SmtpCommandProcessor mailCommandProcessor, MailManager mailManager) {
 		this.config = config;
 		this.mailCommandProcessor = mailCommandProcessor;
+		this.mailManager = mailManager;
 	}
 
 	@Override
 	public void initChannel(SocketChannel ch) throws Exception {
 		ChannelPipeline pipeline = ch.pipeline();
 
-		// Add the text line codec combination first,
 		pipeline.addLast(new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
-		// the encoder and decoder are static as these are sharable
 		pipeline.addLast(DECODER);
 		pipeline.addLast(ENCODER);
-
 		pipeline.addLast(new IdleStateHandler(0, 0, config.getServerTimeout()));
 		pipeline.addLast(new ReadWriteTimeoutHandler());
 
-		// and then business logic.
-		pipeline.addLast(new MailServerHandler(mailCommandProcessor));
+		pipeline.addLast(new MailServerHandler(config, mailCommandProcessor, mailManager));
 	}
 }

@@ -1,7 +1,9 @@
 package com.euromoby.mail.command;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.euromoby.agent.Config;
 import com.euromoby.mail.MailSession;
 import com.euromoby.mail.util.DSNStatus;
 import com.euromoby.model.Tuple;
@@ -11,7 +13,14 @@ import com.euromoby.utils.StringUtils;
 public class EhloSmtpCommand extends SmtpCommandBase implements SmtpCommand {
 
 	public static final String COMMAND_NAME = "EHLO";
-	public static final int MAX_MESSAGE_SIZE = 10 * 1024 * 1024;
+
+	private Config config;
+	
+	@Autowired
+	public EhloSmtpCommand(Config config) {
+		super();
+		this.config = config;
+	}
 
 	@Override
 	public String name() {
@@ -28,9 +37,8 @@ public class EhloSmtpCommand extends SmtpCommandBase implements SmtpCommand {
 		mailSession.setDomain(domain);
 
 		StringBuffer sb = new StringBuffer();
-		sb.append("250-Hello ").append(domain).append(StringUtils.CRLF);
-		sb.append("250-SIZE " + MAX_MESSAGE_SIZE).append(StringUtils.CRLF);
-		sb.append("250-PIPELINING").append(StringUtils.CRLF);
+		sb.append("250-").append(config.getAgentId().getHost()).append(StringUtils.CRLF);
+		sb.append("250-SIZE " + MailSession.MAX_MESSAGE_SIZE).append(StringUtils.CRLF);
 		sb.append("250 ENHANCEDSTATUSCODES");
 
 		return sb.toString();

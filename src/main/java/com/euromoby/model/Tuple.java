@@ -51,4 +51,8 @@ public class Tuple<F, S> {
 		this.second = second;
 	}
 
+	public boolean isEmpty() {
+		return first == null && second == null;
+	}
+	
 }

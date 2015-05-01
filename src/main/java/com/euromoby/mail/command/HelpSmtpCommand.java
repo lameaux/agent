@@ -18,7 +18,7 @@ public class HelpSmtpCommand extends SmtpCommandBase implements SmtpCommand {
 
 	@Override
 	public String execute(MailSession mailSession, Tuple<String, String> request) {
-		return "502 " + DSNStatus.getStatus(DSNStatus.PERMANENT, DSNStatus.SYSTEM_NOT_CAPABLE) + " HELP is not supported";
+		return "502 " + DSNStatus.getStatus(DSNStatus.PERMANENT, DSNStatus.SYSTEM_NOT_CAPABLE) + " Command is not supported";
 	}
 
 }
