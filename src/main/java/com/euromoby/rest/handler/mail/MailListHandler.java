@@ -48,7 +48,11 @@ public class MailListHandler extends RestHandlerBase {
 			sb.append("<tr>");
 			sb.append("<td>").append(account.getDomain()).append("</td>");
 			sb.append("<td>").append(account.getLogin()).append("@").append(account.getDomain()).append("</td>");
-			sb.append("<td>View | Edit</td>");				
+			sb.append("<td><a href=\"/mail/box/");
+			sb.append(account.getDomain());
+			sb.append("/");
+			sb.append(account.getLogin());
+			sb.append("\">Inbox</a> | Edit</td>");				
 			sb.append("</tr>");
 		}
 		pageContent = pageContent.replace("%MAIL_LIST%", sb.toString());

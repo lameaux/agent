@@ -1,6 +1,7 @@
 package com.euromoby.mail;
 
 import java.io.File;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
@@ -29,11 +30,15 @@ public class MailManager {
 		this.mailFileProvider = mailFileProvider;
 	}
 
-	public MailAccount find(Tuple<String, String> loginDomain) {
+	public MailAccount findAccount(Tuple<String, String> loginDomain) {
 			return mailAccountDao.findByLoginAndDomain(loginDomain.getFirst(), loginDomain.getSecond());
 	}
 
-	public void save(MailAccount mailAccount) {
+	public MailMessage findMessage(Integer accountId, Integer id) {
+		return mailMessageDao.findByAccountIdAndId(accountId, id);
+}	
+	
+	public void saveAccount(MailAccount mailAccount) {
 		mailAccountDao.save(mailAccount);
 	}
 	
@@ -41,7 +46,11 @@ public class MailManager {
 		return mailAccountDao.findAll();
 	}
 
-	public void save(MailSession mailSession) {
+	public List<MailMessage> getMessages(Integer accountId) {
+		return mailMessageDao.findByAccountId(accountId);
+	}
+	
+	public void saveMessage(MailSession mailSession) {
 		Tuple<String, String> recipient = mailSession.getRecipient();
 		
 		MailAccount account = mailAccountDao.findByLoginAndDomain(recipient.getFirst(), recipient.getSecond());
@@ -49,10 +58,11 @@ public class MailManager {
 		mailMessage.setAccountId(account.getId());
 		mailMessage.setSender(mailSession.getSender().getFirst() + "@" + mailSession.getSender().getSecond());
 		mailMessage.setSize(mailSession.getRealMailSize());
+		mailMessage.setCreated(new Date());
 		mailMessageDao.save(mailMessage);
 		
 		try {
-			File targetFile = mailFileProvider.getNewTargetFile(recipient, mailMessage.getId());
+			File targetFile = mailFileProvider.getMessageFile(recipient, mailMessage.getId());
 			FileUtils.copyFile(mailSession.getTempFile(), targetFile);
 		} catch (Exception e) {
 			log.error("Internal Error", e);

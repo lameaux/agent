@@ -57,7 +57,7 @@ public class MailServerHandler extends SimpleChannelInboundHandler<String> {
 			try {
 				boolean endOfTransfer = mailSession.processDataLine(line);
 				if (endOfTransfer) {
-					mailManager.save(mailSession);
+					mailManager.saveMessage(mailSession);
 					mailSession.reset();
 					String response = "250 " + DSNStatus.getStatus(DSNStatus.SUCCESS, DSNStatus.CONTENT_OTHER) + " Message received";
 					ctx.write(response + StringUtils.CRLF);

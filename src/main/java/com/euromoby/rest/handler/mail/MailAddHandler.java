@@ -61,7 +61,7 @@ public class MailAddHandler extends RestHandlerBase {
 		MailAccount mailAccount = new MailAccount();
 		mailAccount.setLogin(requestParameters.get(REQUEST_INPUT_LOGIN));
 		mailAccount.setDomain(requestParameters.get(REQUEST_INPUT_DOMAIN));
-		mailManager.save(mailAccount);
+		mailManager.saveAccount(mailAccount);
 
 		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
 		return httpResponseProvider.createHttpResponse(HttpResponseStatus.OK, HttpUtils.fromString("OK"));

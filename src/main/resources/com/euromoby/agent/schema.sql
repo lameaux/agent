@@ -1,5 +1,6 @@
-DROP TABLE IF EXISTS mail_account;
-DROP INDEX IF EXISTS mail_account_unique;
+-- DROP TABLE IF EXISTS mail_account;
+-- DROP INDEX IF EXISTS mail_account_unique;
+-- DROP TABLE IF EXISTS mail_message;
 
 CREATE TABLE IF NOT EXISTS mail_account (
 	id INT auto_increment PRIMARY KEY, 

@@ -2,6 +2,7 @@ package com.euromoby.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.List;
 
 import javax.sql.DataSource;
@@ -35,6 +36,17 @@ public class MailMessageDao {
 		}
 	}
 
+	public MailMessage findByAccountIdAndId(Integer accountId, Integer id) {
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+		try {
+			return jdbcTemplate.queryForObject("select * from mail_message where account_id = ? and id = ?", ROW_MAPPER, accountId, id);
+		} catch (EmptyResultDataAccessException e) {
+			return null;
+		}
+	}	
+	
+	
+	
 	public List<MailMessage> findByAccountId(Integer accountId) {
 		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 		return jdbcTemplate.query("select * from mail_message where account_id = ? order by id desc", ROW_MAPPER, accountId);
@@ -42,8 +54,9 @@ public class MailMessageDao {
 
 	public void save(MailMessage mailMessage) {
 		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-		jdbcTemplate.update("insert into mail_message(account_id, sender, size) values (?,?,?)", mailMessage.getAccountId(), mailMessage.getSender(),
-				mailMessage.getSize());
+		jdbcTemplate.update("insert into mail_message(account_id, sender, size, created) values (?,?,?,?)", 
+				mailMessage.getAccountId(), mailMessage.getSender(),
+				mailMessage.getSize(), mailMessage.getCreated());
 		mailMessage.setId(jdbcTemplate.queryForObject("select scope_identity()", Integer.class));
 	}
 
@@ -55,7 +68,7 @@ public class MailMessageDao {
 			mailMessage.setAccountId(rs.getInt("account_id"));
 			mailMessage.setSender(rs.getString("sender"));
 			mailMessage.setSize(rs.getInt("size"));
-			mailMessage.setCreated(rs.getDate("created"));
+			mailMessage.setCreated(new Date(rs.getTimestamp("created").getTime()));
 			return mailMessage;
 		}
 	}

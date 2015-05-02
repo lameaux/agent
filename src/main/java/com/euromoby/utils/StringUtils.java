@@ -10,6 +10,13 @@ public class StringUtils {
 		return value == null || value.trim().isEmpty();
 	}	
 	
+	public static String trimIfNotEmpty(String value) {
+		if (nullOrEmpty(value)) {
+			return value;
+		}
+		return value.trim();
+	}
+	
 	public static String printProperties(Properties p, String prefix) {
 		StringBuffer sb = new StringBuffer();
 		for(String propertyName : p.stringPropertyNames()) {

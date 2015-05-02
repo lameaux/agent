@@ -71,7 +71,7 @@ public class RcptSmtpCommand extends SmtpCommandBase implements SmtpCommand {
 	}
 
 	protected boolean isAllowedRecipient(Tuple<String, String> recipient) {
-		return mailManager.find(recipient) != null;
+		return mailManager.findAccount(recipient) != null;
 	}
 
 }
