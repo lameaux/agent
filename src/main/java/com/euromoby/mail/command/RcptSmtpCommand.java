@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.euromoby.mail.MailAccount;
 import com.euromoby.mail.MailManager;
 import com.euromoby.mail.MailSession;
 import com.euromoby.mail.util.DSNStatus;
@@ -71,7 +72,8 @@ public class RcptSmtpCommand extends SmtpCommandBase implements SmtpCommand {
 	}
 
 	protected boolean isAllowedRecipient(Tuple<String, String> recipient) {
-		return mailManager.findAccount(recipient) != null;
+		MailAccount mailAccount = mailManager.findAccount(recipient);
+		return mailAccount != null && mailAccount.getActive();
 	}
 
 }

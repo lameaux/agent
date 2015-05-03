@@ -60,6 +60,12 @@ public class MailMessageDao {
 		mailMessage.setId(jdbcTemplate.queryForObject("select scope_identity()", Integer.class));
 	}
 
+	public void deleteById(Integer id) {
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+		jdbcTemplate.update("delete from mail_message where id = ?", id); 
+	}
+	
+	
 	static class MailMessageRowMapper implements RowMapper<MailMessage> {
 		@Override
 		public MailMessage mapRow(ResultSet rs, int rowNum) throws SQLException {

@@ -28,7 +28,7 @@ public class MailAccountDao {
 
 	public MailAccount findByLoginAndDomain(String login, String domain) {
 		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-		try {		
+		try {
 			return jdbcTemplate.queryForObject("select * from mail_account where login = ? and domain = ?", ROW_MAPPER, login, domain);
 		} catch (EmptyResultDataAccessException e) {
 			return null;
@@ -37,15 +37,20 @@ public class MailAccountDao {
 
 	public List<MailAccount> findAll() {
 		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-		return jdbcTemplate.query("select * from mail_account order by id", ROW_MAPPER);
+		return jdbcTemplate.query("select * from mail_account order by domain, login", ROW_MAPPER);
 	}
 
 	public void save(MailAccount mailAccount) {
 		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-		jdbcTemplate.update("insert into mail_account(login, domain) values (?,?)", 
-				mailAccount.getLogin(), mailAccount.getDomain());
+		jdbcTemplate.update("insert into mail_account(login, domain, active) values (?,?,?)", mailAccount.getLogin(), mailAccount.getDomain(),
+				mailAccount.getActive() ? 1 : 0);
 		mailAccount.setId(jdbcTemplate.queryForObject("select scope_identity()", Integer.class));
-		
+
+	}
+
+	public void update(MailAccount mailAccount) {
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+		jdbcTemplate.update("update mail_account set active = ? where id = ?", mailAccount.getActive() ? 1 : 0, mailAccount.getId());
 	}
 
 	static class MailAccountRowMapper implements RowMapper<MailAccount> {
@@ -55,6 +60,7 @@ public class MailAccountDao {
 			mailAccount.setId(rs.getInt("id"));
 			mailAccount.setLogin(rs.getString("login"));
 			mailAccount.setDomain(rs.getString("domain"));
+			mailAccount.setActive(rs.getInt("active") == 1);
 			return mailAccount;
 		}
 	}

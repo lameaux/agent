@@ -75,7 +75,9 @@ public class RcptSmtpCommandTest {
 
 	@Test
 	public void shouldSetRecipientAndReturnOk() {
-		Mockito.when(mailManager.findAccount(Matchers.refEq(recipient))).thenReturn(new MailAccount());		
+		MailAccount mailAccount = new MailAccount();
+		mailAccount.setActive(true);		
+		Mockito.when(mailManager.findAccount(Matchers.refEq(recipient))).thenReturn(mailAccount);		
 		request.setSecond("TO: <" + USER + "@" + SERVER + ">");
 		assertEquals(RcptSmtpCommand.RESPONSE_250_RECIPIENT_OK, command.execute(mailSession, request));
 		assertEquals(USER, mailSession.getRecipient().getFirst());
@@ -84,7 +86,9 @@ public class RcptSmtpCommandTest {
 
 	@Test
 	public void shouldAllowUser() {
-		Mockito.when(mailManager.findAccount(Matchers.eq(recipient))).thenReturn(new MailAccount());
+		MailAccount mailAccount = new MailAccount();
+		mailAccount.setActive(true);
+		Mockito.when(mailManager.findAccount(Matchers.eq(recipient))).thenReturn(mailAccount);
 		assertTrue(command.isAllowedRecipient(recipient));
 	}
 

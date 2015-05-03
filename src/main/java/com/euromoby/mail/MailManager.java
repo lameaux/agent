@@ -41,6 +41,10 @@ public class MailManager {
 	public void saveAccount(MailAccount mailAccount) {
 		mailAccountDao.save(mailAccount);
 	}
+
+	public void updateAccount(MailAccount mailAccount) {
+		mailAccountDao.update(mailAccount);
+	}	
 	
 	public List<MailAccount> getAccounts() {
 		return mailAccountDao.findAll();
@@ -48,6 +52,18 @@ public class MailManager {
 
 	public List<MailMessage> getMessages(Integer accountId) {
 		return mailMessageDao.findByAccountId(accountId);
+	}
+	
+	public void deleteMessage(Tuple<String, String> loginDomain, MailMessage mailMessage) {
+		mailMessageDao.deleteById(mailMessage.getId());
+		
+		try {
+			File targetFile = mailFileProvider.getMessageFile(loginDomain, mailMessage.getId());
+			targetFile.delete();
+		} catch (Exception e) {
+			log.error("Internal Error", e);
+		}		
+		
 	}
 	
 	public void saveMessage(MailSession mailSession) {

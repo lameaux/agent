@@ -5,15 +5,10 @@ public class MailAccount {
 	private Integer id;
 	private String login;
 	private String domain;
+	private boolean active;
 
 	public MailAccount() {
 
-	}
-
-	public MailAccount(Integer id, String login, String domain) {
-		this.id = id;
-		this.login = login;
-		this.domain = domain;
 	}
 
 	public Integer getId() {
@@ -40,6 +35,12 @@ public class MailAccount {
 		this.domain = domain;
 	}
 
+	public boolean getActive() {
+		return active;
+	}
 
+	public void setActive(boolean active) {
+		this.active = active;
+	}
 
 }

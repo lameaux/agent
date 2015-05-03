@@ -5,7 +5,8 @@
 CREATE TABLE IF NOT EXISTS mail_account (
 	id INT auto_increment PRIMARY KEY, 
 	login VARCHAR(255),
-	domain VARCHAR(255)
+	domain VARCHAR(255),
+	active INT DEFAULT 1
 );
 CREATE UNIQUE INDEX IF NOT EXISTS mail_account_unique 
 ON mail_account(login, domain);

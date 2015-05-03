@@ -27,8 +27,8 @@ public class MailFileProvider {
 		return targetDir;
 	}
 	
-	public File getMessageFile(Tuple<String, String> recipient, int messageId) throws Exception {
-		File inboxDirectory = getInboxDirectory(recipient);
+	public File getMessageFile(Tuple<String, String> loginDomain, int messageId) throws Exception {
+		File inboxDirectory = getInboxDirectory(loginDomain);
 		return new File(inboxDirectory, messageId + ".msg");
 	}
 	
