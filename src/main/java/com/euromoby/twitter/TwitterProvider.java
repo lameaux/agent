@@ -38,9 +38,11 @@ public class TwitterProvider {
 		cb.setOAuthConsumerKey(config.getTwitterConsumerKey());
 		cb.setOAuthConsumerSecret(config.getTwitterConsumerSecret());
 
-		//cb.setOAuthAccessToken(accessToken.getToken());
-		//cb.setOAuthAccessTokenSecret(accessToken.getTokenSecret());
-
+		if (config.isHttpProxy()) {
+			cb.setHttpProxyHost(config.getHttpProxyHost());
+			cb.setHttpProxyPort(config.getHttpProxyPort());
+		}
+		
 		TwitterFactory tf = new TwitterFactory(cb.build());
 		Twitter twitter = tf.getInstance();
 		return twitter;

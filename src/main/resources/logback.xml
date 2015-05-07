@@ -7,10 +7,16 @@
 			</pattern>
 		</encoder>
 	</appender>
+	
 	<logger name="com.mchange">
 		<level value="INFO" />
 		<appender-ref ref="STDOUT" />
 	</logger>
+	<logger name="io.netty.handler.ssl">
+		<level value="INFO" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+	
 	<root level="debug">
 		<appender-ref ref="STDOUT" />
 	</root>
