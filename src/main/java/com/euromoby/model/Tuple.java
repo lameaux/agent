@@ -55,4 +55,7 @@ public class Tuple<F, S> {
 		return first == null && second == null;
 	}
 	
+	public String joinString(String separator) {
+		return first + separator + second;
+	}
 }

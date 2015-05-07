@@ -72,7 +72,7 @@ public class MailManager {
 		MailAccount account = mailAccountDao.findByLoginAndDomain(recipient.getFirst(), recipient.getSecond());
 		MailMessage mailMessage = new MailMessage();
 		mailMessage.setAccountId(account.getId());
-		mailMessage.setSender(mailSession.getSender().getFirst() + "@" + mailSession.getSender().getSecond());
+		mailMessage.setSender(mailSession.getSender().joinString("@"));
 		mailMessage.setSize(mailSession.getRealMailSize());
 		mailMessage.setCreated(new Date());
 		mailMessageDao.save(mailMessage);
