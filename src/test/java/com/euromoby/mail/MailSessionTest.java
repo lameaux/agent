@@ -2,16 +2,20 @@ package com.euromoby.mail;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.euromoby.model.Tuple;
 import com.euromoby.utils.StringUtils;
 
 public class MailSessionTest {
@@ -30,7 +34,16 @@ public class MailSessionTest {
 	}
 
 	@Test
-	public void shouldResetSession() {
+	public void shouldResetSession() throws Exception {
+		mailSession.setCommandMode(false);
+		mailSession.setDomain("foo");
+		mailSession.setSender(Tuple.of("foo", "bar"));
+		mailSession.setRecipient(Tuple.of("foo", "bar"));
+		mailSession.setDeclaredMailSize(1234);
+		mailSession.setRealMailSize(1234);
+		mailSession.setProcessingHeaders(false);
+		mailSession.setHeaders(new ArrayList<String>(Arrays.asList("foo: bar")));
+
 		mailSession.reset();
 		assertTrue(mailSession.isCommandMode());
 		assertNull(mailSession.getDomain());
@@ -41,6 +54,12 @@ public class MailSessionTest {
 		assertTrue(mailSession.isProcessingHeaders());
 		assertTrue(mailSession.getHeaders().isEmpty());
 		assertNull(mailSession.getTempFile());
+
+		File file = File.createTempFile("foo", "bar"); 
+		mailSession.setTempFile(file);
+		mailSession.reset();
+		assertFalse(file.exists());
+		assertNull(mailSession.getTempFile());		
 	}
 
 	@Test
@@ -83,4 +102,17 @@ public class MailSessionTest {
 		
 	}
 
+	@Test
+	public void shouldCreateTempFileAndDelete() throws Exception {
+		String LINE = "Hello World!";
+		mailSession.processDataLine(LINE);
+		File tempFile = mailSession.getTempFile();
+		assertNotNull(tempFile);
+		assertTrue(tempFile.exists());
+		assertEquals(LINE + StringUtils.CRLF, FileUtils.readFileToString(tempFile));
+		mailSession.reset();
+		assertFalse(tempFile.exists());		
+		assertNull(mailSession.getTempFile());
+	}
+	
 }
