@@ -77,7 +77,7 @@ public class CdnNetworkTest {
 		List<AgentId> agentList = Collections.singletonList(AGENT1);
 		Mockito.when(agentManager.getActive()).thenReturn(agentList);
 		Mockito.when(httpClientProvider.createHttpClient()).thenReturn(httpClient);
-		Mockito.when(httpClientProvider.createRequestConfigBuilder(Matchers.eq(false))).thenReturn(requestConfigBuilder);
+		Mockito.when(httpClientProvider.createRequestConfigBuilder(Matchers.eq(AGENT1.getHost()), Matchers.eq(false))).thenReturn(requestConfigBuilder);
 		Mockito.when(httpClient.execute(Matchers.any(HttpUriRequest.class), Matchers.any(HttpClientContext.class))).thenReturn(response);
 		Mockito.when(response.getStatusLine()).thenReturn(new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_FOUND, "Not found"));
 		Mockito.when(config.getCdnTimeout()).thenReturn(500);
@@ -106,7 +106,7 @@ public class CdnNetworkTest {
 		List<AgentId> agentList = Arrays.asList(AGENT1, AGENT2);
 		Mockito.when(agentManager.getActive()).thenReturn(agentList);
 		Mockito.when(httpClientProvider.createHttpClient()).thenReturn(httpClient);
-		Mockito.when(httpClientProvider.createRequestConfigBuilder(Matchers.eq(false))).thenReturn(requestConfigBuilder);
+		Mockito.when(httpClientProvider.createRequestConfigBuilder(Matchers.anyString(),Matchers.eq(false))).thenReturn(requestConfigBuilder);
 		Mockito.when(httpClient.execute(Matchers.any(HttpUriRequest.class), Matchers.any(HttpClientContext.class))).thenReturn(response);
 		Mockito.when(response.getStatusLine()).thenReturn(new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "Found"));
 		FileInfo fileInfo = new FileInfo();
@@ -155,7 +155,7 @@ public class CdnNetworkTest {
 		List<AgentId> agentList = Arrays.asList(AGENT1, AGENT2);
 		Mockito.when(agentManager.getActive()).thenReturn(agentList);
 		Mockito.when(httpClientProvider.createHttpClient()).thenReturn(httpClient);
-		Mockito.when(httpClientProvider.createRequestConfigBuilder(Matchers.eq(false))).thenReturn(requestConfigBuilder);
+		Mockito.when(httpClientProvider.createRequestConfigBuilder(Matchers.anyString(), Matchers.eq(false))).thenReturn(requestConfigBuilder);
 		Mockito.when(httpClient.execute(Matchers.any(HttpUriRequest.class), Matchers.any(HttpClientContext.class))).thenReturn(response);
 		Mockito.when(response.getStatusLine()).thenReturn(new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "Found"));
 		FileInfo fileInfo = new FileInfo();

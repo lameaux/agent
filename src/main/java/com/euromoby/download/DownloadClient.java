@@ -36,9 +36,9 @@ public class DownloadClient {
 	public void download(String url, File targetFile, boolean noProxy) throws Exception {
 		CloseableHttpClient httpclient = httpClientProvider.createHttpClient();
 		try {
-			RequestConfig.Builder requestConfigBuilder = httpClientProvider.createRequestConfigBuilder(noProxy);
 
 			HttpGet request = new HttpGet(url);
+			RequestConfig.Builder requestConfigBuilder = httpClientProvider.createRequestConfigBuilder(request.getURI().getHost(), noProxy);
 			request.setConfig(requestConfigBuilder.build());
 
 			CloseableHttpResponse response = httpclient.execute(request, httpClientProvider.createHttpClientContext());

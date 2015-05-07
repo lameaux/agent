@@ -58,8 +58,7 @@ public class GetJobsClientTest {
 	public void init() throws Exception {
 		Mockito.when(config.getAgentId()).thenReturn(myAgentId);
 		Mockito.when(httpClientProvider.createHttpClient()).thenReturn(httpclient);
-		Mockito.when(config.getAgentId()).thenReturn(myAgentId);
-		Mockito.when(httpClientProvider.createRequestConfigBuilder(Matchers.eq(NO_PROXY))).thenReturn(requestConfigBuilder);
+		Mockito.when(httpClientProvider.createRequestConfigBuilder(Matchers.eq(targetAgentId.getHost()), Matchers.eq(NO_PROXY))).thenReturn(requestConfigBuilder);
 		Mockito.when(requestConfigBuilder.build()).thenReturn(null);
 		Mockito.when(httpClientProvider.createHttpClientContext()).thenReturn(null);	
 		Mockito.when(httpclient.execute(Matchers.any(HttpUriRequest.class), Matchers.any(HttpClientContext.class))).thenReturn(response);		

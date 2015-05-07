@@ -1,6 +1,7 @@
 package com.euromoby.http;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -95,18 +96,15 @@ public class HttpClientProviderTest {
 	
 	@Test
 	public void testNoProxyConfiguration() {
-		
-		//Mockito.when(config.getHttpProxyHost()).thenReturn(null);
-		//Mockito.when(config.getHttpProxyPort()).thenReturn(0);
 
 		Mockito.when(config.isHttpProxy()).thenReturn(false);
 		
 		boolean noProxy = true;
-		RequestConfig rcTrue = httpClientProvider.createRequestConfigBuilder(noProxy).build();
+		RequestConfig rcTrue = httpClientProvider.createRequestConfigBuilder(null, noProxy).build();
 		assertNull(rcTrue.getProxy());
 		
 		noProxy = false;
-		RequestConfig rcFalse = httpClientProvider.createRequestConfigBuilder(noProxy).build();
+		RequestConfig rcFalse = httpClientProvider.createRequestConfigBuilder(null, noProxy).build();
 		assertNull(rcFalse.getProxy());
 
 		
@@ -121,13 +119,14 @@ public class HttpClientProviderTest {
 		Mockito.when(config.isHttpProxy()).thenReturn(true);
 		Mockito.when(config.getHttpProxyHost()).thenReturn(PROXY_HOST);
 		Mockito.when(config.getHttpProxyPort()).thenReturn(PROXY_PORT);
+		Mockito.when(config.getHttpProxyBypass()).thenReturn(new String[]{});
 		
 		boolean noProxy = true;
-		RequestConfig rcTrue = httpClientProvider.createRequestConfigBuilder(noProxy).build();
+		RequestConfig rcTrue = httpClientProvider.createRequestConfigBuilder(null, noProxy).build();
 		assertNull(rcTrue.getProxy());
 		
 		noProxy = false;
-		RequestConfig rcFalse = httpClientProvider.createRequestConfigBuilder(noProxy).build();
+		RequestConfig rcFalse = httpClientProvider.createRequestConfigBuilder(null, noProxy).build();
 		HttpHost httpHost = rcFalse.getProxy();
 		assertEquals(PROXY_HOST, httpHost.getHostName());
 		assertEquals(PROXY_PORT, httpHost.getPort());
@@ -135,6 +134,25 @@ public class HttpClientProviderTest {
 		
 	}
 	
-	
+	@Test
+	public void shouldBypassProxy() {
+		String ADDRESS = "127.0.0.1";
+		String HOST = "www.euromoby.com";		
+		
+		String[] BYPASS_LIST = new String[] {"127.0.0.*", "localhost", "*.euromoby.*"};		
+		Mockito.when(config.getHttpProxyBypass()).thenReturn(BYPASS_LIST);
+		assertTrue(httpClientProvider.bypassProxy(ADDRESS));
+		assertTrue(httpClientProvider.bypassProxy(HOST));		
+	}
+
+	@Test
+	public void shouldNotBypassProxy() {
+		String ADDRESS = "127.0.1.1";
+		String HOST = "euromoby.com";
+		String[] BYPASS_LIST = new String[] {"127.0.0.*", "localhost", "*.euromoby.*"};		
+		Mockito.when(config.getHttpProxyBypass()).thenReturn(BYPASS_LIST);
+		assertFalse(httpClientProvider.bypassProxy(ADDRESS));
+		assertFalse(httpClientProvider.bypassProxy(HOST));		
+	}	
 	
 }

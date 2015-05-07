@@ -35,9 +35,8 @@ public class UploadClient {
 		CloseableHttpClient httpclient = httpClientProvider.createHttpClient();
 		try {
 
-			RequestConfig.Builder requestConfigBuilder = httpClientProvider.createRequestConfigBuilder(noProxy);
-
-			HttpPost request = new HttpPost(targetUrl);
+			HttpPost request = new HttpPost(targetUrl);			
+			RequestConfig.Builder requestConfigBuilder = httpClientProvider.createRequestConfigBuilder(request.getURI().getHost(), noProxy);
 			request.setConfig(requestConfigBuilder.build());
 
 			HttpEntity requestMultipartEntity = MultipartEntityBuilder.create().addTextBody(REQUEST_INPUT_LOCATION, location)

@@ -40,7 +40,7 @@ public class PingSender {
 		PingInfo myPingInfo = pingInfoProvider.createPingInfo();
 
 		try {
-			RequestConfig.Builder requestConfigBuilder = httpClientProvider.createRequestConfigBuilder(noProxy);
+			RequestConfig.Builder requestConfigBuilder = httpClientProvider.createRequestConfigBuilder(host, noProxy);
 
 			String url = String.format(URL_PATTERN, host, restPort) + PingHandler.URL;
 			HttpUriRequest ping = RequestBuilder.post(url)

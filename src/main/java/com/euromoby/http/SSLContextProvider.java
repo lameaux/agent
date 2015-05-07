@@ -4,11 +4,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.security.KeyStore;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
-import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.InitializingBean;
@@ -44,12 +47,24 @@ public class SSLContextProvider implements InitializingBean {
 			
 			KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
 			kmf.init(keystore, config.getKeystoreKeyPass().toCharArray());
-			
-			TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("PKIX");
-			trustManagerFactory.init(keystore);
+
+			TrustManager tm = new X509TrustManager() {
+				@Override
+				public void checkClientTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
+				}
+
+				@Override
+				public void checkServerTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
+				}
+
+				@Override
+				public X509Certificate[] getAcceptedIssuers() {
+					return null;
+				}
+			};
 			
 			sslContext = SSLContext.getInstance("TLS");
-			sslContext.init(kmf.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
+			sslContext.init(kmf.getKeyManagers(), new TrustManager[] {tm}, null);
 			
 		} finally {
 			IOUtils.closeQuietly(keystoreInputStream);

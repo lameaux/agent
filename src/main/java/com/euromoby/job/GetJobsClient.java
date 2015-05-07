@@ -47,7 +47,7 @@ public class GetJobsClient {
 		AgentId myAgentId = config.getAgentId();
 		try {
 
-			RequestConfig.Builder requestConfigBuilder = httpClientProvider.createRequestConfigBuilder(noProxy);
+			RequestConfig.Builder requestConfigBuilder = httpClientProvider.createRequestConfigBuilder(targetAgentId.getHost(), noProxy);
 			HttpUriRequest request = createRequest(targetAgentId, myAgentId, requestConfigBuilder);
 
 			CloseableHttpResponse response = httpclient.execute(request, httpClientProvider.createHttpClientContext());

@@ -1,6 +1,8 @@
 package com.euromoby.http;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthSchemeProvider;
@@ -31,6 +33,8 @@ import com.euromoby.rest.RestServer;
 public class HttpClientProvider {
 
 	public static final String HTTPS = "https";
+
+	public static final Pattern WILDCARD_REGEX = Pattern.compile("[^*]+|(\\*)");	
 	
 	private Config config;
 	private AgentManager agentManager;
@@ -44,7 +48,10 @@ public class HttpClientProvider {
 	}
 
 	public CloseableHttpClient createHttpClient() {
-		return HttpClientBuilder.create().setSslcontext(sslContextProvider.getSSLContext()).setSSLHostnameVerifier(new NoopHostnameVerifier()).build();
+		return HttpClientBuilder.create()
+				.setSslcontext(sslContextProvider.getSSLContext())
+				.setSSLHostnameVerifier(new NoopHostnameVerifier())
+				.build();
 	}
 
 	public HttpClientContext createHttpClientContext() {
@@ -73,16 +80,38 @@ public class HttpClientProvider {
         return context;
 	}
 	
-	public RequestConfig.Builder createRequestConfigBuilder(boolean noProxy) {
+	public RequestConfig.Builder createRequestConfigBuilder(String host, boolean noProxy) {
 		
 		int timeout = config.getHttpClientTimeout();
 		
 		RequestConfig.Builder requestConfigBuilder = RequestConfig.custom().setSocketTimeout(timeout).setConnectTimeout(timeout);
-		if (!noProxy && config.isHttpProxy()) {
+		if (!noProxy && config.isHttpProxy() && !bypassProxy(host)) {
 			requestConfigBuilder.setProxy(new HttpHost(config.getHttpProxyHost(), config.getHttpProxyPort()));
 		}
 		return requestConfigBuilder;
 	}
 
+	protected boolean bypassProxy(String host) {
+		String[] proxyBypass = config.getHttpProxyBypass();
+		
+		for (String mask : proxyBypass) {
+			Matcher m = WILDCARD_REGEX.matcher(mask);
+			StringBuffer b = new StringBuffer();
+			while (m.find()) {
+				if (m.group(1) != null) {
+					m.appendReplacement(b, ".*");
+				} else {
+					m.appendReplacement(b, "\\\\Q" + m.group(0) + "\\\\E");
+				}
+			}
+			m.appendTail(b);
+			
+			if (host.matches(b.toString())) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
 	
 }

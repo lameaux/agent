@@ -51,7 +51,7 @@ public class DownloadClientTest {
 	public void init() {
 		downloadClient = new DownloadClient(httpClientProvider);
 		Mockito.when(httpClientProvider.createHttpClient()).thenReturn(httpClient);
-		Mockito.when(httpClientProvider.createRequestConfigBuilder(true)).thenReturn(RequestConfig.custom());
+		Mockito.when(httpClientProvider.createRequestConfigBuilder(Matchers.anyString(), Matchers.eq(true))).thenReturn(RequestConfig.custom());
 		Mockito.when(httpClientProvider.createHttpClientContext()).thenReturn(HttpClientContext.create());
 	}	
 

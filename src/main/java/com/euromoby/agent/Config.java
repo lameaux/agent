@@ -107,6 +107,9 @@ public class Config {
 	public static final String HTTP_PROXY_PORT = "agent.http.proxy.port";
 	public static final String DEFAULT_HTTP_PROXY_PORT = "3128";
 
+	public static final String HTTP_PROXY_BYPASS = "agent.http.proxy.bypass";
+	public static final String DEFAULT_HTTP_PROXY_BYPASS = "localhost,127.0.0.*";
+	
 	public static final String JOB_POOL_SIZE = "agent.job.pool.size";
 	public static final String DEFAULT_JOB_POOL_SIZE = "4";
 
@@ -233,6 +236,11 @@ public class Config {
 		return !StringUtils.nullOrEmpty(getHttpProxyHost());
 	}
 
+	public String[] getHttpProxyBypass() {
+		String bypassHosts = properties.getProperty(HTTP_PROXY_BYPASS, DEFAULT_HTTP_PROXY_BYPASS).trim(); 
+		return bypassHosts.split(LIST_SEPARATOR);		
+	}
+	
 	public String getAgentRootPath() {
 		String agentRootPath = properties.getProperty(AGENT_ROOT_PATH);
 		if (StringUtils.nullOrEmpty(agentRootPath)) {

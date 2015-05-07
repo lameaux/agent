@@ -42,7 +42,7 @@ public class CdnWorker implements Callable<FileInfo> {
 
 		try {
 
-			RequestConfig.Builder requestConfigBuilder = httpClientProvider.createRequestConfigBuilder(false);
+			RequestConfig.Builder requestConfigBuilder = httpClientProvider.createRequestConfigBuilder(agentId.getHost(), false);
 			String url = String.format(URL_PATTERN, agentId.getHost(), (agentId.getBasePort() + RestServer.REST_PORT)) + FileInfoHandler.URL + uriPath;
 			HttpUriRequest request = RequestBuilder.get(url).setConfig(requestConfigBuilder.build())
 					.build();
