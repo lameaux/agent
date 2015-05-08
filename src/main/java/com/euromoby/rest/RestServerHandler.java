@@ -27,14 +27,9 @@ import io.netty.util.CharsetUtil;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.euromoby.rest.handler.RestHandler;
 
 public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
-
-	private static final Logger log = LoggerFactory.getLogger(RestServerHandler.class);
 
 	public static final String TEXT_PLAIN_UTF8 = "text/plain; charset=UTF-8";
 	
@@ -54,7 +49,6 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 	}
 
 	public RestServerHandler(RestMapper restMapper) {
-		log.info("New RestServerHandler created");
 		this.restMapper = restMapper;
 	}
 

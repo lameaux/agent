@@ -107,6 +107,9 @@ public class Config {
 	public static final String HTTP_PROXY_PORT = "agent.http.proxy.port";
 	public static final String DEFAULT_HTTP_PROXY_PORT = "3128";
 
+	public static final String HTTP_PROXY_LOGIN = "agent.http.proxy.login";
+	public static final String HTTP_PROXY_PASSWORD = "agent.http.proxy.password";
+	
 	public static final String HTTP_PROXY_BYPASS = "agent.http.proxy.bypass";
 	public static final String DEFAULT_HTTP_PROXY_BYPASS = "localhost,127.0.0.*";
 	
@@ -119,6 +122,9 @@ public class Config {
 	public static final String CDN_POOL_SIZE = "agent.cdn.pool.size";
 	public static final String DEFAULT_CDN_POOL_SIZE = "4";
 
+	public static final String TWITTER_POOL_SIZE = "agent.twitter.pool.size";
+	public static final String DEFAULT_TWITTER_POOL_SIZE = "2";	
+	
 	public static final String CDN_TIMEOUT = "agent.cdn.timeout";
 	public static final String DEFAULT_CDN_TIMEOUT = "3000";
 	
@@ -128,7 +134,11 @@ public class Config {
 	public static final String HTTP_CLIENT_TIMEOUT = "agent.httpclient.timeout";
 	public static final String DEFAULT_HTTP_CLIENT_TIMEOUT = "5000";
 	
-	
+	public static final String TWITTER_SCHEDULER_INTERVAL = "agent.twitter.interval";
+	public static final String DEFAULT_TWITTER_SCHEDULER_INTERVAL = "10000";	
+
+	public static final String TWITTER_SCHEDULER_BATCH_SIZE = "agent.twitter.batch.size";
+	public static final String DEFAULT_TWITTER_SCHEDULER_BATCH_SIZE  = "100";	
 	
 	public static final String KEYSTORE_PATH = "agent.keystore.path";
 
@@ -236,6 +246,18 @@ public class Config {
 		return !StringUtils.nullOrEmpty(getHttpProxyHost());
 	}
 
+	public String getHttpProxyLogin() {
+		return properties.getProperty(HTTP_PROXY_LOGIN);
+	}	
+
+	public String getHttpProxyPassword() {
+		return properties.getProperty(HTTP_PROXY_PASSWORD);
+	}	
+
+	public boolean isHttpProxyAuthentication() {
+		return !StringUtils.nullOrEmpty(getHttpProxyHost());
+	}	
+	
 	public String[] getHttpProxyBypass() {
 		String bypassHosts = properties.getProperty(HTTP_PROXY_BYPASS, DEFAULT_HTTP_PROXY_BYPASS).trim(); 
 		return bypassHosts.split(LIST_SEPARATOR);		
@@ -293,6 +315,10 @@ public class Config {
 		return Integer.parseInt(properties.getProperty(CDN_POOL_SIZE, DEFAULT_CDN_POOL_SIZE));
 	}
 
+	public int getTwitterPoolSize() {
+		return Integer.parseInt(properties.getProperty(TWITTER_POOL_SIZE, DEFAULT_TWITTER_POOL_SIZE));
+	}	
+	
 	public int getCdnTimeout() {
 		return Integer.parseInt(properties.getProperty(CDN_TIMEOUT, DEFAULT_CDN_TIMEOUT));
 	}
@@ -315,6 +341,14 @@ public class Config {
 
 	public String getTwitterConsumerSecret() {
 		return properties.getProperty(TWITTER_CONSUMER_SECRET);
+	}	
+
+	public int getTwitterSchedulerInterval() {
+		return Integer.parseInt(properties.getProperty(TWITTER_SCHEDULER_INTERVAL, DEFAULT_TWITTER_SCHEDULER_INTERVAL));
+	}	
+
+	public int getTwitterSchedulerBatchSize() {
+		return Integer.parseInt(properties.getProperty(TWITTER_SCHEDULER_BATCH_SIZE, DEFAULT_TWITTER_SCHEDULER_BATCH_SIZE));
 	}	
 	
 	@Override

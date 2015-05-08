@@ -24,7 +24,6 @@ import com.euromoby.rest.RestException;
 import com.euromoby.rest.handler.RestHandlerBase;
 import com.euromoby.twitter.TwitterAccount;
 import com.euromoby.twitter.TwitterManager;
-import com.euromoby.twitter.TwitterProvider;
 import com.euromoby.utils.IOUtils;
 import com.euromoby.utils.ListUtils;
 import com.euromoby.utils.StringUtils;
@@ -34,19 +33,17 @@ import com.google.gson.Gson;
 public class TwitterSendHandler extends RestHandlerBase {
 	
 	public static final String URL = "/twitter/send";
-	private static final String REQUEST_INPUT_USER_ID = "user_id";
+	private static final String REQUEST_INPUT_ACCOUNTS = "accounts";
 	private static final String REQUEST_INPUT_TEXT = "text";
 	private static final int TWITTER_MAX_TEXT = 140;
 	
 	private static final Gson gson = new Gson();
 	
-	private TwitterProvider twitterProvider;
 	private TwitterManager twitterManager;
 
 	
 	@Autowired
-	public TwitterSendHandler(TwitterProvider twitterProvider, TwitterManager twitterManager) {
-		this.twitterProvider = twitterProvider;
+	public TwitterSendHandler(TwitterManager twitterManager) {
 		this.twitterManager = twitterManager;
 	}	
 	
@@ -75,27 +72,18 @@ public class TwitterSendHandler extends RestHandlerBase {
 
 		validateRequestParameters(postParameters);
 
-		String userId = ListUtils.getFirst(postParameters.get(REQUEST_INPUT_USER_ID));
+		List<String> accountIds = postParameters.get(REQUEST_INPUT_ACCOUNTS);
 		String text = ListUtils.getFirst(postParameters.get(REQUEST_INPUT_TEXT));
 		
-		TwitterAccount account = twitterManager.getAccountById(userId);
-		if (account == null) {
-			throw new RestException("UserId " + userId + " not found");
-		}
-		
-		try {
-			twitterProvider.sendMessage(account, text);
-		} catch (Exception e) {
-			throw new RestException(e);
-		}
+		twitterManager.sendMessage(accountIds, text);
 
 		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
 		return httpResponseProvider.createHttpResponse(HttpResponseStatus.OK, HttpUtils.fromString("OK"));
 	}
 
 	protected void validateRequestParameters(Map<String, List<String>> requestParameters) throws RestException {
-		if (StringUtils.nullOrEmpty(ListUtils.getFirst(requestParameters.get(REQUEST_INPUT_USER_ID)))) {
-			throw new RestException("Parameter is missing: " + REQUEST_INPUT_USER_ID);
+		if (StringUtils.nullOrEmpty(ListUtils.getFirst(requestParameters.get(REQUEST_INPUT_ACCOUNTS)))) {
+			throw new RestException("Parameter is missing: " + REQUEST_INPUT_ACCOUNTS);
 		}
 		String text = ListUtils.getFirst(requestParameters.get(REQUEST_INPUT_TEXT));
 		if (StringUtils.nullOrEmpty(text)) {

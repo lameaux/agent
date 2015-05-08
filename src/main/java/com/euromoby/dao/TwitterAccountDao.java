@@ -39,11 +39,6 @@ public class TwitterAccountDao {
 		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 		return jdbcTemplate.query("select * from twitter_account order by screen_name", ROW_MAPPER);
 	}
-
-	public List<TwitterAccount> findByTag(String tag) {
-		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-		return jdbcTemplate.query("select * from twitter_account where tags LIKE ? order by screen_name", ROW_MAPPER, "%"+tag+"%");
-	}	
 	
 	public void save(TwitterAccount twitterAccount) {
 		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);

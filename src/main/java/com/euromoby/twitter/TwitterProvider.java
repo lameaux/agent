@@ -25,7 +25,6 @@ public class TwitterProvider {
 	
 	private Map<String, String> requestTokens =  Collections.synchronizedMap(new LRUMap<String, String>());
 	
-	
 	@Autowired
 	public TwitterProvider(Config config) {
 		this.config = config;
@@ -40,7 +39,13 @@ public class TwitterProvider {
 		if (config.isHttpProxy()) {
 			cb.setHttpProxyHost(config.getHttpProxyHost());
 			cb.setHttpProxyPort(config.getHttpProxyPort());
+			if (config.isHttpProxyAuthentication()) {
+				cb.setHttpProxyUser(config.getHttpProxyLogin());
+				cb.setHttpProxyPassword(config.getHttpProxyPassword());
+			}
 		}
+		cb.setHttpConnectionTimeout(config.getHttpClientTimeout());
+		cb.setHttpReadTimeout(config.getHttpClientTimeout());
 		
 		TwitterFactory tf = new TwitterFactory(cb.build());
 		Twitter twitter = tf.getInstance();

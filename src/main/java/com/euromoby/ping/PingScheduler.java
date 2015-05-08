@@ -25,8 +25,8 @@ public class PingScheduler extends SchedulerService {
 
 	private static final Logger LOG = LoggerFactory.getLogger(PingScheduler.class);
 
+	private Config config;	
 	private AgentManager agentManager;
-	private Config config;
 	private PingSender pingSender;
 
 	private ExecutorService executor;

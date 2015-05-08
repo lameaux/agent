@@ -16,8 +16,8 @@
 		<level value="INFO" />
 		<appender-ref ref="STDOUT" />
 	</logger>
-	<logger name="org.springframework.jdbc">
-	    <level value="TRACE" />
+	<logger name="org.springframework">
+	    <level value="INFO" />
 	    <appender-ref ref="STDOUT" />
 	</logger>	
 	<root level="debug">

@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.euromoby.dao.MailAccountDao;
 import com.euromoby.dao.MailMessageDao;
@@ -30,30 +31,37 @@ public class MailManager {
 		this.mailFileProvider = mailFileProvider;
 	}
 
+	@Transactional(readOnly=true)	
 	public MailAccount findAccount(Tuple<String, String> loginDomain) {
 			return mailAccountDao.findByLoginAndDomain(loginDomain.getFirst(), loginDomain.getSecond());
 	}
 
+	@Transactional(readOnly=true)	
 	public MailMessage findMessage(Integer accountId, Integer id) {
 		return mailMessageDao.findByAccountIdAndId(accountId, id);
-}	
-	
+	}	
+
+	@Transactional	
 	public void saveAccount(MailAccount mailAccount) {
 		mailAccountDao.save(mailAccount);
 	}
 
+	@Transactional	
 	public void updateAccount(MailAccount mailAccount) {
 		mailAccountDao.update(mailAccount);
 	}	
 	
+	@Transactional(readOnly=true)	
 	public List<MailAccount> getAccounts() {
 		return mailAccountDao.findAll();
 	}
 
+	@Transactional(readOnly=true)	
 	public List<MailMessage> getMessages(Integer accountId) {
 		return mailMessageDao.findByAccountId(accountId);
 	}
-	
+
+	@Transactional(readOnly=true)	
 	public void deleteMessage(Tuple<String, String> loginDomain, MailMessage mailMessage) {
 		mailMessageDao.deleteById(mailMessage.getId());
 		

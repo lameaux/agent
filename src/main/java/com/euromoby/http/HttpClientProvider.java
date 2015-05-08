@@ -1,15 +1,18 @@
 package com.euromoby.http;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.http.HttpHost;
+import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.Registry;
@@ -21,6 +24,9 @@ import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicHeader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -32,6 +38,8 @@ import com.euromoby.rest.RestServer;
 @Component
 public class HttpClientProvider {
 
+	private static final Logger log = LoggerFactory.getLogger(HttpClientProvider.class);
+	
 	public static final String HTTPS = "https";
 
 	public static final Pattern WILDCARD_REGEX = Pattern.compile("[^*]+|(\\*)");	
@@ -77,6 +85,19 @@ public class HttpClientProvider {
 		    authCache.put(new HttpHost(agentId.getHost(), restPort, HTTPS), basicAuth);
 	    }
         
+	    // proxy authentication
+	    if (config.isHttpProxy() && config.isHttpProxyAuthentication()) {
+		    UsernamePasswordCredentials proxyCredentials = new UsernamePasswordCredentials(config.getHttpProxyLogin(), config.getHttpProxyPassword());	    	
+		    credentialsProvider.setCredentials(new AuthScope(config.getHttpProxyHost(), config.getHttpProxyPort()), proxyCredentials);
+		    BasicScheme proxyAuth = new BasicScheme();
+		    try {
+		    	proxyAuth.processChallenge( new BasicHeader( AUTH.PROXY_AUTH, "BASIC preemptive" ) );
+		    } catch (Exception e) {
+		    	log.warn("Proxy authentication failed", e);
+		    }
+		    authCache.put(new HttpHost(config.getHttpProxyHost(), config.getHttpProxyPort()), proxyAuth);
+	    }
+	    
         return context;
 	}
 	
@@ -87,6 +108,7 @@ public class HttpClientProvider {
 		RequestConfig.Builder requestConfigBuilder = RequestConfig.custom().setSocketTimeout(timeout).setConnectTimeout(timeout);
 		if (!noProxy && config.isHttpProxy() && !bypassProxy(host)) {
 			requestConfigBuilder.setProxy(new HttpHost(config.getHttpProxyHost(), config.getHttpProxyPort()));
+			requestConfigBuilder.setProxyPreferredAuthSchemes(Arrays.asList(AuthSchemes.BASIC));
 		}
 		return requestConfigBuilder;
 	}

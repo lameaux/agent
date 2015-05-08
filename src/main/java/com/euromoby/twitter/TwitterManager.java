@@ -1,5 +1,6 @@
 package com.euromoby.twitter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,15 +10,18 @@ import org.springframework.transaction.annotation.Transactional;
 import twitter4j.auth.AccessToken;
 
 import com.euromoby.dao.TwitterAccountDao;
+import com.euromoby.dao.TwitterMessageDao;
 
 @Component
 public class TwitterManager {
 
 	private TwitterAccountDao twitterAccountDao;
-
+	private TwitterMessageDao twitterMessageDao;
+	
 	@Autowired
-	public TwitterManager(TwitterAccountDao twitterAccountDao) {
+	public TwitterManager(TwitterAccountDao twitterAccountDao, TwitterMessageDao twitterMessageDao) {
 		this.twitterAccountDao = twitterAccountDao;
+		this.twitterMessageDao = twitterMessageDao;
 	}
 
 	@Transactional(readOnly=true)	
@@ -55,4 +59,26 @@ public class TwitterManager {
 		}
 	}
 
+	@Transactional
+	public void sendMessage(List<String> accountIds, String messageText) {
+		List<TwitterMessage> messages = new ArrayList<TwitterMessage>(accountIds.size());
+		for (String accountId : accountIds) {
+			TwitterMessage twitterMessage = new TwitterMessage();
+			twitterMessage.setAccountId(accountId);
+			twitterMessage.setMessageText(messageText);
+			messages.add(twitterMessage);
+		}
+		twitterMessageDao.saveAll(messages);
+	}
+	
+	@Transactional
+	public List<TwitterMessage> getScheduledMessages(int limit) {
+		return twitterMessageDao.findAll(limit);
+	}
+	
+	@Transactional
+	public void deleteScheduledMessages(List<TwitterMessage> twitterMessages) {
+		twitterMessageDao.deleteAll(twitterMessages);
+	}
+	
 }

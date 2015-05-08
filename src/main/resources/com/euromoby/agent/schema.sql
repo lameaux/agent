@@ -2,6 +2,7 @@
 -- DROP INDEX IF EXISTS mail_account_unique;
 -- DROP TABLE IF EXISTS mail_message;
 -- DROP TABLE IF EXISTS twitter_account;
+-- DROP TABLE IF EXISTS twitter_message;
 
 CREATE TABLE IF NOT EXISTS mail_account (
 	id INT auto_increment PRIMARY KEY, 
@@ -26,4 +27,10 @@ CREATE TABLE IF NOT EXISTS twitter_account (
 	tags VARCHAR(255),
 	access_token VARCHAR(255),
 	access_token_secret VARCHAR(255)	
+);
+
+CREATE TABLE IF NOT EXISTS twitter_message (
+	id INT auto_increment PRIMARY KEY,
+	account_id VARCHAR(20), 
+	message_text VARCHAR(255)
 );
