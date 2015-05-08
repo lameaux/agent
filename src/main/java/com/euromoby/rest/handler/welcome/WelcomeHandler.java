@@ -2,12 +2,16 @@ package com.euromoby.rest.handler.welcome;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.CharsetUtil;
 
 import java.io.InputStream;
 import java.net.URI;
+import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
@@ -27,8 +31,7 @@ public class WelcomeHandler extends RestHandlerBase {
 	}	
 	
 	@Override
-	public FullHttpResponse doGet() {
-
+	public FullHttpResponse doGet(ChannelHandlerContext ctx, HttpRequest request, Map<String, List<String>> queryParameters) {
 		InputStream is = WelcomeHandler.class.getResourceAsStream("welcome.html");
 		String pageContent = IOUtils.streamToString(is);
 		pageContent = pageContent.replace("%AGENT%", Agent.TITLE);

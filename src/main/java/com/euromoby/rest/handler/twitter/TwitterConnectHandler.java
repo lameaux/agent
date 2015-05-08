@@ -1,9 +1,13 @@
 package com.euromoby.rest.handler.twitter;
 
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
 import java.net.URI;
+import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -14,14 +18,14 @@ import com.euromoby.rest.handler.RestHandlerBase;
 import com.euromoby.twitter.TwitterProvider;
 
 @Component
-public class TwitterRegisterHandler extends RestHandlerBase {
+public class TwitterConnectHandler extends RestHandlerBase {
 
-	public static final String URL = "/twitter/register";
+	public static final String URL = "/twitter/connect";
 
 	private TwitterProvider twitterProvider;
 
 	@Autowired
-	public TwitterRegisterHandler(TwitterProvider twitterProvider) {
+	public TwitterConnectHandler(TwitterProvider twitterProvider) {
 		this.twitterProvider = twitterProvider;
 
 	}
@@ -32,7 +36,7 @@ public class TwitterRegisterHandler extends RestHandlerBase {
 	}
 
 	@Override
-	public FullHttpResponse doGet() throws Exception {
+	public FullHttpResponse doGet(ChannelHandlerContext ctx, HttpRequest request, Map<String, List<String>> queryParameters) throws Exception {
 		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
 		try {
 			String authorizationUrl = twitterProvider.getAuthorizationUrl();

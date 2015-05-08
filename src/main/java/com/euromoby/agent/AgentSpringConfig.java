@@ -5,9 +5,11 @@ import java.beans.PropertyVetoException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import com.euromoby.database.ComboPooledDataSourceFactory;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
@@ -15,6 +17,7 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 @Configuration
 @ComponentScan("com.euromoby")
+@EnableTransactionManagement
 public class AgentSpringConfig {
 	@Bean
 	public Config config() {
@@ -28,6 +31,13 @@ public class AgentSpringConfig {
 		builder.setDataSourceFactory(comboPooledDataSourceFactory(config()));
 		builder.addScript("classpath:com/euromoby/agent/schema.sql");
 		return builder.build();
+	}
+	
+	@Bean
+	public DataSourceTransactionManager transactionManager() {
+		DataSourceTransactionManager manager = new DataSourceTransactionManager();
+		manager.setDataSource(dataSource());
+		return manager;
 	}
 	
 	public ComboPooledDataSourceFactory comboPooledDataSourceFactory(Config config) {

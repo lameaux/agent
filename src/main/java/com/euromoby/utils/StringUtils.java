@@ -10,6 +10,13 @@ public class StringUtils {
 		return value == null || value.trim().isEmpty();
 	}	
 	
+	public static String emptyStringIfNull(String value) {
+		if (value == null) {
+			return "";
+		}
+		return value;
+	}
+	
 	public static String trimIfNotEmpty(String value) {
 		if (nullOrEmpty(value)) {
 			return value;

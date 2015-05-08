@@ -27,9 +27,14 @@ import io.netty.util.CharsetUtil;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.euromoby.rest.handler.RestHandler;
 
 public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
+
+	private static final Logger log = LoggerFactory.getLogger(RestServerHandler.class);
 
 	public static final String TEXT_PLAIN_UTF8 = "text/plain; charset=UTF-8";
 	
@@ -37,8 +42,10 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 	
 	private RestHandler handler;
 	private HttpPostRequestDecoder decoder;
+	private HttpRequest request;
+	
 	private static final HttpDataFactory factory = new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);
-
+	
 	static {
 		DiskFileUpload.deleteOnExitTemporaryFile = true;
 		DiskFileUpload.baseDirectory = null; // system temp directory
@@ -47,6 +54,7 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 	}
 
 	public RestServerHandler(RestMapper restMapper) {
+		log.info("New RestServerHandler created");
 		this.restMapper = restMapper;
 	}
 
@@ -58,6 +66,9 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 		return handler;
 	}
 	
+	protected void setRequest(HttpRequest request) {
+		this.request = request;
+	}
 	
 	protected RestHandler findRestHandler(HttpRequest httpRequest) {
 		String uriString = httpRequest.getUri();
@@ -67,7 +78,6 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 		} catch (URISyntaxException e) {
 			return null;
 		}
-
 		return restMapper.getHandler(uri);
 	}
 
@@ -82,7 +92,7 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 		if (handler == null) {
 			throw new IllegalStateException("RestHandler not configured");
 		}
-		handler.process(ctx);
+		handler.process(ctx, request, decoder);
 	}
 
 	protected void sendErrorResponse(ChannelHandlerContext ctx, RestException e) {
@@ -98,7 +108,7 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 		ctx.channel().close();
 	}
 
-	protected void processHttpRequest(ChannelHandlerContext ctx, HttpRequest request) {
+	protected void processHttpRequest(ChannelHandlerContext ctx) {
 		handler = findRestHandler(request);
 		if (handler == null) {
 			sendErrorResponse(ctx, new RestException(HttpResponseStatus.NOT_FOUND));
@@ -108,9 +118,6 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 		if (HttpHeaders.is100ContinueExpected(request)) {
 			send100Continue(ctx);
 		}			
-		
-		// save request
-		handler.setHttpRequest(request);
 
 		// if GET Method: should not try to create a HttpPostRequestDecoder
 		if (request.getMethod().equals(HttpMethod.GET)) {
@@ -118,19 +125,16 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 		}
 		try {
 			decoder = new HttpPostRequestDecoder(factory, request);
-			// save decoder
-			handler.setHttpPostRequestDecoder(decoder);
 		} catch (ErrorDataDecoderException e) {
 			sendErrorResponse(ctx, new RestException(e));
 		}	
-		
 	}
 	
 	@Override
 	public void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
 		if (msg instanceof HttpRequest) {
-			HttpRequest request = (HttpRequest) msg;
-			processHttpRequest(ctx, request);
+			request = (HttpRequest) msg;
+			processHttpRequest(ctx);
 			return;
 		}
 
@@ -145,7 +149,6 @@ public class RestServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 					sendErrorResponse(ctx, new RestException(e));
 					return;
 				}
-
 				// last chunk arrived
 				if (chunk instanceof LastHttpContent) {
 					executeRestHandler(ctx);

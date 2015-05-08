@@ -2,12 +2,16 @@ package com.euromoby.rest.handler.mail;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.CharsetUtil;
 
+import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +24,7 @@ import com.euromoby.mail.MailManager;
 import com.euromoby.rest.RestException;
 import com.euromoby.rest.handler.RestHandlerBase;
 import com.euromoby.utils.IOUtils;
+import com.euromoby.utils.ListUtils;
 import com.euromoby.utils.StringUtils;
 
 @Component
@@ -43,7 +48,7 @@ public class MailAddHandler extends RestHandlerBase {
 	}
 	
 	@Override
-	public FullHttpResponse doGet() {
+	public FullHttpResponse doGet(ChannelHandlerContext ctx, HttpRequest request, Map<String, List<String>> queryParameters) {
 		InputStream is = MailAddHandler.class.getResourceAsStream("mailadd.html");
 		String pageContent = IOUtils.streamToString(is);
 		ByteBuf content = Unpooled.copiedBuffer(pageContent, CharsetUtil.UTF_8);
@@ -52,15 +57,13 @@ public class MailAddHandler extends RestHandlerBase {
 	}
 
 	@Override
-	public FullHttpResponse doPost() throws RestException {
+	public FullHttpResponse doPost(ChannelHandlerContext ctx, HttpRequest request, Map<String, List<String>> queryParameters, Map<String, List<String>> postParameters, Map<String, File> uploadFiles) throws RestException {
 
-		Map<String, String> requestParameters = getRequestParameters();
-
-		validateRequestParameters(requestParameters);
+		validateRequestParameters(postParameters);
 
 		MailAccount mailAccount = new MailAccount();
-		mailAccount.setLogin(requestParameters.get(REQUEST_INPUT_LOGIN));
-		mailAccount.setDomain(requestParameters.get(REQUEST_INPUT_DOMAIN));
+		mailAccount.setLogin(ListUtils.getFirst(postParameters.get(REQUEST_INPUT_LOGIN)));
+		mailAccount.setDomain(ListUtils.getFirst(postParameters.get(REQUEST_INPUT_DOMAIN)));
 		mailAccount.setActive(true);
 		mailManager.saveAccount(mailAccount);
 
@@ -68,11 +71,11 @@ public class MailAddHandler extends RestHandlerBase {
 		return httpResponseProvider.createHttpResponse(HttpResponseStatus.OK, HttpUtils.fromString("OK"));
 	}
 
-	protected void validateRequestParameters(Map<String, String> requestParameters) throws RestException {
-		if (StringUtils.nullOrEmpty(requestParameters.get(REQUEST_INPUT_LOGIN))) {
+	protected void validateRequestParameters(Map<String, List<String>> requestParameters) throws RestException {
+		if (StringUtils.nullOrEmpty(ListUtils.getFirst(requestParameters.get(REQUEST_INPUT_LOGIN)))) {
 			throw new RestException("Parameter is missing: " + REQUEST_INPUT_LOGIN);
 		}
-		if (StringUtils.nullOrEmpty(requestParameters.get(REQUEST_INPUT_DOMAIN))) {
+		if (StringUtils.nullOrEmpty(ListUtils.getFirst(requestParameters.get(REQUEST_INPUT_DOMAIN)))) {
 			throw new RestException("Parameter is missing: " + REQUEST_INPUT_DOMAIN);
 		}
 	}

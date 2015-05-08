@@ -17,6 +17,7 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
+import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.util.CharsetUtil;
 
 import java.io.File;
@@ -108,10 +109,11 @@ public class RestServerHandlerTest {
 		Mockito.when(request.getUri()).thenReturn(GOOD_URI);
 		Mockito.when(restMapper.getHandler(Matchers.eq(uri))).thenReturn(restHandler);
 		Mockito.when(request.getMethod()).thenReturn(HttpMethod.GET);
-		handler.processHttpRequest(ctx, request);
+		handler.setRequest(request);
+		handler.processHttpRequest(ctx);
 		assertNotNull(handler.getRestHandler());
 		handler.executeRestHandler(ctx);
-		Mockito.verify(restHandler).process(Matchers.eq(ctx));
+		Mockito.verify(restHandler).process(Matchers.eq(ctx), Matchers.eq(request), Matchers.any(HttpPostRequestDecoder.class));
 	}	
 	
 	@Test
@@ -156,7 +158,8 @@ public class RestServerHandlerTest {
 		URI uri = new URI(UNKNOWN_URI);
 		Mockito.when(request.getUri()).thenReturn(UNKNOWN_URI);
 		Mockito.when(restMapper.getHandler(Matchers.eq(uri))).thenReturn(null);
-		handler.processHttpRequest(ctx, request);
+		handler.setRequest(request);
+		handler.processHttpRequest(ctx);
 		assertNull(handler.getRestHandler());
 		assertNull(handler.getHttpPostRequestDecoder());		
 	}
@@ -168,15 +171,13 @@ public class RestServerHandlerTest {
 		Mockito.when(restMapper.getHandler(Matchers.eq(uri))).thenReturn(restHandler);
 		Mockito.when(request.getMethod()).thenReturn(HttpMethod.GET);
 		Mockito.when(headers.get(Matchers.refEq(HttpHeaders.newEntity(HttpHeaders.Names.EXPECT)))).thenReturn(HttpHeaders.Values.CONTINUE);
-
-		handler.processHttpRequest(ctx, request);
+		handler.setRequest(request);
+		handler.processHttpRequest(ctx);
 		
 		ArgumentCaptor<FullHttpResponse> captor = ArgumentCaptor.forClass(FullHttpResponse.class);		
 		Mockito.verify(ctx).write(captor.capture());
 		FullHttpResponse response = captor.getValue();
 		assertEquals(HttpResponseStatus.CONTINUE, response.getStatus());
-		
-		Mockito.verify(restHandler).setHttpRequest(Mockito.eq(request));
 		assertNotNull(handler.getRestHandler());		
 		assertNull(handler.getHttpPostRequestDecoder());
 	}
@@ -187,11 +188,10 @@ public class RestServerHandlerTest {
 		Mockito.when(request.getUri()).thenReturn(GOOD_URI);
 		Mockito.when(restMapper.getHandler(Matchers.eq(uri))).thenReturn(restHandler);
 		Mockito.when(request.getMethod()).thenReturn(HttpMethod.POST);
-
 		Mockito.when(request.content()).thenReturn(Unpooled.copiedBuffer("foobar", CharsetUtil.UTF_8));
-		handler.processHttpRequest(ctx, request);
+		handler.setRequest(request);
+		handler.processHttpRequest(ctx);
 		
-		Mockito.verify(restHandler).setHttpRequest(Mockito.eq(request));
 		Mockito.verifyZeroInteractions(ctx);
 		assertNotNull(handler.getRestHandler());
 		assertNotNull(handler.getHttpPostRequestDecoder());
@@ -210,7 +210,7 @@ public class RestServerHandlerTest {
 		
 		// send content
 		handler.channelRead0(ctx, httpContent);
-		Mockito.verify(restHandler).process(Matchers.eq(ctx));		
+		Mockito.verify(restHandler).process(Matchers.eq(ctx), Matchers.eq(request), Matchers.any(HttpPostRequestDecoder.class));		
 	}	
 	
 	@Test
@@ -231,7 +231,7 @@ public class RestServerHandlerTest {
 		Mockito.when(lastHttpContent.content()).thenReturn(Unpooled.copiedBuffer("foobar", CharsetUtil.UTF_8));		
 		handler.channelRead0(ctx, lastHttpContent);		
 		
-		Mockito.verify(restHandler).process(Matchers.eq(ctx));			
+		Mockito.verify(restHandler).process(Matchers.eq(ctx), Matchers.eq(request), Matchers.any(HttpPostRequestDecoder.class));			
 		
 	}
 	

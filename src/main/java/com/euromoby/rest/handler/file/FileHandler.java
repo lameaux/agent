@@ -1,12 +1,16 @@
 package com.euromoby.rest.handler.file;
 
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -48,7 +52,7 @@ public class FileHandler extends RestHandlerBase {
 	}
 	
 	@Override
-	public void doGetChunked(ChannelHandlerContext ctx) throws Exception {
+	public void doGetChunked(ChannelHandlerContext ctx, HttpRequest request, Map<String, List<String>> queryParameters) throws Exception {
 		URI uri = new URI(request.getUri());
 
 		Matcher m = URL_PATTERN.matcher(uri.getPath());
@@ -71,7 +75,8 @@ public class FileHandler extends RestHandlerBase {
         // Cache Validation
 		if (!HttpUtils.ifModifiedSince(request, targetFile)) {
 			HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
-        	writeResponse(ctx.channel(), httpResponseProvider.createNotModifiedResponse());
+			FullHttpResponse response = httpResponseProvider.createNotModifiedResponse();
+			httpResponseProvider.writeResponse(ctx, response);
         	return;			
 		}
 		

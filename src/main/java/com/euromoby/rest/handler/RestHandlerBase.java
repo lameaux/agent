@@ -1,8 +1,5 @@
 package com.euromoby.rest.handler;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.CookieDecoder;
@@ -12,7 +9,6 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
-import io.netty.handler.codec.http.ServerCookieEncoder;
 import io.netty.handler.codec.http.multipart.Attribute;
 import io.netty.handler.codec.http.multipart.FileUpload;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
@@ -22,10 +18,9 @@ import io.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -33,99 +28,54 @@ import java.util.Map;
 import java.util.Set;
 
 import com.euromoby.http.HttpResponseProvider;
+import com.euromoby.model.Tuple;
 import com.euromoby.rest.RestException;
 
 
 public abstract class RestHandlerBase implements RestHandler {
 
-	protected HttpRequest request;
-	protected HttpPostRequestDecoder decoder;
-	protected InetAddress clientInetAddress;
-
-	protected Map<String, String> requestParameters = new HashMap<String, String>();
-	protected Map<String, File> requestFiles = new HashMap<String, File>();
-
-	@Override
-	public void setHttpRequest(HttpRequest request) {
-		this.request = request;
-	}
-
-	@Override
-	public void setHttpPostRequestDecoder(HttpPostRequestDecoder decoder) {
-		this.decoder = decoder;
-	}
-
-	public Map<String, String> getRequestParameters() {
-		return requestParameters;
-	}
-
-	public void setRequestParameters(Map<String, String> requestParameters) {
-		this.requestParameters = requestParameters;
-	}
-	
-	public Map<String, File> getRequestFiles() {
-		return requestFiles;
-	}
-
-	public void setRequestFiles(Map<String, File> requestFiles) {
-		this.requestFiles = requestFiles;
-	}
-	
-	public URI getUri() {
-		if (request == null) {
-			return null;
-		}
-		
-		try {
-			return new URI(request.getUri());
-		} catch (URISyntaxException e) {
-			return null;
-		}		
-		
-	}
-	
 	@Override
 	public abstract boolean matchUri(URI uri);	
 	
 	@Override
-	public void process(ChannelHandlerContext ctx) {
+	public void process(ChannelHandlerContext ctx, HttpRequest request, HttpPostRequestDecoder decoder) {
 		if (request == null) {
 			throw new RuntimeException("No HttpRequest");
 		}
-		
-		setClientInetAddress(((InetSocketAddress) ctx.channel().remoteAddress()).getAddress());
 		
 		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
 
 		FullHttpResponse response;
 		try {
+			Map<String, List<String>> queryParameters = getUriAttributes(request);
 			if (request.getMethod().equals(HttpMethod.POST)) {
-				processPostData();
-				response = doPost();
+				Tuple<Map<String, List<String>>, Map<String, File>> postData = processPostData(decoder);
+				try {
+					response = doPost(ctx, request, queryParameters, postData.getFirst(), postData.getSecond());
+				} finally {
+					deleteTempFiles(postData.getSecond());
+				}
 			} else if (isChunkedResponse()){
-				doGetChunked(ctx);
+				doGetChunked(ctx, request, queryParameters);
 				return;
 			} else {
-				response = doGet();
+				response = doGet(ctx, request, queryParameters);
 			}
 		} catch (RestException e) {
 			response = httpResponseProvider.errorResponse(e);
 		} catch (Exception e) {
 			response = httpResponseProvider.errorResponse(new RestException(HttpResponseStatus.BAD_REQUEST, e));
-		} finally {
-			if (request.getMethod().equals(HttpMethod.POST)) {
-				deleteTempFiles();
-			}
 		}
-		writeResponse(ctx.channel(), response);
+		
+		httpResponseProvider.writeResponse(ctx, response);
 	}
 
-	public FullHttpResponse doGet() throws Exception {
+	public FullHttpResponse doGet(ChannelHandlerContext ctx, HttpRequest request, Map<String, List<String>> queryParameters) throws Exception {
 		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
 		return httpResponseProvider.createHttpResponse(HttpResponseStatus.NOT_IMPLEMENTED);
 	}
 
-	public FullHttpResponse doPost() throws Exception {
+	public FullHttpResponse doPost(ChannelHandlerContext ctx, HttpRequest request, Map<String, List<String>> queryParameters, Map<String, List<String>> postParameters, Map<String, File> uploadFiles) throws Exception {
 		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
 		return httpResponseProvider.createHttpResponse(HttpResponseStatus.NOT_IMPLEMENTED);
 	}
@@ -134,16 +84,13 @@ public abstract class RestHandlerBase implements RestHandler {
 		return false;
 	}
 	
-	public void doGetChunked(ChannelHandlerContext ctx) throws Exception {
+	public void doGetChunked(ChannelHandlerContext ctx, HttpRequest request, Map<String, List<String>> queryParameters) throws Exception {
 		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
-		writeResponse(ctx.channel(), httpResponseProvider.createHttpResponse(HttpResponseStatus.NOT_IMPLEMENTED));
+		FullHttpResponse response = httpResponseProvider.createHttpResponse(HttpResponseStatus.NOT_IMPLEMENTED);
+		httpResponseProvider.writeResponse(ctx, response);
 	}
 	
-	public HttpHeaders getHeaders() {
-		return request.headers();
-	}
-
-	public Set<Cookie> getCookies() {
+	public Set<Cookie> getCookies(HttpRequest request) {
 		String value = request.headers().get(HttpHeaders.Names.COOKIE);
 		if (value == null) {
 			return Collections.emptySet();
@@ -152,46 +99,29 @@ public abstract class RestHandlerBase implements RestHandler {
 		}
 	}
 
-	public InetAddress getClientInetAddress() {
-		return clientInetAddress;
-	}
-
-	protected void setClientInetAddress(InetAddress clientInetAddress) {
-		this.clientInetAddress = clientInetAddress;
+	public URI getUri(HttpRequest request) {
+		if (request == null) {
+			return null;
+		}
+		try {
+			return new URI(request.getUri());
+		} catch (URISyntaxException e) {
+			return null;
+		}		
 	}	
 	
-	public Map<String, List<String>> getUriAttributes() {
+	protected Map<String, List<String>> getUriAttributes(HttpRequest request) {
 		QueryStringDecoder decoderQuery = new QueryStringDecoder(request.getUri());
 		return decoderQuery.parameters();
-	}
-
-	protected void writeResponse(Channel channel, FullHttpResponse response) {
-		Set<Cookie> cookies;
-		String value = request.headers().get(HttpHeaders.Names.COOKIE);
-		if (value == null) {
-			cookies = Collections.emptySet();
-		} else {
-			cookies = CookieDecoder.decode(value);
-		}
-		if (!cookies.isEmpty()) {
-			// Reset the cookies if necessary.
-			for (Cookie cookie : cookies) {
-				response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.encode(cookie));
-			}
-		}
-		// Write the response.
-		ChannelFuture future = channel.writeAndFlush(response);
-
-		// Close the connection after the write operation is done if necessary.
-		if (!response.headers().contains(HttpHeaders.Names.CONTENT_LENGTH)) {
-			future.addListener(ChannelFutureListener.CLOSE);
-		}
 	}
 
 	/**
 	 * Reading POST data
 	 */
-	protected void processPostData() throws IOException {
+	protected Tuple<Map<String, List<String>>, Map<String, File>> processPostData(HttpPostRequestDecoder decoder) throws IOException {
+		Map<String, List<String>> requestParameters = new HashMap<String, List<String>>();
+		Map<String, File> requestFiles = new HashMap<String, File>();		
+
 		try {
 			while (decoder.hasNext()) {
 				InterfaceHttpData data = decoder.next();
@@ -199,7 +129,12 @@ public abstract class RestHandlerBase implements RestHandler {
 					try {
 						if (data.getHttpDataType() == HttpDataType.Attribute) {
 							Attribute attribute = (Attribute) data;
-							requestParameters.put(attribute.getName(), attribute.getValue());
+							List<String> values = requestParameters.get(attribute.getName());
+							if (values == null) {
+								values = new ArrayList<String>();
+								requestParameters.put(attribute.getName(), values);
+							}
+							values.add(attribute.getValue());
 						} else if (data.getHttpDataType() == HttpDataType.FileUpload) {
 							FileUpload fileUpload = (FileUpload) data;
 							if (fileUpload.isCompleted() && fileUpload.length() > 0) {
@@ -217,10 +152,13 @@ public abstract class RestHandlerBase implements RestHandler {
 		} catch (EndOfDataDecoderException e1) {
 			// ok
 		}
+		
+		return Tuple.of(requestParameters, requestFiles);
+		
 	}
 
-	protected void deleteTempFiles() {
-		for (File tempFile : requestFiles.values()) {
+	protected void deleteTempFiles(Map<String, File> files) {
+		for (File tempFile : files.values()) {
 			tempFile.delete();
 		}
 	}

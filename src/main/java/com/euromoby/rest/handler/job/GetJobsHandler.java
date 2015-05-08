@@ -2,8 +2,10 @@ package com.euromoby.rest.handler.job;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.CharsetUtil;
 
@@ -46,22 +48,21 @@ public class GetJobsHandler extends RestHandlerBase {
 	}
 	
 	@Override
-	public FullHttpResponse doGet() throws Exception {
-		return createJobsResponse();
+	public FullHttpResponse doGet(ChannelHandlerContext ctx, HttpRequest request, Map<String, List<String>> queryParameters) throws Exception {
+		return createJobsResponse(request, queryParameters);
 	}
 
-	private AgentId getAgentId() throws Exception {
-		Map<String, List<String>> getParameters = getUriAttributes();
-		List<String> agentIdList = getParameters.get(AGENT_ID_PARAM_NAME);
+	private AgentId getAgentId(Map<String, List<String>> queryParameters) throws Exception {
+		List<String> agentIdList = queryParameters.get(AGENT_ID_PARAM_NAME);
 		if (agentIdList == null || agentIdList.isEmpty()) {
 			throw new RestException("agentId is missing");
 		}
 		return new AgentId(agentIdList.get(0));
 	}
 	
-	private FullHttpResponse createJobsResponse() throws Exception {
+	private FullHttpResponse createJobsResponse(HttpRequest request, Map<String, List<String>> queryParameters) throws Exception {
 
-		AgentId agentId = getAgentId();		
+		AgentId agentId = getAgentId(queryParameters);		
 		JobDetail[] jobDetails = new JobDetail[]{};
 		
 		String jsonResponse = gson.toJson(jobDetails);

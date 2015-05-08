@@ -2,12 +2,16 @@ package com.euromoby.rest.handler.ping;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.CharsetUtil;
 
+import java.io.File;
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -21,6 +25,7 @@ import com.euromoby.model.PingInfo;
 import com.euromoby.ping.PingInfoProvider;
 import com.euromoby.rest.RestException;
 import com.euromoby.rest.handler.RestHandlerBase;
+import com.euromoby.utils.ListUtils;
 import com.google.gson.Gson;
 
 @Component
@@ -47,14 +52,13 @@ public class PingHandler extends RestHandlerBase {
 	}
 	
 	@Override
-	public FullHttpResponse doGet() {
-		return createPingResponse();
+	public FullHttpResponse doGet(ChannelHandlerContext ctx, HttpRequest request, Map<String, List<String>> queryParameters) {
+		return createPingResponse(request);
 	}
 
 	@Override
-	public FullHttpResponse doPost() throws RestException {
-		Map<String, String> requestParameters = getRequestParameters();
-		String pingInfoString = requestParameters.get(PING_INFO_INPUT_NAME);
+	public FullHttpResponse doPost(ChannelHandlerContext ctx, HttpRequest request, Map<String, List<String>> queryParameters, Map<String, List<String>> postParameters, Map<String, File> uploadFiles) throws RestException {
+		String pingInfoString = ListUtils.getFirst(postParameters.get(PING_INFO_INPUT_NAME));
 		if (pingInfoString == null) {
 			throw new RestException("Parameter is missing: " + PING_INFO_INPUT_NAME);
 		}
@@ -69,10 +73,10 @@ public class PingHandler extends RestHandlerBase {
 		
 		LOG.debug("Received Ping message from {}", pingInfo.getAgentId());
 		
-		return createPingResponse();
+		return createPingResponse(request);
 	}
 
-	private FullHttpResponse createPingResponse() {
+	private FullHttpResponse createPingResponse(HttpRequest request) {
 		String jsonResponse = gson.toJson(pingInfoProvider.createPingInfo());
 		ByteBuf content = Unpooled.copiedBuffer(jsonResponse, CharsetUtil.UTF_8);
 		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);

@@ -1,9 +1,13 @@
 package com.euromoby.rest.handler.mail;
 
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
 import java.net.URI;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,9 +40,9 @@ public class MailDeleteHandler extends RestHandlerBase {
 	}
 
 	@Override
-	public FullHttpResponse doGet() throws RestException {
+	public FullHttpResponse doGet(ChannelHandlerContext ctx, HttpRequest request, Map<String, List<String>> queryParameters) throws RestException {
 
-		URI uri = getUri();
+		URI uri = getUri(request);
 
 		Pattern p = Pattern.compile(URL_REGEXP);
 		Matcher m = p.matcher(uri.getPath());

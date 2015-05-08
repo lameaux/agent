@@ -7,13 +7,6 @@ import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import java.net.URI;
 
 public interface RestHandler {
-
-	void process(ChannelHandlerContext ctx);
-
-	void setHttpRequest(HttpRequest request);
-
-	void setHttpPostRequestDecoder(HttpPostRequestDecoder decoder);
-	
+	void process(ChannelHandlerContext ctx, HttpRequest request, HttpPostRequestDecoder decoder);
 	boolean matchUri(URI uri);
-
 }

@@ -16,7 +16,6 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 
 import java.io.File;
-import java.net.InetAddress;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -67,25 +66,23 @@ public class RestHandlerBaseTest {
 				return true;
 			}
 		}; 
-		restHandlerBase.setHttpRequest(request);
-		
 	}
 	
 	@Test
 	public void testDoGet() throws Exception {
-		FullHttpResponse response = restHandlerBase.doGet();
+		FullHttpResponse response = restHandlerBase.doGet(ctx, request, null);
 		assertEquals(HttpResponseStatus.NOT_IMPLEMENTED, response.getStatus());
 	}
 
 	@Test
 	public void testDoPost() throws Exception {
-		FullHttpResponse response = restHandlerBase.doPost();
+		FullHttpResponse response = restHandlerBase.doPost(ctx, request, null, null, null);
 		assertEquals(HttpResponseStatus.NOT_IMPLEMENTED, response.getStatus());
 	}
 
 	@Test
 	public void testDoGetChunked() throws Exception {
-		restHandlerBase.doGetChunked(ctx);
+		restHandlerBase.doGetChunked(ctx, request, null);
 		ArgumentCaptor<FullHttpResponse> argumentCaptor = ArgumentCaptor.forClass(FullHttpResponse.class); 
 		Mockito.verify(channel).writeAndFlush(argumentCaptor.capture());
 		FullHttpResponse response = argumentCaptor.getValue();
@@ -97,15 +94,10 @@ public class RestHandlerBaseTest {
 	public void shouldBeNotChunked() {
 		assertFalse(restHandlerBase.isChunkedResponse());
 	}
-
-	@Test
-	public void testGetHeaders() throws Exception {
-		assertEquals(headers, restHandlerBase.getHeaders());
-	}	
 	
 	@Test
 	public void testGetCookies() {
-		Set<Cookie> empty = restHandlerBase.getCookies();
+		Set<Cookie> empty = restHandlerBase.getCookies(request);
 		assertTrue(empty.isEmpty());
 		
 		Set<Cookie> cookies = new HashSet<Cookie>();
@@ -117,7 +109,7 @@ public class RestHandlerBaseTest {
 		
 		Mockito.when(headers.get(Matchers.eq(HttpHeaders.Names.COOKIE))).thenReturn(ENCODED_COOKIES);
 		
-		Set<Cookie> headerCookies = restHandlerBase.getCookies();
+		Set<Cookie> headerCookies = restHandlerBase.getCookies(request);
 		assertFalse(headerCookies.isEmpty());
 		
 		Cookie headerCookie = headerCookies.iterator().next();
@@ -126,22 +118,16 @@ public class RestHandlerBaseTest {
 	}
 	
 	@Test
-	public void testGetClientInetAddress() throws Exception {
-		restHandlerBase.setClientInetAddress(InetAddress.getLocalHost());
-		assertEquals(InetAddress.getLocalHost(), restHandlerBase.getClientInetAddress());
-	}
-	
-	@Test
 	public void testGetUriAttributesEmpty() {
 		Mockito.when(request.getUri()).thenReturn("foobar");
-		Map<String, List<String>> attrs = restHandlerBase.getUriAttributes();
+		Map<String, List<String>> attrs = restHandlerBase.getUriAttributes(request);
 		assertTrue(attrs.isEmpty());
 	}
 
 	@Test
 	public void testGetUriAttributesNotEmpty() {
 		Mockito.when(request.getUri()).thenReturn("/?foo=bar");
-		Map<String, List<String>> attrs = restHandlerBase.getUriAttributes();
+		Map<String, List<String>> attrs = restHandlerBase.getUriAttributes(request);
 		assertFalse(attrs.isEmpty());
 		List<String> fooAttr = attrs.get("foo");
 		assertEquals("bar", fooAttr.iterator().next());
@@ -151,8 +137,7 @@ public class RestHandlerBaseTest {
 	public void testDeleteTempFiles() {
 		Map<String, File> requestFiles = new HashMap<String, File>();
 		requestFiles.put("foo", fileToDelete);
-		restHandlerBase.setRequestFiles(requestFiles);
-		restHandlerBase.deleteTempFiles();
+		restHandlerBase.deleteTempFiles(requestFiles);
 		Mockito.verify(fileToDelete).delete();
 		
 	}

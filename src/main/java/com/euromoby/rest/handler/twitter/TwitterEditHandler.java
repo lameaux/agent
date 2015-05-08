@@ -1,4 +1,4 @@
-package com.euromoby.rest.handler.mail;
+package com.euromoby.rest.handler.twitter;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -21,27 +21,26 @@ import org.springframework.stereotype.Component;
 
 import com.euromoby.http.HttpResponseProvider;
 import com.euromoby.http.HttpUtils;
-import com.euromoby.mail.MailAccount;
-import com.euromoby.mail.MailManager;
-import com.euromoby.model.Tuple;
 import com.euromoby.rest.RestException;
 import com.euromoby.rest.handler.RestHandlerBase;
+import com.euromoby.twitter.TwitterAccount;
+import com.euromoby.twitter.TwitterManager;
 import com.euromoby.utils.IOUtils;
 import com.euromoby.utils.ListUtils;
 import com.euromoby.utils.StringUtils;
 
 @Component
-public class MailEditHandler extends RestHandlerBase {
+public class TwitterEditHandler extends RestHandlerBase {
 
-	public static final String URL_REGEXP = "/mail/edit/([a-z0-9\\._-]+)/([a-z0-9\\._-]+)";
+	public static final String URL_REGEXP = "/twitter/edit/([0-9]+)";
 
-	public static final String REQUEST_INPUT_ACTIVE = "active";
+	public static final String REQUEST_INPUT_TAGS = "tags";
 	
-	private MailManager mailManager;
+	private TwitterManager twitterManager;
 	
 	@Autowired
-	public MailEditHandler(MailManager mailManager) {
-		this.mailManager = mailManager;
+	public TwitterEditHandler(TwitterManager twitterManager) {
+		this.twitterManager = twitterManager;
 	}
 	
 	@Override
@@ -60,18 +59,18 @@ public class MailEditHandler extends RestHandlerBase {
 			throw new RestException(HttpResponseStatus.BAD_REQUEST);
 		}
 
-		Tuple<String, String> loginDomain = Tuple.of(m.group(2), m.group(1));
-		MailAccount mailAccount = mailManager.findAccount(loginDomain);
-		if (mailAccount == null) {
+		String userId = m.group(1);
+		TwitterAccount twitterAccount = twitterManager.getAccountById(userId);
+		if (twitterAccount == null) {
 			throw new RestException(HttpResponseStatus.NOT_FOUND);
 		}		
 		
-		InputStream is = MailEditHandler.class.getResourceAsStream("mailedit.html");
+		InputStream is = TwitterEditHandler.class.getResourceAsStream("twitteredit.html");
 		String pageContent = IOUtils.streamToString(is);
 		
-		pageContent = pageContent.replace("%LOGIN%", mailAccount.getLogin());
-		pageContent = pageContent.replace("%DOMAIN%", mailAccount.getDomain());
-		pageContent = pageContent.replace("%ACTIVE%", String.valueOf(mailAccount.getActive()));		
+		pageContent = pageContent.replace("%ID%", String.valueOf(twitterAccount.getId()));
+		pageContent = pageContent.replace("%SCREEN_NAME%", twitterAccount.getScreenName());
+		pageContent = pageContent.replace("%TAGS%", StringUtils.emptyStringIfNull(twitterAccount.getTags()));		
 		
 		ByteBuf content = Unpooled.copiedBuffer(pageContent, CharsetUtil.UTF_8);
 		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
@@ -89,24 +88,24 @@ public class MailEditHandler extends RestHandlerBase {
 			throw new RestException(HttpResponseStatus.BAD_REQUEST);
 		}
 
-		Tuple<String, String> loginDomain = Tuple.of(m.group(2), m.group(1));
-		MailAccount mailAccount = mailManager.findAccount(loginDomain);
-		if (mailAccount == null) {
+		String userId = m.group(1);
+		TwitterAccount twitterAccount = twitterManager.getAccountById(userId);
+		if (twitterAccount == null) {
 			throw new RestException(HttpResponseStatus.NOT_FOUND);
 		}		
 		
 		validateRequestParameters(postParameters);
 
-		mailAccount.setActive(Boolean.valueOf(ListUtils.getFirst(postParameters.get(REQUEST_INPUT_ACTIVE))));
-		mailManager.updateAccount(mailAccount);
+		twitterAccount.setTags(ListUtils.getFirst(postParameters.get(REQUEST_INPUT_TAGS)));
+		twitterManager.updateAccount(twitterAccount);
 
 		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
 		return httpResponseProvider.createHttpResponse(HttpResponseStatus.OK, HttpUtils.fromString("OK"));
 	}
 
 	protected void validateRequestParameters(Map<String, List<String>> requestParameters) throws RestException {
-		if (StringUtils.nullOrEmpty(ListUtils.getFirst(requestParameters.get(REQUEST_INPUT_ACTIVE)))) {
-			throw new RestException("Parameter is missing: " + REQUEST_INPUT_ACTIVE);
+		if (StringUtils.nullOrEmpty(ListUtils.getFirst(requestParameters.get(REQUEST_INPUT_TAGS)))) {
+			throw new RestException("Parameter is missing: " + REQUEST_INPUT_TAGS);
 		}
 	}
 	

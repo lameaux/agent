@@ -2,12 +2,16 @@ package com.euromoby.rest.handler.job;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.CharsetUtil;
 
 import java.io.InputStream;
 import java.net.URI;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +43,7 @@ public class JobListHandler extends RestHandlerBase {
 	}
 	
 	@Override
-	public FullHttpResponse doGet() {
+	public FullHttpResponse doGet(ChannelHandlerContext ctx, HttpRequest request, Map<String, List<String>> queryParameters) {
 		InputStream is = JobListHandler.class.getResourceAsStream("joblist.html");
 		String pageContent = IOUtils.streamToString(is);
 
@@ -59,14 +63,6 @@ public class JobListHandler extends RestHandlerBase {
 				sb.append("<br>").append("Error: ").append(job.getMessage());
 			}
 			sb.append("</td>");				
-//			sb.append("<td>");
-//			if (job.getParameters() != null && !job.getParameters().isEmpty()) {
-//				for (Map.Entry<String, String> entry : job.getParameters().entrySet()) {
-//					sb.append(entry.getKey()).append("=").append(entry.getValue()).append("<br>");
-//				}
-//			}			
-//			sb.append("</td>");			
-			
 			sb.append("</tr>");
 		}
 		pageContent = pageContent.replace("%JOBS%", sb.toString());

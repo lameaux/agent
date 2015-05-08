@@ -2,7 +2,9 @@ package com.euromoby.rest.handler.upload;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.CharsetUtil;
 
@@ -10,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
@@ -24,6 +27,7 @@ import com.euromoby.http.HttpUtils;
 import com.euromoby.rest.RestException;
 import com.euromoby.rest.handler.RestHandlerBase;
 import com.euromoby.utils.IOUtils;
+import com.euromoby.utils.ListUtils;
 import com.euromoby.utils.StringUtils;
 
 @Component
@@ -49,7 +53,7 @@ public class UploadHandler extends RestHandlerBase {
 	}
 
 	@Override
-	public FullHttpResponse doGet() {
+	public FullHttpResponse doGet(ChannelHandlerContext ctx, HttpRequest request, Map<String, List<String>> queryParameters) {
 		InputStream is = UploadHandler.class.getResourceAsStream("upload.html");
 		String pageContent = IOUtils.streamToString(is);
 		pageContent = pageContent.replace("%UPLOAD_PATH%", uploadPath);
@@ -60,13 +64,10 @@ public class UploadHandler extends RestHandlerBase {
 	}
 
 	@Override
-	public FullHttpResponse doPost() throws RestException, IOException {
+	public FullHttpResponse doPost(ChannelHandlerContext ctx, HttpRequest request, Map<String, List<String>> queryParameters, Map<String, List<String>> postParameters, Map<String, File> uploadFiles) throws RestException, IOException {
 
-		Map<String, String> requestParameters = getRequestParameters();
-		Map<String, File> requestFiles = getRequestFiles();
-
-		String location = requestParameters.get(REQUEST_INPUT_LOCATION);
-		File tempUploadedFile = requestFiles.get(REQUEST_INPUT_FILE);
+		String location = ListUtils.getFirst(postParameters.get(REQUEST_INPUT_LOCATION));
+		File tempUploadedFile = uploadFiles.get(REQUEST_INPUT_FILE);
 
 		if (StringUtils.nullOrEmpty(location)) {
 			throw new RestException("Parameter is missing: " + REQUEST_INPUT_LOCATION);

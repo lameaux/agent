@@ -1,10 +1,9 @@
 package com.euromoby.twitter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.collections4.map.LRUMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -24,9 +23,9 @@ public class TwitterProvider {
 
 	private Config config;
 	
-	private Map<String, String> requestTokens = new ConcurrentHashMap<String, String>();
-	private Map<String, AccessToken> accessTokens = new ConcurrentHashMap<String, AccessToken>();
-
+	private Map<String, String> requestTokens =  Collections.synchronizedMap(new LRUMap<String, String>());
+	
+	
 	@Autowired
 	public TwitterProvider(Config config) {
 		this.config = config;
@@ -64,27 +63,9 @@ public class TwitterProvider {
 		return accessToken;
 	}
 	
-	public void storeAccessToken(AccessToken accessToken) {
-		accessTokens.put(accessToken.getScreenName(), accessToken);
-	}
-	
-	public AccessToken findAccessToken(String screenName) {
-		return accessTokens.get(screenName);
-	}
-	
-	public List<String> getScreenNames() {
-		List<String> screenNames = new ArrayList<String>();
-		for (String screenName : accessTokens.keySet()) {
-			screenNames.add(screenName);
-		}
-		return screenNames;
-	}
-	
-	public Status sendMessage(String screenName, String text) throws Exception {
-		AccessToken accessToken = accessTokens.get(screenName);
-		if (accessToken == null) {
-			throw new Exception(screenName + " is not authorized");
-		}
+	public Status sendMessage(TwitterAccount twitterAccount, String text) throws Exception {
+		AccessToken accessToken = new AccessToken(twitterAccount.getAccessToken(), twitterAccount.getAccessTokenSecret(), Long.parseLong(twitterAccount.getId()));
+		
 		Twitter twitter = getTwitter();
 		twitter.setOAuthAccessToken(accessToken);
 		

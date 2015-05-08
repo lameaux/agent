@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Agent MailManager - Edit Account</title>
+<title>Agent Twitter - Edit Account</title>
 <script src="//code.jquery.com/jquery.js"></script>
 <style>
 div.error {
@@ -41,13 +41,13 @@ div.success {
 </script>
 </head>
 <body>
-	<h1>Edit: %LOGIN%@%DOMAIN%</h1>
+	<h1>Edit: %SCREEN_NAME% (%ID%)</h1>
 	<div id="error" class="error hidden">Operation failed</div>
 	<div id="success" class="success hidden">Account successfully updated</div>
-	<form id="form" target="iframe" method="post" action="/mail/edit/%DOMAIN%/%LOGIN%">
-		Active: <input type="text" name="active" placeholder="true/false" value="%ACTIVE%"> 
+	<form id="form" target="iframe" method="post" action="/twitter/edit/%ID%">
+		Tags: <input type="text" name="tags" placeholder="keywords" value="%TAGS%"> 
 		<br><br>
-		<input type="submit" value="Edit Mail Account">
+		<input type="submit" value="Edit Account">
 	</form>
 	<iframe name="iframe" id="iframe" class="hidden"></iframe>	
 </body>
