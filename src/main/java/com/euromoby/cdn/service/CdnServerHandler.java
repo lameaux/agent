@@ -14,11 +14,9 @@ import io.netty.handler.codec.http.HttpVersion;
 
 import java.io.File;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.euromoby.agent.AgentManager;
 import com.euromoby.agent.Config;
@@ -40,8 +38,6 @@ import com.euromoby.utils.StringUtils;
 import com.euromoby.utils.SystemUtils;
 
 public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
-
-	private static final Logger LOG = LoggerFactory.getLogger(CdnServerHandler.class);	
 	
 	private Config config;
 	private FileProvider fileProvider;
@@ -63,7 +59,6 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 	
 	protected void manageCdnRequest(ChannelHandlerContext ctx, FullHttpRequest httpRequest, URI uri, String fileLocation) {
 		
-		LOG.debug("Asking other agents for {}", uri.getPath());
 		Tuple<CdnResource, FileInfo> searchResult = cdnNetwork.find(uri.getPath());
 		
 		CdnResource cdnResource = searchResult.getFirst();
@@ -82,7 +77,16 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 		String sourceUrl = cdnResource.getSourceUrl(getPathWithQuery(uri));
 		if (sourceUrl != null) {
 			if (cdnResource.isDownloadIfMissing()) {
-				addToDownloadScheduler(sourceUrl, fileLocation);
+				try {
+					URI sourceUri = new URI(sourceUrl);
+					String sourceUriPath = sourceUri.getPath();
+					if (StringUtils.nullOrEmpty(sourceUriPath) || sourceUriPath.equals("/")) {
+						fileLocation = fileLocation + File.separator + FileProvider.DIRECTORY_INDEX;
+					}
+					addToDownloadScheduler(sourceUrl, fileLocation);
+				} catch (URISyntaxException e) {
+					// wrong url
+				}	
 			}
 			if (cdnResource.isProxyable()) {
 				manageContentProxying(ctx, httpRequest, sourceUrl);

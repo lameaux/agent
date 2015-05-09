@@ -12,6 +12,7 @@ import com.euromoby.agent.Config;
 public class FileProvider {
 
 	private static final Pattern INSECURE_URI = Pattern.compile(".*[<>&\"].*");
+	public static final String DIRECTORY_INDEX = "agent.index.html";
 
 	private Config config;
 
@@ -26,6 +27,7 @@ public class FileProvider {
 		if (!parentDir.exists() && !parentDir.mkdirs()) {
 			throw new Exception("Error saving file to " + targetFile.getAbsolutePath());
 		}
+		
 		return targetFile;
 	}	
 	
@@ -49,10 +51,21 @@ public class FileProvider {
 		if (!targetFile.getAbsolutePath().startsWith(filesPath.getAbsolutePath())) {
 			return null;
 		}
-		// only files are supported
-		if (!targetFile.exists() || !targetFile.isFile()) {
+		// check if exist
+		if (!targetFile.exists()) {
 			return null;
 		}
+		
+		// check for directory index
+		if (targetFile.isDirectory()) {
+			targetFile = new File(targetFile, DIRECTORY_INDEX);
+		}
+
+		// only files are supported
+		if (!targetFile.exists() && !targetFile.isFile()) {
+			return null;
+		}		
+		
 		return targetFile;
 	}
 

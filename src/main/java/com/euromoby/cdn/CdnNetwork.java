@@ -48,6 +48,7 @@ public class CdnNetwork {
 	}
 
 	protected int sendRequestsToActiveAgents(String uriPath) {
+		log.debug("Asking other agents for {}", uriPath);		
 		List<AgentId> activeAgents = agentManager.getActive();
 		for (AgentId agentId : activeAgents) {
 			completionService.submit(new CdnWorker(httpClientProvider, agentId, uriPath));

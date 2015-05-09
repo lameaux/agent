@@ -9,7 +9,7 @@ public class CdnResource {
 	/**
 	 * Regexp pattern
 	 */
-	private String urlPattern = ".*";
+	private String urlPattern = "/.+";
 	private String resourceOrigin;
 	
 	/**
@@ -34,8 +34,11 @@ public class CdnResource {
 		if (StringUtils.nullOrEmpty(url)) {
 			return false;
 		}
-		if (!StringUtils.nullOrEmpty(urlPrefix) && !url.startsWith(urlPrefix)) {
-			return false;
+		if (!StringUtils.nullOrEmpty(urlPrefix)) {
+			if (!url.startsWith(urlPrefix)) {
+				return false;
+			}
+			url = url.substring(urlPrefix.length());
 		}
 		return url.matches(urlPattern);
 	}
