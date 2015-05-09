@@ -75,7 +75,7 @@ public class TwitterSendHandler extends RestHandlerBase {
 		List<String> accountIds = postParameters.get(REQUEST_INPUT_ACCOUNTS);
 		String text = ListUtils.getFirst(postParameters.get(REQUEST_INPUT_TEXT));
 		
-		twitterManager.sendMessage(accountIds, text);
+		twitterManager.scheduleMessageSending(accountIds, text);
 
 		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
 		return httpResponseProvider.createHttpResponse(HttpResponseStatus.OK, HttpUtils.fromString("OK"));

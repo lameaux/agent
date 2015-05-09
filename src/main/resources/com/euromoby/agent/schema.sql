@@ -3,6 +3,9 @@
 -- DROP TABLE IF EXISTS mail_message;
 -- DROP TABLE IF EXISTS twitter_account;
 -- DROP TABLE IF EXISTS twitter_message;
+-- DROP TABLE IF EXISTS download_file;
+-- DROP INDEX IF EXISTS download_file_unique;
+-- DROP INDEX IF EXISTS download_file_location;
 
 CREATE TABLE IF NOT EXISTS mail_account (
 	id INT auto_increment PRIMARY KEY, 
@@ -34,3 +37,14 @@ CREATE TABLE IF NOT EXISTS twitter_message (
 	account_id VARCHAR(20), 
 	message_text VARCHAR(255)
 );
+
+CREATE TABLE IF NOT EXISTS download_file (
+	id INT auto_increment PRIMARY KEY,
+	url VARCHAR(1000), 
+	file_location VARCHAR(1000),
+	no_proxy INT DEFAULT 0	
+);
+CREATE UNIQUE INDEX IF NOT EXISTS download_file_unique 
+ON download_file(url);
+CREATE INDEX IF NOT EXISTS download_file_location 
+ON download_file(file_location);

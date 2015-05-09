@@ -1,4 +1,4 @@
-package com.euromoby.rest.handler.twitter;
+package com.euromoby.twitter;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -14,11 +14,6 @@ import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.Config;
 import com.euromoby.service.SchedulerService;
-import com.euromoby.twitter.TwitterAccount;
-import com.euromoby.twitter.TwitterManager;
-import com.euromoby.twitter.TwitterMessage;
-import com.euromoby.twitter.TwitterProvider;
-import com.euromoby.twitter.TwitterWorker;
 
 @Component
 public class TwitterScheduler extends SchedulerService {

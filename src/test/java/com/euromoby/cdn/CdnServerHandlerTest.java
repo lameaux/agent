@@ -32,7 +32,9 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.euromoby.download.DownloadScheduler;
+import com.euromoby.agent.AgentManager;
+import com.euromoby.agent.Config;
+import com.euromoby.download.DownloadManager;
 import com.euromoby.file.FileProvider;
 import com.euromoby.file.MimeHelper;
 import com.euromoby.http.HttpUtils;
@@ -48,13 +50,17 @@ public class CdnServerHandlerTest {
 	private static final String INVALID_URI = "$[level]/r$[y]_c$[x].jpg";
 
 	@Mock
+	Config config;
+	@Mock
 	FileProvider fileProvider;
 	@Mock
 	MimeHelper mimeHelper;
 	@Mock
 	CdnNetwork cdnNetwork;
 	@Mock
-	DownloadScheduler downloadScheduler;
+	DownloadManager downloadManager;
+	@Mock
+	AgentManager agentManager;
 	@Mock
 	ChannelHandlerContext ctx;
 	@Mock
@@ -79,7 +85,7 @@ public class CdnServerHandlerTest {
 		Mockito.when(ctx.channel()).thenReturn(channel);
 		Mockito.when(request.headers()).thenReturn(headers);
 		Mockito.when(request.getProtocolVersion()).thenReturn(HttpVersion.HTTP_1_1);
-		handler = new CdnServerHandler(fileProvider, mimeHelper, cdnNetwork, downloadScheduler, proxyResponseProvider);
+		handler = new CdnServerHandler(config, fileProvider, mimeHelper, cdnNetwork, downloadManager, agentManager, proxyResponseProvider);
 	}
 
 	
@@ -289,8 +295,9 @@ public class CdnServerHandlerTest {
 	public void testScheduleDownloadJob() {
 		String FILE = "file.html";
 		String SOURCE_URL = "http://example.com/" + FILE;
+		Mockito.when(config.getAgentFilesPath()).thenReturn(File.listRoots()[0].getAbsolutePath());
 		handler.addToDownloadScheduler(SOURCE_URL, FILE);
-		Mockito.verify(downloadScheduler).addDownloadRequest(Mockito.eq(SOURCE_URL), Mockito.eq(FILE));
+		Mockito.verify(downloadManager).scheduleDownloadFile(Mockito.eq(SOURCE_URL), Mockito.eq(FILE), Mockito.eq(false));
 	}
 	
 	@Test
@@ -403,10 +410,10 @@ public class CdnServerHandlerTest {
 		Mockito.when(cdnNetwork.find(uri.getPath())).thenReturn(searchResult);
 		Mockito.when(channel.writeAndFlush(Matchers.any(DefaultFullHttpResponse.class))).thenReturn(channelFuture);
 		Mockito.when(headers.contains(Matchers.eq(HttpHeaders.Names.CONNECTION), Matchers.eq(HttpHeaders.Values.CLOSE), Matchers.eq(true))).thenReturn(true);
-
+		Mockito.when(config.getAgentFilesPath()).thenReturn(File.listRoots()[0].getAbsolutePath());
 		handler.manageCdnRequest(ctx, request, uri, FILE);
 		
-		Mockito.verify(downloadScheduler).addDownloadRequest(Mockito.eq(ORIGIN_FILE_URL), Mockito.eq(FILE));
+		Mockito.verify(downloadManager).scheduleDownloadFile(Mockito.eq(ORIGIN_FILE_URL), Mockito.eq(FILE), Mockito.eq(false));
 		Mockito.verify(proxyResponseProvider).proxy(Matchers.eq(ctx), Matchers.eq(request), Matchers.eq(ORIGIN_FILE_URL));
 		
 	}	

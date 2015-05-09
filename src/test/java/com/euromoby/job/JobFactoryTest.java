@@ -11,7 +11,6 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.euromoby.download.DownloadClient;
-import com.euromoby.download.DownloadJob;
 import com.euromoby.ffmpeg.Ffmpeg;
 import com.euromoby.file.FileProvider;
 import com.euromoby.upload.UploadClient;
@@ -52,14 +51,6 @@ public class JobFactoryTest {
 		for (Class clazz : classes) {
 			assertTrue(Job.class.isAssignableFrom(clazz));
 		}
-	}
-
-	@Test
-	public void shouldCreateDownloadJob() throws Exception {
-		JobDetail jobDetail = new JobDetail(DownloadJob.class);
-		Job job = jobFactory.createJob(jobDetail);
-		assertNotNull(job);
-		assertTrue(job instanceof DownloadJob);
 	}
 
 	@Test

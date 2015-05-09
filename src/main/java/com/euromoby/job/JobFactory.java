@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.download.DownloadClient;
-import com.euromoby.download.DownloadJob;
 import com.euromoby.ffmpeg.Ffmpeg;
 import com.euromoby.file.FileProvider;
 import com.euromoby.upload.UploadClient;
@@ -23,7 +22,7 @@ public class JobFactory {
 	
 	@SuppressWarnings("rawtypes")
 	private Class[] jobClasses = new Class[]{
-			DownloadJob.class, UploadJob.class, GetNewJobsJob.class, GrabVideoJob.class
+			UploadJob.class, GetNewJobsJob.class, GrabVideoJob.class
 	};
 	
 	@SuppressWarnings("rawtypes")
@@ -57,9 +56,6 @@ public class JobFactory {
 	}	
 	
 	public Job createJob(JobDetail jobDetail) throws Exception {
-		if (DownloadJob.class.getCanonicalName().equals(jobDetail.getJobClass())) {
-			return new DownloadJob(jobDetail, downloadClient, fileProvider);
-		}
 		if (GrabVideoJob.class.getCanonicalName().equals(jobDetail.getJobClass())) {
 			return new GrabVideoJob(jobDetail, downloadClient, fileProvider, ffmpeg);
 		}

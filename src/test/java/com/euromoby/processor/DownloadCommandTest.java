@@ -7,13 +7,12 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.euromoby.job.JobDetail;
-import com.euromoby.job.JobManager;
+import com.euromoby.download.DownloadFile;
+import com.euromoby.download.DownloadManager;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DownloadCommandTest {
@@ -22,12 +21,12 @@ public class DownloadCommandTest {
 	private static final String LOCATION = "file";
 
 	@Mock
-	JobManager jobManager;
+	DownloadManager downloadManager;
 	DownloadCommand downloadCommand;
 
 	@Before
 	public void init() {
-		downloadCommand = new DownloadCommand(jobManager);
+		downloadCommand = new DownloadCommand(downloadManager);
 	}
 
 	@Test
@@ -55,15 +54,21 @@ public class DownloadCommandTest {
 
 	@Test
 	public void testWithProxy() {
+		DownloadFile downloadFile = new DownloadFile();
+		downloadFile.setId(123);
+		Mockito.when(downloadManager.scheduleDownloadFile(Mockito.eq(URL), Mockito.eq(LOCATION), Mockito.eq(false))).thenReturn(downloadFile);
 		String result = downloadCommand.execute(downloadCommand.name() + Command.SEPARATOR + URL + Command.SEPARATOR + LOCATION);
-		Mockito.verify(jobManager).submit(Matchers.any(JobDetail.class));
-		assertFalse(downloadCommand.syntaxError().equals(result));
+		Mockito.verify(downloadManager).scheduleDownloadFile(Mockito.eq(URL), Mockito.eq(LOCATION), Mockito.eq(false));
+		assertEquals(DownloadCommand.DOWNLOAD_SCHEDULED + downloadFile.getId(), result);
 	}
 
 	@Test
 	public void testWithoutProxy() {
+		DownloadFile downloadFile = new DownloadFile();
+		downloadFile.setId(123);
+		Mockito.when(downloadManager.scheduleDownloadFile(Mockito.eq(URL), Mockito.eq(LOCATION), Mockito.eq(true))).thenReturn(downloadFile);
 		String result = downloadCommand.execute(downloadCommand.name() + Command.SEPARATOR + URL + Command.SEPARATOR + LOCATION + Command.SEPARATOR + DownloadCommand.NO_PROXY);
-		Mockito.verify(jobManager).submit(Matchers.any(JobDetail.class));
-		assertFalse(downloadCommand.syntaxError().equals(result));
+		Mockito.verify(downloadManager).scheduleDownloadFile(Mockito.eq(URL), Mockito.eq(LOCATION), Mockito.eq(true));
+		assertEquals(DownloadCommand.DOWNLOAD_SCHEDULED + downloadFile.getId(), result);
 	}	
 }

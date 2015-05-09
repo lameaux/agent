@@ -9,7 +9,14 @@ public class SystemUtils {
 	}
 
 	public static long getFreeSpace(String path) {
-		return new File(path).getFreeSpace();
+		File file = new File(path);
+		while (!file.exists()) {
+			if (file.getParentFile() == null) {
+				break;
+			}
+			file = file.getParentFile();
+		}
+		return file.getFreeSpace();
 	}
-	
+
 }

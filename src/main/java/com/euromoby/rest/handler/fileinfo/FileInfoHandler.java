@@ -22,6 +22,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.Config;
+import com.euromoby.download.DownloadFile;
+import com.euromoby.download.DownloadManager;
 import com.euromoby.file.FileProvider;
 import com.euromoby.http.HttpResponseProvider;
 import com.euromoby.rest.RestException;
@@ -36,11 +38,13 @@ public class FileInfoHandler extends RestHandlerBase {
 	private static final Gson gson = new Gson();
 	
 	private Config config;
+	private DownloadManager downloadManager;
 	private FileProvider fileProvider;
 
 	@Autowired
-	public FileInfoHandler(Config config, FileProvider fileProvider) {
+	public FileInfoHandler(Config config, DownloadManager downloadManager, FileProvider fileProvider) {
 		this.config = config;
+		this.downloadManager = downloadManager;
 		this.fileProvider = fileProvider;
 	}
 
@@ -67,21 +71,42 @@ public class FileInfoHandler extends RestHandlerBase {
 			throw new RestException("Invalid request");
 		}		
 		
+		FileInfo fileInfo;
 		File targetFile = fileProvider.getFileByLocation(fileLocation);
-		if (targetFile == null) {
-			throw new RestException(HttpResponseStatus.NOT_FOUND, "Not found");
-		}
+		if (targetFile != null) {
+			fileInfo = existingFileInfo(targetFile, fileLocation);
+		} else {
+			DownloadFile downloadFile = downloadManager.findScheduledFileLocation(fileLocation);
+			if (downloadFile == null) {
+				throw new RestException(HttpResponseStatus.NOT_FOUND, "Not found");
+			}
+			fileInfo = scheduledFileInfo(fileLocation);
+		} 
 		
-		FileInfo fileInfoResponse = new FileInfo();
-		fileInfoResponse.setAgentId(config.getAgentId());
-		fileInfoResponse.setLength(targetFile.length());
-		fileInfoResponse.setLastModified(targetFile.lastModified());
-		
-		String jsonResponse = gson.toJson(fileInfoResponse);
+		String jsonResponse = gson.toJson(fileInfo);
 		ByteBuf content = Unpooled.copiedBuffer(jsonResponse, CharsetUtil.UTF_8);
 		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
 		FullHttpResponse response = httpResponseProvider.createHttpResponse(HttpResponseStatus.OK, content);
 		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/json; charset=UTF-8");
 		return response;
 	}
+	
+	protected FileInfo existingFileInfo(File file, String fileLocation) {
+		FileInfo fileInfo = new FileInfo();
+		fileInfo.setAgentId(config.getAgentId());
+		fileInfo.setFileLocation(fileLocation);
+		fileInfo.setLength(file.length());
+		fileInfo.setLastModified(file.lastModified());
+		fileInfo.setComplete(true);
+		return fileInfo;
+	}
+
+	protected FileInfo scheduledFileInfo(String fileLocation) {
+		FileInfo fileInfo = new FileInfo();
+		fileInfo.setAgentId(config.getAgentId());
+		fileInfo.setFileLocation(fileLocation);
+		fileInfo.setComplete(false);
+		return fileInfo;
+	}	
+	
 }

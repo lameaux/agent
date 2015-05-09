@@ -112,6 +112,9 @@ public class Config {
 	
 	public static final String HTTP_PROXY_BYPASS = "agent.http.proxy.bypass";
 	public static final String DEFAULT_HTTP_PROXY_BYPASS = "localhost,127.0.0.*";
+
+	public static final String DOWNLOAD_POOL_SIZE = "agent.download.pool.size";
+	public static final String DEFAULT_DOWNLOAD_POOL_SIZE = "4";	
 	
 	public static final String JOB_POOL_SIZE = "agent.job.pool.size";
 	public static final String DEFAULT_JOB_POOL_SIZE = "4";
@@ -139,6 +142,12 @@ public class Config {
 
 	public static final String TWITTER_SCHEDULER_BATCH_SIZE = "agent.twitter.batch.size";
 	public static final String DEFAULT_TWITTER_SCHEDULER_BATCH_SIZE  = "100";	
+
+	public static final String DOWNLOAD_SCHEDULER_INTERVAL = "agent.download.interval";
+	public static final String DEFAULT_DOWNLOAD_SCHEDULER_INTERVAL = "1000";	
+
+	public static final String DOWNLOAD_SCHEDULER_BATCH_SIZE = "agent.download.batch.size";
+	public static final String DEFAULT_DOWNLOAD_SCHEDULER_BATCH_SIZE  = "10";	
 	
 	public static final String KEYSTORE_PATH = "agent.keystore.path";
 
@@ -302,6 +311,10 @@ public class Config {
 		}
 		return agentDatabasePath;
 	}	
+
+	public int getDownloadPoolSize() {
+		return Integer.parseInt(properties.getProperty(DOWNLOAD_POOL_SIZE, DEFAULT_DOWNLOAD_POOL_SIZE));
+	}	
 	
 	public int getJobPoolSize() {
 		return Integer.parseInt(properties.getProperty(JOB_POOL_SIZE, DEFAULT_JOB_POOL_SIZE));
@@ -349,6 +362,14 @@ public class Config {
 
 	public int getTwitterSchedulerBatchSize() {
 		return Integer.parseInt(properties.getProperty(TWITTER_SCHEDULER_BATCH_SIZE, DEFAULT_TWITTER_SCHEDULER_BATCH_SIZE));
+	}	
+
+	public int getDownloadSchedulerInterval() {
+		return Integer.parseInt(properties.getProperty(DOWNLOAD_SCHEDULER_INTERVAL, DEFAULT_DOWNLOAD_SCHEDULER_INTERVAL));
+	}	
+
+	public int getDownloadSchedulerBatchSize() {
+		return Integer.parseInt(properties.getProperty(DOWNLOAD_SCHEDULER_BATCH_SIZE, DEFAULT_DOWNLOAD_SCHEDULER_BATCH_SIZE));
 	}	
 	
 	@Override

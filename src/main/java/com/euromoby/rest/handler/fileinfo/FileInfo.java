@@ -4,6 +4,7 @@ import com.euromoby.model.AgentId;
 
 public class FileInfo {
 	private AgentId agentId;
+	private String fileLocation;
 	private long length;
 	private long lastModified;
 	private boolean complete = true;
@@ -17,6 +18,14 @@ public class FileInfo {
 
 	public void setAgentId(AgentId agentId) {
 		this.agentId = agentId;
+	}
+
+	public String getFileLocation() {
+		return fileLocation;
+	}
+
+	public void setFileLocation(String fileLocation) {
+		this.fileLocation = fileLocation;
 	}
 
 	public long getLength() {

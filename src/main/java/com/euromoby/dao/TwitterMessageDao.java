@@ -35,7 +35,7 @@ public class TwitterMessageDao {
 	public void saveAll(final List<TwitterMessage> twitterMessages) {
 		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-		jdbcTemplate.batchUpdate("insert into twitter_message(account_id, message_text) values (?,?)", 
+		jdbcTemplate.batchUpdate("insert into twitter_message (account_id, message_text) values (?,?)", 
 			new BatchPreparedStatementSetter() {
 				@Override
 				public void setValues(PreparedStatement ps, int i) throws SQLException {

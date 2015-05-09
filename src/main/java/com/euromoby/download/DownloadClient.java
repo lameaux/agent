@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
@@ -26,6 +27,8 @@ public class DownloadClient {
 
 	private static final Logger LOG = LoggerFactory.getLogger(DownloadClient.class);
 
+	public static final String DOWNLOADING_EXT = ".downloading";
+	
 	private HttpClientProvider httpClientProvider;	
 
 	@Autowired
@@ -54,13 +57,19 @@ public class DownloadClient {
 				HttpEntity entity = response.getEntity();
 				if (entity != null) {
 					InputStream inputStream = entity.getContent();
-					OutputStream outputStream = new FileOutputStream(targetFile);
+					File downloadingFile = new File(targetFile.getCanonicalPath() + DOWNLOADING_EXT);
+					OutputStream outputStream = new FileOutputStream(downloadingFile);
 					try {
 						IOUtils.copy(inputStream, outputStream);
+						IOUtils.closeQuietly(outputStream);
+						FileUtils.moveFile(downloadingFile, targetFile);
 						LOG.debug("File saved to " + targetFile.getPath());
 					} finally {
 						IOUtils.closeQuietly(inputStream);
 						IOUtils.closeQuietly(outputStream);
+						if (downloadingFile.exists()) {
+							downloadingFile.delete();
+						}
 					}
 				} else {
 					throw new Exception("Empty response");

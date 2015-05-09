@@ -60,7 +60,7 @@ public class TwitterManager {
 	}
 
 	@Transactional
-	public void sendMessage(List<String> accountIds, String messageText) {
+	public void scheduleMessageSending(List<String> accountIds, String messageText) {
 		List<TwitterMessage> messages = new ArrayList<TwitterMessage>(accountIds.size());
 		for (String accountId : accountIds) {
 			TwitterMessage twitterMessage = new TwitterMessage();
@@ -71,7 +71,7 @@ public class TwitterManager {
 		twitterMessageDao.saveAll(messages);
 	}
 	
-	@Transactional
+	@Transactional(readOnly=true)
 	public List<TwitterMessage> getScheduledMessages(int limit) {
 		return twitterMessageDao.findAll(limit);
 	}

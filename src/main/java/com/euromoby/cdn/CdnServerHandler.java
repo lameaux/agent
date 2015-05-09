@@ -15,11 +15,15 @@ import io.netty.handler.codec.http.HttpVersion;
 import java.io.File;
 import java.net.URI;
 import java.net.URLDecoder;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.euromoby.download.DownloadScheduler;
+import com.euromoby.agent.AgentManager;
+import com.euromoby.agent.AgentStatus;
+import com.euromoby.agent.Config;
+import com.euromoby.download.DownloadManager;
 import com.euromoby.file.FileProvider;
 import com.euromoby.file.MimeHelper;
 import com.euromoby.http.FileResponse;
@@ -31,28 +35,32 @@ import com.euromoby.proxy.ProxyResponseProvider;
 import com.euromoby.rest.RestException;
 import com.euromoby.rest.handler.fileinfo.FileInfo;
 import com.euromoby.utils.StringUtils;
+import com.euromoby.utils.SystemUtils;
 
 public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
 	private static final Logger LOG = LoggerFactory.getLogger(CdnServerHandler.class);	
 	
+	private Config config;
 	private FileProvider fileProvider;
 	private MimeHelper mimeHelper;	
 	private CdnNetwork cdnNetwork;
-	private DownloadScheduler downloadScheduler;
+	private DownloadManager downloadManager;
+	private AgentManager agentManager;
 	private ProxyResponseProvider proxyResponseProvider;
 
-	public CdnServerHandler(FileProvider fileProvider, MimeHelper mimeHelper, CdnNetwork cdnNetwork, DownloadScheduler downloadScheduler, ProxyResponseProvider proxyResponseProvider) {
+	public CdnServerHandler(Config config, FileProvider fileProvider, MimeHelper mimeHelper, CdnNetwork cdnNetwork, DownloadManager downloadManager, AgentManager agentManager, ProxyResponseProvider proxyResponseProvider) {
+		this.config = config;
 		this.fileProvider = fileProvider;
 		this.mimeHelper = mimeHelper;
 		this.cdnNetwork = cdnNetwork;
-		this.downloadScheduler = downloadScheduler;
+		this.downloadManager = downloadManager;
+		this.agentManager = agentManager;
 		this.proxyResponseProvider = proxyResponseProvider;
 	}
 	
 	protected void manageCdnRequest(ChannelHandlerContext ctx, FullHttpRequest httpRequest, URI uri, String fileLocation) {
 		
-		// Ask other agents if they have file
 		LOG.debug("Asking other agents for {}", uri.getPath());
 		Tuple<CdnResource, FileInfo> searchResult = cdnNetwork.find(uri.getPath());
 		
@@ -71,17 +79,14 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 		// has origin?
 		String sourceUrl = cdnResource.getSourceUrl(getPathWithQuery(uri));
 		if (sourceUrl != null) {
-
 			if (cdnResource.isDownloadIfMissing()) {
 				addToDownloadScheduler(sourceUrl, fileLocation);
 			}
-			
 			if (cdnResource.isProxyable()) {
 				manageContentProxying(ctx, httpRequest, sourceUrl);
 			} else {
 				manageRedirect(ctx, httpRequest, sourceUrl);
 			}
-			
 			return;				
 		}
 		
@@ -103,7 +108,26 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 	}
 	
 	protected void addToDownloadScheduler(String sourceUrl, String fileLocation) {
-		downloadScheduler.addDownloadRequest(sourceUrl, fileLocation);
+		AgentId agentId = findAgentWithFreeSpace();
+		if (agentId == null) {
+			downloadManager.scheduleDownloadFile(sourceUrl, fileLocation, false);
+		} else {
+			downloadManager.askAgentToDownloadFile(agentId, sourceUrl, fileLocation);
+		}
+	}
+	
+	protected AgentId findAgentWithFreeSpace() {
+		AgentId agentId = null;
+		long freeSpace = SystemUtils.getFreeSpace(config.getAgentFilesPath());
+		List<AgentId> activeAgents = agentManager.getActive();
+		for (AgentId activeAgentId : activeAgents) {
+			AgentStatus agentStatus = agentManager.getAgentStatus(activeAgentId);
+			if (agentStatus.getFreeSpace() > freeSpace) {
+				agentId = activeAgentId;
+				freeSpace = agentStatus.getFreeSpace();
+			}
+		}
+		return agentId;
 	}
 	
 	protected void manageContentProxying(ChannelHandlerContext ctx, FullHttpRequest httpRequest, String sourceUrl) {

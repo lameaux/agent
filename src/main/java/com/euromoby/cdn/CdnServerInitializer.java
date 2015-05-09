@@ -11,8 +11,9 @@ import io.netty.handler.timeout.IdleStateHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.euromoby.agent.AgentManager;
 import com.euromoby.agent.Config;
-import com.euromoby.download.DownloadScheduler;
+import com.euromoby.download.DownloadManager;
 import com.euromoby.file.FileProvider;
 import com.euromoby.file.MimeHelper;
 import com.euromoby.http.AgentHttpResponseEncoder;
@@ -27,16 +28,18 @@ public class CdnServerInitializer extends ChannelInitializer<SocketChannel> {
 	private FileProvider fileProvider;
 	private MimeHelper mimeHelper;
 	private CdnNetwork cdnNetwork;
-	private DownloadScheduler downloadScheduler;
+	private DownloadManager downloadManager;
+	private AgentManager agentManager;
 	private ProxyResponseProvider proxyResponseProvider;
 	
 	@Autowired
-	public CdnServerInitializer(Config config, FileProvider fileProvider, MimeHelper mimeHelper, CdnNetwork cdnNetwork, DownloadScheduler downloadScheduler, ProxyResponseProvider proxyResponseProvider) {
+	public CdnServerInitializer(Config config, FileProvider fileProvider, MimeHelper mimeHelper, CdnNetwork cdnNetwork, DownloadManager downloadManager, AgentManager agentManager, ProxyResponseProvider proxyResponseProvider) {
 		this.config = config;
 		this.fileProvider = fileProvider;
 		this.mimeHelper = mimeHelper;
 		this.cdnNetwork = cdnNetwork;
-		this.downloadScheduler = downloadScheduler;
+		this.downloadManager = downloadManager;
+		this.agentManager = agentManager;
 		this.proxyResponseProvider = proxyResponseProvider;
 	}
 
@@ -53,6 +56,6 @@ public class CdnServerInitializer extends ChannelInitializer<SocketChannel> {
 		
 		p.addLast("compressor", new SmartHttpContentCompressor());
 		p.addLast("chunked", new ChunkedWriteHandler());
-		p.addLast("cdn", new CdnServerHandler(fileProvider, mimeHelper, cdnNetwork, downloadScheduler, proxyResponseProvider));
+		p.addLast("cdn", new CdnServerHandler(config, fileProvider, mimeHelper, cdnNetwork, downloadManager, agentManager, proxyResponseProvider));
 	}
 }

@@ -90,6 +90,7 @@ public class AgentManager implements InitializingBean {
 			AgentStatus status = getAgentStatus(pingInfo.getAgentId());
 			if (status != null) {
 				status.setLastPingReceived(System.currentTimeMillis());
+				status.setFreeSpace(pingInfo.getFreeSpace());
 			}
 		}
 	}	
@@ -99,6 +100,7 @@ public class AgentManager implements InitializingBean {
 			AgentStatus status = getAgentStatus(pingInfo.getAgentId());
 			if (status != null) {
 				status.setLastPingSendSuccess(System.currentTimeMillis());
+				status.setFreeSpace(pingInfo.getFreeSpace());
 			}
 		}
 	}	

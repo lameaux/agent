@@ -1,14 +1,10 @@
 package com.euromoby.processor;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.euromoby.download.DownloadJob;
-import com.euromoby.job.JobDetail;
-import com.euromoby.job.JobManager;
+import com.euromoby.download.DownloadFile;
+import com.euromoby.download.DownloadManager;
 import com.euromoby.utils.StringUtils;
 
 @Component
@@ -17,11 +13,13 @@ public class DownloadCommand extends CommandBase implements Command {
 	public static final String NAME = "download";
 	public static final String NO_PROXY = "noproxy";
 	
-	private JobManager jobManager;
+	public static final String DOWNLOAD_SCHEDULED = "Download scheduled #";
+	
+	private DownloadManager downloadManager;
 	
 	@Autowired
-	public DownloadCommand(JobManager jobManager) {
-		this.jobManager = jobManager;
+	public DownloadCommand(DownloadManager downloadManager) {
+		this.downloadManager = downloadManager;
 	}
 	
 	@Override
@@ -32,19 +30,11 @@ public class DownloadCommand extends CommandBase implements Command {
 		}
 
 		String url = params[0];
-		String location = params[1];
+		String fileLocation = params[1];
 		boolean noProxy = (params.length == 3 && NO_PROXY.equals(params[2]));
 
-		Map<String, String> parameters = new HashMap<String, String>();
-		parameters.put(DownloadJob.PARAM_URL, url);
-		parameters.put(DownloadJob.PARAM_LOCATION, location);
-		parameters.put(DownloadJob.PARAM_NOPROXY, String.valueOf(noProxy));
-
-		JobDetail jobDetail = new JobDetail(DownloadJob.class, parameters);
-		jobManager.submit(jobDetail);
-
-		return jobDetail.toString();
-
+		DownloadFile downloadFile = downloadManager.scheduleDownloadFile(url, fileLocation, noProxy);
+		return DOWNLOAD_SCHEDULED + downloadFile.getId();
 	}
 
 	@Override

@@ -88,8 +88,12 @@ public class CdnNetwork {
 		if (fileInfoList.isEmpty()) {
 			return null;
 		}
-		// first arrived
-		return fileInfoList.get(0);
+		for (FileInfo fileInfo : fileInfoList) {
+			if (fileInfo.isComplete()) {
+				return fileInfo;
+			}
+		}
+		return null;
 	}
 
 	
