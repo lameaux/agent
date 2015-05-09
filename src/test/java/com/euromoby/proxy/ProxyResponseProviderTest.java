@@ -18,9 +18,13 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import com.euromoby.http.AsyncHttpClientProvider;
+
 @RunWith(MockitoJUnitRunner.class)
 public class ProxyResponseProviderTest {
 
+	@Mock
+	AsyncHttpClientProvider asyncHttpClientProvider; 
 	@Mock
 	ChannelHandlerContext ctx;
 	@Mock
@@ -36,7 +40,7 @@ public class ProxyResponseProviderTest {
 	@Before
 	public void init() {
 		Mockito.when(ctx.channel()).thenReturn(channel);
-		proxyResponseProvider = new ProxyResponseProvider();
+		proxyResponseProvider = new ProxyResponseProvider(asyncHttpClientProvider);
 	}
 	
 	@Test
