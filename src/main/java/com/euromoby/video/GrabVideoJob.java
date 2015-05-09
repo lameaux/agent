@@ -6,7 +6,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.euromoby.download.DownloadClient;
+import com.euromoby.download.client.DownloadClient;
 import com.euromoby.ffmpeg.Ffmpeg;
 import com.euromoby.ffmpeg.model.FfmpegFormat;
 import com.euromoby.file.FileProvider;

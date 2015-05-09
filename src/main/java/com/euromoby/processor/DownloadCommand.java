@@ -3,8 +3,8 @@ package com.euromoby.processor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.euromoby.download.DownloadFile;
 import com.euromoby.download.DownloadManager;
+import com.euromoby.download.model.DownloadFile;
 import com.euromoby.utils.StringUtils;
 
 @Component

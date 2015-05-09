@@ -3,7 +3,7 @@ package com.euromoby.job;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.euromoby.download.DownloadClient;
+import com.euromoby.download.client.DownloadClient;
 import com.euromoby.ffmpeg.Ffmpeg;
 import com.euromoby.file.FileProvider;
 import com.euromoby.job.model.JobDetail;

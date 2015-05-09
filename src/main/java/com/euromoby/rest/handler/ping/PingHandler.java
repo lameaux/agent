@@ -32,7 +32,7 @@ import com.google.gson.Gson;
 public class PingHandler extends RestHandlerBase {
 
 	public static final String URL = "/ping";
-	private static final String PING_INFO_INPUT_NAME = "pingInfo";
+	public static final String PING_INFO_INPUT_NAME = "pingInfo";
 
 	private static final Logger LOG = LoggerFactory.getLogger(PingHandler.class);
 	private static final Gson gson = new Gson();

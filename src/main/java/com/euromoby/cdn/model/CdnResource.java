@@ -4,7 +4,8 @@ import com.euromoby.utils.StringUtils;
 
 public class CdnResource {
 
-	private String urlPrefix;
+	// should start with / (slash)
+	private String urlPrefix = "";
 	/**
 	 * Regexp pattern
 	 */

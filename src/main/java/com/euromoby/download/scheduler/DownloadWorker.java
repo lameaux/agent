@@ -1,4 +1,4 @@
-package com.euromoby.download;
+package com.euromoby.download.scheduler;
 
 import java.io.File;
 import java.util.concurrent.Callable;
@@ -6,6 +6,8 @@ import java.util.concurrent.Callable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.euromoby.download.client.DownloadClient;
+import com.euromoby.download.model.DownloadFile;
 import com.euromoby.file.FileProvider;
 
 

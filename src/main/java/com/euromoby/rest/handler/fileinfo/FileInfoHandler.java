@@ -22,8 +22,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.Config;
-import com.euromoby.download.DownloadFile;
 import com.euromoby.download.DownloadManager;
+import com.euromoby.download.model.DownloadFile;
 import com.euromoby.file.FileProvider;
 import com.euromoby.http.HttpResponseProvider;
 import com.euromoby.rest.RestException;

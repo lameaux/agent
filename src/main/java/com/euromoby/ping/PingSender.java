@@ -21,7 +21,6 @@ import com.google.gson.Gson;
 public class PingSender {
 
 	private static final String URL_PATTERN = "https://%s:%d";	
-	private static final String PING_INFO_INPUT_NAME = "pingInfo";
 
 	private static final Gson gson = new Gson();
 
@@ -45,7 +44,7 @@ public class PingSender {
 			String url = String.format(URL_PATTERN, host, restPort) + PingHandler.URL;
 			HttpUriRequest ping = RequestBuilder.post(url)
 					.setConfig(requestConfigBuilder.build())
-					.addParameter(PING_INFO_INPUT_NAME, gson.toJson(myPingInfo))
+					.addParameter(PingHandler.PING_INFO_INPUT_NAME, gson.toJson(myPingInfo))
 					.build();
 
 			CloseableHttpResponse response = httpclient.execute(ping, httpClientProvider.createHttpClientContext());

@@ -1,4 +1,4 @@
-package com.euromoby.download;
+package com.euromoby.download.client;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -27,6 +27,7 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.euromoby.agent.Config;
+import com.euromoby.download.client.DownloadClient;
 import com.euromoby.http.HttpClientProvider;
 
 @RunWith(MockitoJUnitRunner.class)

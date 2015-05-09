@@ -101,7 +101,10 @@ public class Config {
 	public static final String DEFAULT_AGENT_MAIL_PATH = "mail";	
 	
 	public static final String AGENT_DATABASE_PATH = "agent.db.path";
-	public static final String DEFAULT_AGENT_DATABASE_PATH = "db";	
+	public static final String DEFAULT_AGENT_DATABASE_PATH = "db/agent";	
+
+	public static final String AGENT_CDN_MAPPING_FILE = "agent.cdn.mapping.file";
+	public static final String DEFAULT_AGENT_CDN_MAPPING_FILE = "cdn.json";	
 	
 	public static final String HTTP_PROXY_HOST = "agent.http.proxy.host";
 	public static final String HTTP_PROXY_PORT = "agent.http.proxy.port";
@@ -312,6 +315,14 @@ public class Config {
 		return agentDatabasePath;
 	}	
 
+	public String getAgentCdnMappingFile() {
+		String agentCdnMappingPath = properties.getProperty(AGENT_CDN_MAPPING_FILE);
+		if (StringUtils.nullOrEmpty(agentCdnMappingPath)) {
+			agentCdnMappingPath = getAgentAppPath() + File.separatorChar + DEFAULT_AGENT_CDN_MAPPING_FILE;
+		}
+		return agentCdnMappingPath;
+	}	
+	
 	public int getDownloadPoolSize() {
 		return Integer.parseInt(properties.getProperty(DOWNLOAD_POOL_SIZE, DEFAULT_DOWNLOAD_POOL_SIZE));
 	}	

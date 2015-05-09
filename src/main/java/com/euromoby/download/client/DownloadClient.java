@@ -1,4 +1,4 @@
-package com.euromoby.download;
+package com.euromoby.download.client;
 
 import java.io.File;
 import java.io.FileOutputStream;

@@ -1,4 +1,4 @@
-package com.euromoby.download;
+package com.euromoby.download.model;
 
 public class DownloadFile {
 	private Integer id;

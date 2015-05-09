@@ -10,7 +10,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.euromoby.download.DownloadClient;
+import com.euromoby.download.client.DownloadClient;
 import com.euromoby.ffmpeg.Ffmpeg;
 import com.euromoby.file.FileProvider;
 import com.euromoby.job.model.JobDetail;

@@ -11,8 +11,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.euromoby.download.DownloadFile;
 import com.euromoby.download.DownloadManager;
+import com.euromoby.download.model.DownloadFile;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DownloadCommandTest {

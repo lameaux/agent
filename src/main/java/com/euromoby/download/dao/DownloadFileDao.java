@@ -14,7 +14,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 
-import com.euromoby.download.DownloadFile;
+import com.euromoby.download.model.DownloadFile;
 
 @Component
 public class DownloadFileDao {

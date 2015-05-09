@@ -1,4 +1,4 @@
-package com.euromoby.download;
+package com.euromoby.download.scheduler;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -13,6 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.Config;
+import com.euromoby.download.DownloadManager;
+import com.euromoby.download.client.DownloadClient;
+import com.euromoby.download.model.DownloadFile;
 import com.euromoby.file.FileProvider;
 import com.euromoby.service.SchedulerService;
 

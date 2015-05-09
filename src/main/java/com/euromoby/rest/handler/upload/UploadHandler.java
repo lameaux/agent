@@ -38,7 +38,7 @@ public class UploadHandler extends RestHandlerBase {
 	private static final String REQUEST_INPUT_LOCATION = "location";
 	private static final String REQUEST_INPUT_FILE = "file";
 
-	private String uploadPath;
+	private Config config;
 
 	private static final Logger LOG = LoggerFactory.getLogger(UploadHandler.class);
 
@@ -49,14 +49,14 @@ public class UploadHandler extends RestHandlerBase {
 	
 	@Autowired
 	public UploadHandler(Config config) {
-		this.uploadPath = config.getAgentFilesPath();
+		this.config = config;
 	}
 
 	@Override
 	public FullHttpResponse doGet(ChannelHandlerContext ctx, HttpRequest request, Map<String, List<String>> queryParameters) {
 		InputStream is = UploadHandler.class.getResourceAsStream("upload.html");
 		String pageContent = IOUtils.streamToString(is);
-		pageContent = pageContent.replace("%UPLOAD_PATH%", uploadPath);
+		pageContent = pageContent.replace("%UPLOAD_PATH%", config.getAgentFilesPath());
 		pageContent = pageContent.replace("%FILE_SEPARATOR%", File.separator);
 		ByteBuf content = Unpooled.copiedBuffer(pageContent, CharsetUtil.UTF_8);
 		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
@@ -77,7 +77,7 @@ public class UploadHandler extends RestHandlerBase {
 			throw new RestException("Parameter is missing: " + REQUEST_INPUT_FILE);
 		}
 
-		File targetFile = new File(new File(uploadPath), location);
+		File targetFile = new File(new File(config.getAgentFilesPath()), location);
 		File parentDir = targetFile.getParentFile();
 		if (!parentDir.exists() && !parentDir.mkdirs()) {
 			throw new RestException("Unable to store file");
