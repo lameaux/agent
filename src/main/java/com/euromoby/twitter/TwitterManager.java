@@ -9,8 +9,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import twitter4j.auth.AccessToken;
 
-import com.euromoby.dao.TwitterAccountDao;
-import com.euromoby.dao.TwitterMessageDao;
+import com.euromoby.twitter.dao.TwitterAccountDao;
+import com.euromoby.twitter.dao.TwitterMessageDao;
+import com.euromoby.twitter.model.TwitterAccount;
+import com.euromoby.twitter.model.TwitterMessage;
 
 @Component
 public class TwitterManager {

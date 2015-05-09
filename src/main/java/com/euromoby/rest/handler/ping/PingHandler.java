@@ -21,8 +21,8 @@ import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.AgentManager;
 import com.euromoby.http.HttpResponseProvider;
-import com.euromoby.model.PingInfo;
 import com.euromoby.ping.PingInfoProvider;
+import com.euromoby.ping.model.PingInfo;
 import com.euromoby.rest.RestException;
 import com.euromoby.rest.handler.RestHandlerBase;
 import com.euromoby.utils.ListUtils;

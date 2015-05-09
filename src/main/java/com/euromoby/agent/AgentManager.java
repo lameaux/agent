@@ -11,8 +11,9 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.euromoby.agent.model.AgentStatus;
 import com.euromoby.model.AgentId;
-import com.euromoby.model.PingInfo;
+import com.euromoby.ping.model.PingInfo;
 
 @Component
 public class AgentManager implements InitializingBean {

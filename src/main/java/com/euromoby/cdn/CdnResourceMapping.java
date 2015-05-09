@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
+import com.euromoby.cdn.model.CdnResource;
+
 @Component
 public class CdnResourceMapping {
 	

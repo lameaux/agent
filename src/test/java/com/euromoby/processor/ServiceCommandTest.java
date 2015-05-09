@@ -16,7 +16,7 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.euromoby.service.ServiceManager;
-import com.euromoby.service.ServiceState;
+import com.euromoby.service.model.ServiceState;
 import com.euromoby.utils.StringUtils;
 
 @RunWith(MockitoJUnitRunner.class)

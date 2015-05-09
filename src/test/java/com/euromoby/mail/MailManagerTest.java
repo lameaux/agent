@@ -14,8 +14,10 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.euromoby.dao.MailAccountDao;
-import com.euromoby.dao.MailMessageDao;
+import com.euromoby.mail.dao.MailAccountDao;
+import com.euromoby.mail.dao.MailMessageDao;
+import com.euromoby.mail.model.MailAccount;
+import com.euromoby.mail.model.MailMessage;
 import com.euromoby.model.Tuple;
 
 @RunWith(MockitoJUnitRunner.class)

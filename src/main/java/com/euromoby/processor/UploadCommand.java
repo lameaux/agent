@@ -6,8 +6,8 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.euromoby.job.JobDetail;
 import com.euromoby.job.JobManager;
+import com.euromoby.job.model.JobDetail;
 import com.euromoby.upload.UploadJob;
 import com.euromoby.utils.StringUtils;
 

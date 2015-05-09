@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.euromoby.dao.DownloadFileDao;
+import com.euromoby.download.dao.DownloadFileDao;
 import com.euromoby.model.AgentId;
 
 @Component

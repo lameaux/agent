@@ -11,7 +11,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.euromoby.agent.Config;
 import com.euromoby.model.AgentId;
-import com.euromoby.model.PingInfo;
+import com.euromoby.ping.model.PingInfo;
 import com.euromoby.utils.SystemUtils;
 
 @RunWith(MockitoJUnitRunner.class)

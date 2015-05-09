@@ -62,6 +62,9 @@ public class DownloadClient {
 					try {
 						IOUtils.copy(inputStream, outputStream);
 						IOUtils.closeQuietly(outputStream);
+						if (targetFile.exists()) {
+							targetFile.delete();
+						}
 						FileUtils.moveFile(downloadingFile, targetFile);
 						LOG.debug("File saved to " + targetFile.getPath());
 					} finally {

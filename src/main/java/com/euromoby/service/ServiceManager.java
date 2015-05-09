@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.Config;
+import com.euromoby.service.model.ServiceState;
 
 @Component
 public class ServiceManager implements InitializingBean, DisposableBean {

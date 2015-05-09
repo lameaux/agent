@@ -11,8 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.euromoby.dao.MailAccountDao;
-import com.euromoby.dao.MailMessageDao;
+import com.euromoby.mail.dao.MailAccountDao;
+import com.euromoby.mail.dao.MailMessageDao;
+import com.euromoby.mail.model.MailAccount;
+import com.euromoby.mail.model.MailMessage;
 import com.euromoby.model.Tuple;
 
 @Component

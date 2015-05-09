@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 import com.euromoby.agent.AgentManager;
 import com.euromoby.agent.Config;
 import com.euromoby.model.AgentId;
-import com.euromoby.model.PingInfo;
+import com.euromoby.ping.model.PingInfo;
 import com.euromoby.service.SchedulerService;
 
 @Component

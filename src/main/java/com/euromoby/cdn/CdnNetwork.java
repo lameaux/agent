@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.AgentManager;
 import com.euromoby.agent.Config;
+import com.euromoby.cdn.model.CdnResource;
 import com.euromoby.http.HttpClientProvider;
 import com.euromoby.model.AgentId;
 import com.euromoby.model.Tuple;

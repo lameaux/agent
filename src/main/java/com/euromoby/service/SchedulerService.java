@@ -3,6 +3,8 @@ package com.euromoby.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.euromoby.service.model.ServiceState;
+
 public abstract class SchedulerService implements Service {
 
 	public static final int DEFAULT_SLEEP_TIME = 1000;

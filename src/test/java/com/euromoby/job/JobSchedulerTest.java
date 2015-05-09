@@ -11,6 +11,8 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.euromoby.agent.Config;
+import com.euromoby.job.model.JobDetail;
+import com.euromoby.job.model.JobState;
 
 @RunWith(MockitoJUnitRunner.class)
 public class JobSchedulerTest {

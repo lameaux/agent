@@ -19,8 +19,8 @@ import org.springframework.stereotype.Component;
 
 import com.euromoby.http.HttpResponseProvider;
 import com.euromoby.http.HttpUtils;
-import com.euromoby.mail.MailAccount;
 import com.euromoby.mail.MailManager;
+import com.euromoby.mail.model.MailAccount;
 import com.euromoby.rest.RestException;
 import com.euromoby.rest.handler.RestHandlerBase;
 import com.euromoby.utils.IOUtils;

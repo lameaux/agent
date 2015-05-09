@@ -18,9 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.http.HttpResponseProvider;
-import com.euromoby.job.JobDetail;
 import com.euromoby.job.JobManager;
-import com.euromoby.job.JobState;
+import com.euromoby.job.model.JobDetail;
+import com.euromoby.job.model.JobState;
 import com.euromoby.rest.handler.RestHandlerBase;
 import com.euromoby.utils.DateUtils;
 import com.euromoby.utils.IOUtils;

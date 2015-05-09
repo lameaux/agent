@@ -18,8 +18,8 @@ import org.springframework.stereotype.Component;
 
 import com.euromoby.http.HttpResponseProvider;
 import com.euromoby.rest.handler.RestHandlerBase;
-import com.euromoby.twitter.TwitterAccount;
 import com.euromoby.twitter.TwitterManager;
+import com.euromoby.twitter.model.TwitterAccount;
 import com.euromoby.utils.IOUtils;
 import com.euromoby.utils.StringUtils;
 

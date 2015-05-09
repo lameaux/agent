@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.http.HttpClientProvider;
-import com.euromoby.model.PingInfo;
+import com.euromoby.ping.model.PingInfo;
 import com.euromoby.rest.handler.ping.PingHandler;
 import com.google.gson.Gson;
 

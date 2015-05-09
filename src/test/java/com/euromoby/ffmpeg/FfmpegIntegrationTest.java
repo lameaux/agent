@@ -10,6 +10,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.euromoby.agent.Config;
+import com.euromoby.ffmpeg.model.FfmpegFormat;
 import com.euromoby.utils.ShellExecutor;
 
 @Ignore

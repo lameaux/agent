@@ -2,6 +2,8 @@ package com.euromoby.job;
 
 import java.util.Map;
 
+import com.euromoby.job.model.JobDetail;
+import com.euromoby.job.model.JobState;
 import com.euromoby.model.AgentId;
 
 

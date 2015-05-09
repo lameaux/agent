@@ -13,6 +13,8 @@ import io.netty.handler.logging.LoggingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.euromoby.service.model.ServiceState;
+
 public abstract class NettyService implements Service {
 
 	private static final Logger LOG = LoggerFactory.getLogger(NettyService.class);

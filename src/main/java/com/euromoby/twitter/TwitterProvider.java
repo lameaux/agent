@@ -16,6 +16,7 @@ import twitter4j.auth.RequestToken;
 import twitter4j.conf.ConfigurationBuilder;
 
 import com.euromoby.agent.Config;
+import com.euromoby.twitter.model.TwitterAccount;
 import com.euromoby.utils.StringUtils;
 
 @Component

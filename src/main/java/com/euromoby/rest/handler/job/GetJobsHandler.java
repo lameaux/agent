@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.AgentManager;
 import com.euromoby.http.HttpResponseProvider;
-import com.euromoby.job.JobDetail;
+import com.euromoby.job.model.JobDetail;
 import com.euromoby.model.AgentId;
 import com.euromoby.rest.RestException;
 import com.euromoby.rest.handler.RestHandlerBase;

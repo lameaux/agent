@@ -15,6 +15,7 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.euromoby.agent.Config;
+import com.euromoby.ffmpeg.model.FfmpegFormat;
 import com.euromoby.utils.ShellExecutor;
 
 @RunWith(MockitoJUnitRunner.class)

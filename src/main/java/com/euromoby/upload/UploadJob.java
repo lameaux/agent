@@ -3,8 +3,8 @@ package com.euromoby.upload;
 import java.util.Map;
 
 import com.euromoby.job.Job;
-import com.euromoby.job.JobDetail;
-import com.euromoby.job.JobState;
+import com.euromoby.job.model.JobDetail;
+import com.euromoby.job.model.JobState;
 
 
 public class UploadJob extends Job {

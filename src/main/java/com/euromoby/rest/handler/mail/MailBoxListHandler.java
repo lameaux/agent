@@ -19,9 +19,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.http.HttpResponseProvider;
-import com.euromoby.mail.MailAccount;
 import com.euromoby.mail.MailManager;
-import com.euromoby.mail.MailMessage;
+import com.euromoby.mail.model.MailAccount;
+import com.euromoby.mail.model.MailMessage;
 import com.euromoby.model.Tuple;
 import com.euromoby.rest.RestException;
 import com.euromoby.rest.handler.RestHandlerBase;

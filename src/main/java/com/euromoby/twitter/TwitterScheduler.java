@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.Config;
 import com.euromoby.service.SchedulerService;
+import com.euromoby.twitter.model.TwitterAccount;
+import com.euromoby.twitter.model.TwitterMessage;
 
 @Component
 public class TwitterScheduler extends SchedulerService {

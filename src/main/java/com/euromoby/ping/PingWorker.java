@@ -3,7 +3,7 @@ package com.euromoby.ping;
 import java.util.concurrent.Callable;
 
 import com.euromoby.model.AgentId;
-import com.euromoby.model.PingInfo;
+import com.euromoby.ping.model.PingInfo;
 import com.euromoby.rest.RestServer;
 
 

@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.Config;
+import com.euromoby.ffmpeg.model.FfmpegFormat;
+import com.euromoby.ffmpeg.model.FfmpegOutput;
 import com.euromoby.utils.ShellExecutor;
 import com.euromoby.utils.StringUtils;
 import com.google.gson.Gson;

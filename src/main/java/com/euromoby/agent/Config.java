@@ -10,7 +10,7 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.euromoby.cdn.CdnServer;
+import com.euromoby.cdn.service.CdnServer;
 import com.euromoby.model.AgentId;
 import com.euromoby.rest.RestServer;
 import com.euromoby.telnet.TelnetServer;

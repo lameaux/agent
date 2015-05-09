@@ -5,6 +5,9 @@ import java.util.concurrent.Callable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.euromoby.twitter.model.TwitterAccount;
+import com.euromoby.twitter.model.TwitterMessage;
+
 
 public class TwitterWorker implements Callable<TwitterMessage> {
 

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import com.euromoby.download.DownloadClient;
 import com.euromoby.ffmpeg.Ffmpeg;
 import com.euromoby.file.FileProvider;
+import com.euromoby.job.model.JobDetail;
 import com.euromoby.upload.UploadClient;
 import com.euromoby.upload.UploadJob;
 import com.euromoby.video.GrabVideoJob;

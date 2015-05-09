@@ -12,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.euromoby.job.model.JobDetail;
+
 @Component
 public class JobManager {
 

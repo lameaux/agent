@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.Config;
+import com.euromoby.job.model.JobDetail;
+import com.euromoby.job.model.JobState;
 import com.euromoby.service.SchedulerService;
 
 @Component

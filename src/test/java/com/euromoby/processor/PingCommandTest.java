@@ -12,8 +12,8 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.euromoby.model.AgentId;
-import com.euromoby.model.PingInfo;
 import com.euromoby.ping.PingSender;
+import com.euromoby.ping.model.PingInfo;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PingCommandTest {

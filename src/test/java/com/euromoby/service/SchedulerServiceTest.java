@@ -9,6 +9,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import com.euromoby.service.model.ServiceState;
+
 @RunWith(MockitoJUnitRunner.class)
 public class SchedulerServiceTest {
 

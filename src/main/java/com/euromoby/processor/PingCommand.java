@@ -3,9 +3,9 @@ package com.euromoby.processor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.euromoby.model.PingInfo;
 import com.euromoby.ping.PingSender;
-import com.euromoby.storage.ping.PingStatus;
+import com.euromoby.ping.model.PingInfo;
+import com.euromoby.ping.model.PingStatus;
 import com.euromoby.utils.StringUtils;
 
 @Component

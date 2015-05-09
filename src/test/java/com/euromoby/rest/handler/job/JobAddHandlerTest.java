@@ -26,9 +26,9 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.euromoby.job.Job;
-import com.euromoby.job.JobDetail;
 import com.euromoby.job.JobFactory;
 import com.euromoby.job.JobManager;
+import com.euromoby.job.model.JobDetail;
 import com.euromoby.rest.RestException;
 import com.euromoby.utils.DateUtils;
 import com.euromoby.utils.StringUtils;

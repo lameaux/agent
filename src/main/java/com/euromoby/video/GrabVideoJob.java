@@ -8,11 +8,11 @@ import org.slf4j.LoggerFactory;
 
 import com.euromoby.download.DownloadClient;
 import com.euromoby.ffmpeg.Ffmpeg;
-import com.euromoby.ffmpeg.FfmpegFormat;
+import com.euromoby.ffmpeg.model.FfmpegFormat;
 import com.euromoby.file.FileProvider;
 import com.euromoby.job.Job;
-import com.euromoby.job.JobDetail;
-import com.euromoby.job.JobState;
+import com.euromoby.job.model.JobDetail;
+import com.euromoby.job.model.JobState;
 
 public class GrabVideoJob extends Job {
 

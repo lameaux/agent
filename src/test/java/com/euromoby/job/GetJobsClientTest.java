@@ -27,6 +27,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.euromoby.agent.Config;
 import com.euromoby.http.HttpClientProvider;
+import com.euromoby.job.model.JobDetail;
 import com.euromoby.model.AgentId;
 import com.euromoby.rest.RestServer;
 import com.euromoby.rest.handler.job.GetJobsHandler;

@@ -21,9 +21,9 @@ import org.springframework.stereotype.Component;
 
 import com.euromoby.http.HttpResponseProvider;
 import com.euromoby.http.HttpUtils;
-import com.euromoby.job.JobDetail;
 import com.euromoby.job.JobFactory;
 import com.euromoby.job.JobManager;
+import com.euromoby.job.model.JobDetail;
 import com.euromoby.rest.RestException;
 import com.euromoby.rest.handler.RestHandlerBase;
 import com.euromoby.utils.DateUtils;

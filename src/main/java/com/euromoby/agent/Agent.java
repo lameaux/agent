@@ -22,7 +22,7 @@ public class Agent {
 		InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
 
 		// spring configuration
-		ConfigurableApplicationContext ctx = new AnnotationConfigApplicationContext(AgentSpringConfig.class);
+		ConfigurableApplicationContext ctx = new AnnotationConfigApplicationContext(SpringConfig.class);
 
 		// shutdown hook
 		Runtime.getRuntime().addShutdownHook(new AgentShutdownHook(ctx));

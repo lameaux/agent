@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.euromoby.agent.Config;
+import com.euromoby.service.model.ServiceState;
 
 @RunWith(MockitoJUnitRunner.class)
 public class NettyServiceTest {

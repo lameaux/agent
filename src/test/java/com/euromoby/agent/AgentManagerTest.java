@@ -12,8 +12,9 @@ import java.util.Properties;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.euromoby.agent.model.AgentStatus;
 import com.euromoby.model.AgentId;
-import com.euromoby.model.PingInfo;
+import com.euromoby.ping.model.PingInfo;
 
 public class AgentManagerTest {
 

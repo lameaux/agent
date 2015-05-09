@@ -12,9 +12,9 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.euromoby.mail.MailAccount;
 import com.euromoby.mail.MailManager;
 import com.euromoby.mail.MailSession;
+import com.euromoby.mail.model.MailAccount;
 import com.euromoby.model.Tuple;
 
 @RunWith(MockitoJUnitRunner.class)
