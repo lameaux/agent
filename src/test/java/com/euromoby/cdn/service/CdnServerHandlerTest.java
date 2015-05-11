@@ -36,8 +36,6 @@ import com.euromoby.agent.AgentManager;
 import com.euromoby.agent.Config;
 import com.euromoby.cdn.CdnNetwork;
 import com.euromoby.cdn.model.CdnResource;
-import com.euromoby.cdn.service.CdnServer;
-import com.euromoby.cdn.service.CdnServerHandler;
 import com.euromoby.download.DownloadManager;
 import com.euromoby.file.FileProvider;
 import com.euromoby.file.MimeHelper;
@@ -212,6 +210,7 @@ public class CdnServerHandlerTest {
 		Mockito.when(channel.writeAndFlush(Matchers.any(DefaultFullHttpResponse.class))).thenReturn(channelFuture);
 		long lastModified = System.currentTimeMillis();
 		Mockito.when(targetFile.lastModified()).thenReturn(lastModified);
+		Mockito.when(targetFile.exists()).thenReturn(true);
 		Mockito.when(headers.get(Matchers.eq(HttpHeaders.Names.IF_MODIFIED_SINCE))).thenReturn(
 				new SimpleDateFormat(HttpUtils.HTTP_DATE_FORMAT, Locale.US).format(new Date(lastModified)));
 		Mockito.when(fileProvider.getFileByLocation(Matchers.eq(FILE))).thenReturn(targetFile);
@@ -252,6 +251,7 @@ public class CdnServerHandlerTest {
 	@Test
 	public void testGetOriginRedirectFromCdn() throws Exception {
 		String FILE = "file.html";
+		String FILES_PATH = "/";
 		String ORIGIN_URL = "http://example.com";
 		String ORIGIN_FILE_URL = ORIGIN_URL + "/" + FILE + "?query=query";
 		URI uri = new URI(ORIGIN_FILE_URL);
@@ -261,14 +261,14 @@ public class CdnServerHandlerTest {
 		cdnResource.setProxyable(false); // do redirect
 		searchResult.setFirst(cdnResource);
 		Mockito.when(cdnNetwork.find(uri.getPath())).thenReturn(searchResult);
-		
+		Mockito.when(config.getAgentFilesPath()).thenReturn(FILES_PATH);
 		Mockito.when(ctx.writeAndFlush(Matchers.any(DefaultLastHttpContent.class))).thenReturn(channelFuture);
 		Mockito.when(channel.pipeline()).thenReturn(channelPipeline);		
 		Mockito.when(request.getMethod()).thenReturn(HttpMethod.GET);
 		Mockito.when(headers.get(Matchers.refEq(HttpHeaders.newEntity(HttpHeaders.Names.EXPECT)))).thenReturn(HttpHeaders.Values.CONTINUE);		
 		Mockito.when(request.getUri()).thenReturn(ORIGIN_FILE_URL);
 		Mockito.when(headers.get(Matchers.eq(HttpHeaders.Names.IF_MODIFIED_SINCE))).thenReturn(null);
-		Mockito.when(fileProvider.getFileByLocation(Matchers.eq(FILE))).thenReturn(null);
+		Mockito.when(fileProvider.getFileByLocation(Matchers.eq(FILE))).thenReturn(new File(FILES_PATH + FILE));
 
 		handler.channelRead0(ctx, request);
 		

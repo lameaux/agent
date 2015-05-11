@@ -44,7 +44,7 @@ public class CdnResourceTest {
 		String badUrl = BAD_URL_PREFIX + BAD_RESOURCE_NAME;
 		assertTrue(cdnResource.matches(badUrl));
 		
-		assertTrue(cdnResource.matches("foobar"));		
+		assertTrue(cdnResource.matches("/foobar"));		
 	}	
 	
 	@Test
