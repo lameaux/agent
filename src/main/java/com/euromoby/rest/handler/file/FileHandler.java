@@ -68,7 +68,7 @@ public class FileHandler extends RestHandlerBase {
 		}		
 		
 		File targetFile = fileProvider.getFileByLocation(fileLocation);
-		if (targetFile == null) {
+		if (targetFile == null || !targetFile.exists()) {
 			throw new RestException(HttpResponseStatus.NOT_FOUND, "Not found");
 		}
 		

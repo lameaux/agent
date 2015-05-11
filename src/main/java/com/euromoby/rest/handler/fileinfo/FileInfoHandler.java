@@ -73,7 +73,7 @@ public class FileInfoHandler extends RestHandlerBase {
 		
 		FileInfo fileInfo;
 		File targetFile = fileProvider.getFileByLocation(fileLocation);
-		if (targetFile != null) {
+		if (targetFile != null && targetFile.exists()) {
 			fileInfo = existingFileInfo(targetFile, fileLocation);
 		} else {
 			DownloadFile downloadFile = downloadManager.findScheduledFileLocation(fileLocation);

@@ -4,12 +4,18 @@ import com.euromoby.utils.StringUtils;
 
 public class CdnResource {
 
-	// should start with / (slash)
-	private String urlPrefix = "";
 	/**
-	 * Regexp pattern
+	 *  Path prefix should start with / (slash)
 	 */
-	private String urlPattern = "/.+";
+	private String urlPathPrefix = "";
+	/**
+	 * Regexp pattern (file should have an extension)
+	 */
+	private String urlPathPattern = "/.+\\.[^.]+";
+	
+	/**
+	 * Url where the location can be found
+	 */
 	private String resourceOrigin;
 	
 	/**
@@ -30,17 +36,17 @@ public class CdnResource {
 	public CdnResource() {
 	}
 
-	public boolean matches(String url) {
-		if (StringUtils.nullOrEmpty(url)) {
+	public boolean matches(String urlPath) {
+		if (StringUtils.nullOrEmpty(urlPath)) {
 			return false;
 		}
-		if (!StringUtils.nullOrEmpty(urlPrefix)) {
-			if (!url.startsWith(urlPrefix)) {
+		if (!StringUtils.nullOrEmpty(urlPathPrefix)) {
+			if (!urlPath.startsWith(urlPathPrefix)) {
 				return false;
 			}
-			url = url.substring(urlPrefix.length());
+			urlPath = urlPath.substring(urlPathPrefix.length());
 		}
-		return url.matches(urlPattern);
+		return urlPath.matches(urlPathPattern);
 	}
 
 	public String getSourceUrl(String url) {
@@ -52,8 +58,8 @@ public class CdnResource {
 		}
 		
 		String resourceName = url;
-		if (!StringUtils.nullOrEmpty(urlPrefix)) {
-			resourceName = resourceName.substring(urlPrefix.length());
+		if (!StringUtils.nullOrEmpty(urlPathPrefix)) {
+			resourceName = resourceName.substring(urlPathPrefix.length());
 		}
 		
 		return resourceOrigin + resourceName;
@@ -61,20 +67,20 @@ public class CdnResource {
 
 	// Getters & Setters
 
-	public String getUrlPrefix() {
-		return urlPrefix;
+	public String getUrlPathPrefix() {
+		return urlPathPrefix;
 	}
 
-	public void setUrlPrefix(String urlPrefix) {
-		this.urlPrefix = urlPrefix;
+	public void setUrlPathPrefix(String urlPathPrefix) {
+		this.urlPathPrefix = urlPathPrefix;
 	}
 
-	public String getUrlPattern() {
-		return urlPattern;
+	public String getUrlPathPattern() {
+		return urlPathPattern;
 	}
 
-	public void setUrlPattern(String urlPattern) {
-		this.urlPattern = urlPattern;
+	public void setUrlPathPattern(String urlPathPattern) {
+		this.urlPathPattern = urlPathPattern;
 	}
 
 	public String getResourceOrigin() {

@@ -8,8 +8,6 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.euromoby.cdn.model.CdnResource;
-
 public class CdnResourceTest {
 
 	public static final String GOOD_URL_PREFIX = "/good_prefix";
@@ -24,8 +22,8 @@ public class CdnResourceTest {
 	@Before
 	public void init() {
 		cdnResource = new CdnResource();
-		cdnResource.setUrlPrefix(GOOD_URL_PREFIX);
-		cdnResource.setUrlPattern(URL_PATTERN);
+		cdnResource.setUrlPathPrefix(GOOD_URL_PREFIX);
+		cdnResource.setUrlPathPattern(URL_PATTERN);
 		cdnResource.setResourceOrigin(RESOURCE_ORIGIN);
 	}
 
@@ -72,7 +70,7 @@ public class CdnResourceTest {
 		String goodUrl = GOOD_URL_PREFIX + GOOD_RESOURCE_NAME;
 		assertEquals(RESOURCE_ORIGIN + GOOD_RESOURCE_NAME, cdnResource.getSourceUrl(goodUrl));
 		
-		cdnResource.setUrlPrefix(null);
+		cdnResource.setUrlPathPrefix(null);
 		assertEquals(RESOURCE_ORIGIN + GOOD_URL_PREFIX + GOOD_RESOURCE_NAME, cdnResource.getSourceUrl(goodUrl));
 		
 	}
@@ -89,10 +87,10 @@ public class CdnResourceTest {
 	@Test
 	public void testGetSet() {
 		cdnResource = new CdnResource();
-		cdnResource.setUrlPrefix(GOOD_URL_PREFIX);
-		assertEquals(GOOD_URL_PREFIX, cdnResource.getUrlPrefix());
-		cdnResource.setUrlPattern(URL_PATTERN);
-		assertEquals(URL_PATTERN, cdnResource.getUrlPattern());
+		cdnResource.setUrlPathPrefix(GOOD_URL_PREFIX);
+		assertEquals(GOOD_URL_PREFIX, cdnResource.getUrlPathPrefix());
+		cdnResource.setUrlPathPattern(URL_PATTERN);
+		assertEquals(URL_PATTERN, cdnResource.getUrlPathPattern());
 		cdnResource.setResourceOrigin(RESOURCE_ORIGIN);
 		assertEquals(RESOURCE_ORIGIN, cdnResource.getResourceOrigin());		
 		cdnResource.setDownloadIfMissing(true);

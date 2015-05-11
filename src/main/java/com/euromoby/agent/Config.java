@@ -267,7 +267,7 @@ public class Config {
 	}	
 
 	public boolean isHttpProxyAuthentication() {
-		return !StringUtils.nullOrEmpty(getHttpProxyHost());
+		return !StringUtils.nullOrEmpty(getHttpProxyLogin());
 	}	
 	
 	public String[] getHttpProxyBypass() {

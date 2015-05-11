@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import com.euromoby.agent.model.AgentStatus;
 import com.euromoby.model.AgentId;
 import com.euromoby.ping.model.PingInfo;
+import com.euromoby.utils.StringUtils;
 
 @Component
 public class AgentManager implements InitializingBean {
@@ -33,6 +34,9 @@ public class AgentManager implements InitializingBean {
 		AgentId myAgentId = config.getAgentId();
 		String[] agentFriendIds = config.getAgentFriends();
 		for (String agentFriendId : agentFriendIds) {
+			if (StringUtils.nullOrEmpty(agentFriendId)) {
+				continue;
+			}
 			try {
 				AgentId agentId = new AgentId(agentFriendId);
 				if (!agentId.equals(myAgentId)) {

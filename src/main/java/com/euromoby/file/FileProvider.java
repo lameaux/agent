@@ -12,7 +12,9 @@ import com.euromoby.agent.Config;
 public class FileProvider {
 
 	private static final Pattern INSECURE_URI = Pattern.compile(".*[<>&\"].*");
-	public static final String DIRECTORY_INDEX = "agent.index.html";
+	public static final String DEFAULT_EXTENSION = ".agentfile.html";
+	public static final String INDEX_NAME = "index";	
+	public static final String REGEX_FILE_WITH_EXT = ".+\\.[^.]+$"; 	
 
 	private Config config;
 
@@ -33,17 +35,26 @@ public class FileProvider {
 	
 	public File getFileByLocation(String location) {
 		if (location.isEmpty()) {
-			return null;
+			location = INDEX_NAME;
 		}
+		
 		// Convert file separators.
 		location = location.replace('/', File.separatorChar);
 
+		if (location.endsWith(File.separator)) {
+			location = location + INDEX_NAME;
+		}
+		
 		// check for invalid characters in file location
 		if (location.contains(File.separator + '.') || location.contains('.' + File.separator) || location.charAt(0) == '.'
 				|| location.charAt(location.length() - 1) == '.' || INSECURE_URI.matcher(location).matches()) {
 			return null;
 		}
 
+		if (!location.matches(REGEX_FILE_WITH_EXT)) {
+			location = location + FileProvider.DEFAULT_EXTENSION;
+		}
+		
 		File filesPath = new File(config.getAgentFilesPath());
 		File targetFile = new File(filesPath, location);
 
@@ -51,20 +62,11 @@ public class FileProvider {
 		if (!targetFile.getAbsolutePath().startsWith(filesPath.getAbsolutePath())) {
 			return null;
 		}
-		// check if exist
-		if (!targetFile.exists()) {
-			return null;
-		}
-		
-		// check for directory index
-		if (targetFile.isDirectory()) {
-			targetFile = new File(targetFile, DIRECTORY_INDEX);
-		}
 
 		// only files are supported
-		if (!targetFile.exists() && !targetFile.isFile()) {
-			return null;
-		}		
+//		if (!targetFile.exists() && !targetFile.isFile()) {
+//			return null;
+//		}		
 		
 		return targetFile;
 	}

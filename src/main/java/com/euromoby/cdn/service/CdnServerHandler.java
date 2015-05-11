@@ -14,7 +14,6 @@ import io.netty.handler.codec.http.HttpVersion;
 
 import java.io.File;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.util.List;
 
@@ -77,16 +76,7 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 		String sourceUrl = cdnResource.getSourceUrl(getPathWithQuery(uri));
 		if (sourceUrl != null) {
 			if (cdnResource.isDownloadIfMissing()) {
-				try {
-					URI sourceUri = new URI(sourceUrl);
-					String sourceUriPath = sourceUri.getPath();
-					if (StringUtils.nullOrEmpty(sourceUriPath) || sourceUriPath.equals("/")) {
-						fileLocation = fileLocation + File.separator + FileProvider.DIRECTORY_INDEX;
-					}
-					addToDownloadScheduler(sourceUrl, fileLocation);
-				} catch (URISyntaxException e) {
-					// wrong url
-				}	
+				addToDownloadScheduler(sourceUrl, fileLocation);
 			}
 			if (cdnResource.isProxyable()) {
 				manageContentProxying(ctx, httpRequest, sourceUrl);
@@ -187,6 +177,12 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 
 		File targetFile = fileProvider.getFileByLocation(fileLocation);
 		if (targetFile == null) {
+			writeErrorResponse(ctx, HttpResponseStatus.NOT_FOUND);
+			return;			
+		}
+		if (!targetFile.exists()) {
+			String base = config.getAgentFilesPath();
+			fileLocation = new File(base).toURI().relativize(targetFile.toURI()).getPath();
 			manageCdnRequest(ctx, request, uri, fileLocation);
 			return;
 		}
