@@ -1,6 +1,7 @@
 package com.euromoby.ping;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -32,7 +33,7 @@ public class PingInfoProviderTest {
 		Mockito.when(config.getAgentFilesPath()).thenReturn(SystemUtils.getUserHome());
 		PingInfo pingInfo = pingInfoProvider.createPingInfo();
 		assertEquals(agentId, pingInfo.getAgentId());
-		assertEquals(SystemUtils.getFreeSpace(SystemUtils.getUserHome()), pingInfo.getFreeSpace());
+		assertTrue(pingInfo.getFreeSpace() > 0);
 	}
 
 }
