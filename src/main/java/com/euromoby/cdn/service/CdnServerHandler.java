@@ -118,7 +118,8 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 		List<AgentId> activeAgents = agentManager.getActive();
 		for (AgentId activeAgentId : activeAgents) {
 			AgentStatus agentStatus = agentManager.getAgentStatus(activeAgentId);
-			if (agentStatus.getFreeSpace() > freeSpace) {
+			long agentFreeSpace = agentStatus.getFreeSpace(); 
+			if (agentFreeSpace > config.getDownloadFreespaceMin() && agentFreeSpace  > freeSpace) {
 				agentId = activeAgentId;
 				freeSpace = agentStatus.getFreeSpace();
 			}

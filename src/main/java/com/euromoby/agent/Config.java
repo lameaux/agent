@@ -152,6 +152,9 @@ public class Config {
 	public static final String DOWNLOAD_SCHEDULER_BATCH_SIZE = "agent.download.batch.size";
 	public static final String DEFAULT_DOWNLOAD_SCHEDULER_BATCH_SIZE  = "10";	
 	
+	public static final String DOWNLOAD_FREESPACE_MIN = "agent.download.freespace.min";
+	public static final String DEFAULT_DOWNLOAD_FREESPACE_MIN  = String.valueOf(500 * 1024 * 1024);	
+	
 	public static final String KEYSTORE_PATH = "agent.keystore.path";
 
 	public static final String KEYSTORE_STORE_PASSWORD = "agent.keystore.storepass";
@@ -381,6 +384,10 @@ public class Config {
 
 	public int getDownloadSchedulerBatchSize() {
 		return Integer.parseInt(properties.getProperty(DOWNLOAD_SCHEDULER_BATCH_SIZE, DEFAULT_DOWNLOAD_SCHEDULER_BATCH_SIZE));
+	}	
+
+	public int getDownloadFreespaceMin() {
+		return Integer.parseInt(properties.getProperty(DOWNLOAD_FREESPACE_MIN, DEFAULT_DOWNLOAD_FREESPACE_MIN));
 	}	
 	
 	@Override

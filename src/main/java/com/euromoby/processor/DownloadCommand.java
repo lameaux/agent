@@ -14,6 +14,7 @@ public class DownloadCommand extends CommandBase implements Command {
 	public static final String NO_PROXY = "noproxy";
 	
 	public static final String DOWNLOAD_SCHEDULED = "Download scheduled #";
+	public static final String DOWNLOAD_NOT_SCHEDULED = "Download not scheduled";	
 	
 	private DownloadManager downloadManager;
 	
@@ -34,6 +35,9 @@ public class DownloadCommand extends CommandBase implements Command {
 		boolean noProxy = (params.length == 3 && NO_PROXY.equals(params[2]));
 
 		DownloadFile downloadFile = downloadManager.scheduleDownloadFile(url, fileLocation, noProxy);
+		if (downloadFile == null) {
+			return DOWNLOAD_NOT_SCHEDULED;
+		}
 		return DOWNLOAD_SCHEDULED + downloadFile.getId();
 	}
 

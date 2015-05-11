@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.Config;
 import com.euromoby.download.DownloadManager;
+import com.euromoby.download.model.DownloadFile;
 import com.euromoby.http.HttpResponseProvider;
 import com.euromoby.http.HttpUtils;
 import com.euromoby.rest.RestException;
@@ -65,10 +66,13 @@ public class DownloadRequestHandler extends RestHandlerBase {
 		validateRequestParameters(postParameters);
 		String url = ListUtils.getFirst(postParameters.get(REQUEST_INPUT_URL));
 		String fileLocation = ListUtils.getFirst(postParameters.get(REQUEST_INPUT_FILE_LOCATION));
-		downloadManager.scheduleDownloadFile(url, fileLocation, false);
-
+		String result = "OK";
+		DownloadFile downloadFile = downloadManager.scheduleDownloadFile(url, fileLocation, false);
+		if (downloadFile == null) {
+			result = "ERROR";
+		}
 		HttpResponseProvider httpResponseProvider = new HttpResponseProvider(request);
-		return httpResponseProvider.createHttpResponse(HttpResponseStatus.OK, HttpUtils.fromString("OK"));
+		return httpResponseProvider.createHttpResponse(HttpResponseStatus.OK, HttpUtils.fromString(result));
 	}
 
 	protected void validateRequestParameters(Map<String, List<String>> requestParameters) throws RestException {
