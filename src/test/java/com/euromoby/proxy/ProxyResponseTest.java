@@ -51,7 +51,7 @@ public class ProxyResponseTest {
 		ArgumentCaptor<DefaultFullHttpResponse> responseCaptor = ArgumentCaptor.forClass(DefaultFullHttpResponse.class);
 		Mockito.verify(channel).writeAndFlush(responseCaptor.capture());
 		FullHttpResponse response = responseCaptor.getValue();
-		assertEquals(HttpResponseStatus.GATEWAY_TIMEOUT, response.getStatus());
+		assertEquals(HttpResponseStatus.INTERNAL_SERVER_ERROR, response.getStatus());
 	}
 	
 }

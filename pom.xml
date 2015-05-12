@@ -85,7 +85,7 @@
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-all</artifactId>
-			<version>4.0.25.Final</version>
+			<version>4.0.28.Final</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
@@ -110,7 +110,7 @@
 		<dependency>
 			<groupId>com.ning</groupId>
 			<artifactId>async-http-client</artifactId>
-			<version>1.9.20</version>
+			<version>1.9.22</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>

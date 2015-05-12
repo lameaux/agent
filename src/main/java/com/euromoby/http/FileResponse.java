@@ -38,7 +38,7 @@ import com.euromoby.utils.StringUtils;
 
 public class FileResponse {
 
-	private static final Pattern RANGE_HEADER = Pattern.compile("bytes=(\\d+)\\-(\\d+)?");
+	private static final Pattern RANGE_HEADER = Pattern.compile("bytes=(\\d+)?\\-(\\d+)?");
 	public static final int HTTP_CHUNK_SIZE = 8192;
 	public static final String MAX_AGE_VALUE = "max-age=";
 	public static final String CONTENT_DISPOSITION = "Content-Disposition";
@@ -195,7 +195,15 @@ public class FileResponse {
 			throw new IllegalArgumentException("Unsupported range: " + header);
 		}
 		Tuple<Long, Long> result = Tuple.empty();
-		result.setFirst(Long.parseLong(m.group(1)));
+		
+        if (!StringUtils.nullOrEmpty(m.group(1))) {
+            result.setFirst(Long.parseLong(m.group(1)));
+        } else {
+            result.setFirst(availableLength - Long.parseLong(m.group(2)));
+            result.setSecond(availableLength - 1);
+            return result;
+        }
+        
 		if (!StringUtils.nullOrEmpty(m.group(2))) {
 			result.setSecond(Long.parseLong(m.group(2)));
 		} else {

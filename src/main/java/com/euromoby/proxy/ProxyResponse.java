@@ -23,7 +23,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -33,6 +32,7 @@ import com.euromoby.http.AsyncHttpClientProvider;
 import com.euromoby.http.HttpUtils;
 import com.ning.http.client.AsyncHandler;
 import com.ning.http.client.AsyncHttpClient;
+import com.ning.http.client.AsyncHttpClient.BoundRequestBuilder;
 import com.ning.http.client.HttpResponseBodyPart;
 import com.ning.http.client.HttpResponseHeaders;
 import com.ning.http.client.RequestBuilder;
@@ -42,8 +42,12 @@ public class ProxyResponse {
 	private static final Logger log = LoggerFactory.getLogger(ProxyResponse.class);
 	
 	public static final List<String> REQUEST_HEADERS_TO_REMOVE = Arrays.asList(HttpHeaders.Names.COOKIE.toLowerCase());
-	public static final List<String> RESPONSE_HEADERS_TO_REMOVE = Arrays.asList(HttpHeaders.Names.TRANSFER_ENCODING.toLowerCase(), HttpHeaders.Names.SERVER.toLowerCase(),
-			HttpHeaders.Names.CONTENT_ENCODING.toLowerCase(), HttpHeaders.Names.EXPIRES.toLowerCase(), HttpHeaders.Names.CACHE_CONTROL.toLowerCase());
+	public static final List<String> RESPONSE_HEADERS_TO_REMOVE = Arrays.asList(
+			//HttpHeaders.Names.TRANSFER_ENCODING.toLowerCase(), 
+			HttpHeaders.Names.SERVER.toLowerCase(),
+			//HttpHeaders.Names.CONTENT_ENCODING.toLowerCase(), 
+			HttpHeaders.Names.EXPIRES.toLowerCase(), 
+			HttpHeaders.Names.CACHE_CONTROL.toLowerCase());
 	
 	
 	private AsyncHttpClientProvider asyncHttpClientProvider;
@@ -106,7 +110,7 @@ public class ProxyResponse {
 			    	
 			    	// TODO check Cache/Expired/Modified headers
 			    	
-			    	ctx.write(response);
+			    	ctx.writeAndFlush(response);
 			    	
 			        return STATE.CONTINUE;
 			    }
@@ -116,32 +120,23 @@ public class ProxyResponse {
 			    	log.debug("onBodyPartReceived");
 			    	
 			    	if (bodyPart.isLast()) {
-			    		 
 			    		if (chunkedResponse) {
-			    			ctx.channel().write(new DefaultHttpContent(Unpooled.wrappedBuffer(bodyPart.getBodyByteBuffer())));
+			    			ctx.channel().writeAndFlush(new DefaultHttpContent(Unpooled.wrappedBuffer(bodyPart.getBodyByteBuffer())));
 			    		} else {
-                            ctx.channel().write(Unpooled.wrappedBuffer(bodyPart.getBodyByteBuffer()));
+                            ctx.channel().writeAndFlush(Unpooled.wrappedBuffer(bodyPart.getBodyByteBuffer()));
 			    		}
-
-			    		ChannelFuture lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-			    		if (!HttpHeaders.isKeepAlive(httpRequest)) {
-			    			lastContentFuture.addListener(ChannelFutureListener.CLOSE);
-			    		}			    		
-			    		
 			    	} else {
-
                         if (chunkedResponse) {
-                            ChannelFuture writeFuture = ctx.channel().writeAndFlush(new DefaultHttpContent(Unpooled.wrappedBuffer(bodyPart.getBodyByteBuffer())));
-                            while (!ctx.channel().isWritable() && ctx.channel().isOpen()) {
-                                writeFuture.await(5, TimeUnit.SECONDS);
-                            }
+                            ChannelFuture writeFuture = ctx.channel().write(new DefaultHttpContent(Unpooled.wrappedBuffer(bodyPart.getBodyByteBuffer())));
+//                            while (!ctx.channel().isWritable() && ctx.channel().isOpen()) {
+//                                writeFuture.await(5, TimeUnit.SECONDS);
+//                            }
                         } else {
-                            ChannelFuture writeFuture = ctx.channel().writeAndFlush(Unpooled.wrappedBuffer(bodyPart.getBodyByteBuffer()));
-                            while (!ctx.channel().isWritable() && ctx.channel().isOpen()) {
-                                writeFuture.await(5, TimeUnit.SECONDS);
-                            }
+                            ChannelFuture writeFuture = ctx.channel().write(Unpooled.wrappedBuffer(bodyPart.getBodyByteBuffer()));
+//                            while (!ctx.channel().isWritable() && ctx.channel().isOpen()) {
+//                                writeFuture.await(5, TimeUnit.SECONDS);
+//                            }
                         }			    		
-			    		
 			    	}
 			    	
 			        return STATE.CONTINUE;
@@ -150,6 +145,12 @@ public class ProxyResponse {
 			    @Override
 				public String onCompleted() throws Exception {
 			    	log.debug("onCompleted");
+			    	
+		    		ChannelFuture lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+		    		if (!HttpHeaders.isKeepAlive(httpRequest)) {
+		    			lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+		    		}			    	
+			    	
 			    	return "OK";
 			    }
 
@@ -163,7 +164,10 @@ public class ProxyResponse {
 
 			};			
 			
-			client.prepareRequest(requestBuilder.build()).execute(asyncHandler);
+			//client.prepareRequest(requestBuilder.build()).execute(); //(asyncHandler);
+			
+			BoundRequestBuilder boundRequestBuilder = client.prepareGet(sourceUrl);
+			boundRequestBuilder.execute(asyncHandler).get();
 			
 		} catch (Exception e) {
 			writeStatusResponse(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());

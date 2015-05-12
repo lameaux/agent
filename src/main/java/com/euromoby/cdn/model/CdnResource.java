@@ -11,7 +11,7 @@ public class CdnResource {
 	/**
 	 * Regexp pattern (file should have an extension)
 	 */
-	private String urlPathPattern = "/.+";
+	private String urlPathPattern = "/.*";
 	
 	/**
 	 * Url where the location can be found

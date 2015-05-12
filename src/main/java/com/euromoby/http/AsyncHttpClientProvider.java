@@ -20,26 +20,26 @@ public class AsyncHttpClientProvider {
 	
 	private Config config;
 	private SSLContextProvider sslContextProvider;
-
+	
 	@Autowired
 	public AsyncHttpClientProvider(Config config, SSLContextProvider sslContextProvider) {
 		this.config = config;
 		this.sslContextProvider = sslContextProvider;
 	}
-
+	
 	public AsyncHttpClient createAsyncHttpClient() {
 		
 		AsyncHttpClientConfig.Builder configBuilder  = new AsyncHttpClientConfig.Builder();
-		int timeout = config.getHttpClientTimeout();
-		configBuilder.setConnectTimeout(timeout);
-		configBuilder.setReadTimeout(timeout);
-		configBuilder.setRequestTimeout(-1);
+		//int timeout = config.getHttpClientTimeout();
+		//configBuilder.setConnectTimeout(timeout);
+		//configBuilder.setReadTimeout(timeout);
+		//configBuilder.setRequestTimeout(-1);
 		configBuilder.setAllowPoolingConnections(true);
-		configBuilder.setAllowPoolingSslConnections(true);		
+		//configBuilder.setAllowPoolingSslConnections(true);		
 		configBuilder.setFollowRedirect(true);
-		configBuilder.setUserAgent(config.getHttpUserAgent());
-		configBuilder.setSSLContext(sslContextProvider.getSSLContext());
-		configBuilder.setAcceptAnyCertificate(true);
+		//configBuilder.setUserAgent(config.getHttpUserAgent());
+		//configBuilder.setSSLContext(sslContextProvider.getSSLContext());
+		//configBuilder.setAcceptAnyCertificate(true);
 		
 		return new AsyncHttpClient(configBuilder.build());
 
@@ -82,4 +82,8 @@ public class AsyncHttpClientProvider {
 		return false;
 	}
 	
+	public static void main(String args[]) {
+		AsyncHttpClient client = new AsyncHttpClient();
+		client.prepareGet("http://www.hovnokod.cz").execute();
+	}
 }

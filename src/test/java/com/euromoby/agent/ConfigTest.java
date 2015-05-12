@@ -46,7 +46,7 @@ public class ConfigTest {
 	@Test
 	public void testGetJarLocation() throws Exception {
 		File jarLocation = config.getJarLocation();
-		assertEquals(Config.class.getProtectionDomain().getCodeSource().getLocation().toURI(), jarLocation.toURI());
+		assertEquals(new File(Config.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile().toURI(), jarLocation.toURI());
 	}
 	
 	@Test
