@@ -18,9 +18,9 @@ import com.euromoby.download.DownloadManager;
 import com.euromoby.file.FileProvider;
 import com.euromoby.file.MimeHelper;
 import com.euromoby.http.AgentHttpResponseEncoder;
+import com.euromoby.http.AsyncHttpClientProvider;
 import com.euromoby.http.SmartHttpContentCompressor;
 import com.euromoby.network.ReadWriteTimeoutHandler;
-import com.euromoby.proxy.ProxyResponseProvider;
 
 @Component
 public class CdnServerInitializer extends ChannelInitializer<SocketChannel> {
@@ -31,17 +31,17 @@ public class CdnServerInitializer extends ChannelInitializer<SocketChannel> {
 	private CdnNetwork cdnNetwork;
 	private DownloadManager downloadManager;
 	private AgentManager agentManager;
-	private ProxyResponseProvider proxyResponseProvider;
+	private AsyncHttpClientProvider asyncHttpClientProvider;
 	
 	@Autowired
-	public CdnServerInitializer(Config config, FileProvider fileProvider, MimeHelper mimeHelper, CdnNetwork cdnNetwork, DownloadManager downloadManager, AgentManager agentManager, ProxyResponseProvider proxyResponseProvider) {
+	public CdnServerInitializer(Config config, FileProvider fileProvider, MimeHelper mimeHelper, CdnNetwork cdnNetwork, DownloadManager downloadManager, AgentManager agentManager, AsyncHttpClientProvider asyncHttpClientProvider) {
 		this.config = config;
 		this.fileProvider = fileProvider;
 		this.mimeHelper = mimeHelper;
 		this.cdnNetwork = cdnNetwork;
 		this.downloadManager = downloadManager;
 		this.agentManager = agentManager;
-		this.proxyResponseProvider = proxyResponseProvider;
+		this.asyncHttpClientProvider = asyncHttpClientProvider;
 	}
 
 	@Override
@@ -57,6 +57,6 @@ public class CdnServerInitializer extends ChannelInitializer<SocketChannel> {
 		
 		p.addLast("compressor", new SmartHttpContentCompressor());
 		p.addLast("chunked", new ChunkedWriteHandler());
-		p.addLast("cdn", new CdnServerHandler(config, fileProvider, mimeHelper, cdnNetwork, downloadManager, agentManager, proxyResponseProvider));
+		p.addLast("cdn", new CdnServerHandler(config, fileProvider, mimeHelper, cdnNetwork, downloadManager, agentManager, asyncHttpClientProvider));
 	}
 }

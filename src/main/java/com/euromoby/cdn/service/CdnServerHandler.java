@@ -25,12 +25,13 @@ import com.euromoby.cdn.model.CdnResource;
 import com.euromoby.download.DownloadManager;
 import com.euromoby.file.FileProvider;
 import com.euromoby.file.MimeHelper;
+import com.euromoby.http.AsyncHttpClientProvider;
 import com.euromoby.http.FileResponse;
 import com.euromoby.http.HttpResponseProvider;
 import com.euromoby.http.HttpUtils;
 import com.euromoby.model.AgentId;
 import com.euromoby.model.Tuple;
-import com.euromoby.proxy.ProxyResponseProvider;
+import com.euromoby.proxy.ProxyResponse;
 import com.euromoby.rest.RestException;
 import com.euromoby.rest.handler.fileinfo.FileInfo;
 import com.euromoby.utils.StringUtils;
@@ -44,16 +45,16 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 	private CdnNetwork cdnNetwork;
 	private DownloadManager downloadManager;
 	private AgentManager agentManager;
-	private ProxyResponseProvider proxyResponseProvider;
+	private AsyncHttpClientProvider asyncHttpClientProvider;
 
-	public CdnServerHandler(Config config, FileProvider fileProvider, MimeHelper mimeHelper, CdnNetwork cdnNetwork, DownloadManager downloadManager, AgentManager agentManager, ProxyResponseProvider proxyResponseProvider) {
+	public CdnServerHandler(Config config, FileProvider fileProvider, MimeHelper mimeHelper, CdnNetwork cdnNetwork, DownloadManager downloadManager, AgentManager agentManager, AsyncHttpClientProvider asyncHttpClientProvider) {
 		this.config = config;
 		this.fileProvider = fileProvider;
 		this.mimeHelper = mimeHelper;
 		this.cdnNetwork = cdnNetwork;
 		this.downloadManager = downloadManager;
 		this.agentManager = agentManager;
-		this.proxyResponseProvider = proxyResponseProvider;
+		this.asyncHttpClientProvider = asyncHttpClientProvider;
 	}
 	
 	protected void manageCdnRequest(ChannelHandlerContext ctx, FullHttpRequest httpRequest, URI uri, String fileLocation) {
@@ -128,7 +129,7 @@ public class CdnServerHandler extends SimpleChannelInboundHandler<FullHttpReques
 	}
 	
 	protected void manageContentProxying(ChannelHandlerContext ctx, FullHttpRequest httpRequest, String sourceUrl) {
-		proxyResponseProvider.proxy(ctx, httpRequest, sourceUrl);	
+		new ProxyResponse(asyncHttpClientProvider).proxy(ctx, httpRequest, sourceUrl);	
 	}
 	
 	protected void manageRedirect(ChannelHandlerContext ctx, FullHttpRequest httpRequest, String sourceUrl) {

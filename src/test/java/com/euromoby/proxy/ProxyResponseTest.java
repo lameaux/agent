@@ -21,7 +21,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.euromoby.http.AsyncHttpClientProvider;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ProxyResponseProviderTest {
+public class ProxyResponseTest {
 
 	@Mock
 	AsyncHttpClientProvider asyncHttpClientProvider; 
@@ -34,19 +34,19 @@ public class ProxyResponseProviderTest {
 	@Mock
 	ChannelFuture channelFuture;	
 
-	ProxyResponseProvider proxyResponseProvider;
+	ProxyResponse proxyResponse;
 
 	
 	@Before
 	public void init() {
 		Mockito.when(ctx.channel()).thenReturn(channel);
-		proxyResponseProvider = new ProxyResponseProvider(asyncHttpClientProvider);
+		proxyResponse = new ProxyResponse(asyncHttpClientProvider);
 	}
 	
 	@Test
 	public void testProxy() {
 		Mockito.when(channel.writeAndFlush(Matchers.any(FullHttpResponse.class))).thenReturn(channelFuture);
-		proxyResponseProvider.proxy(ctx, request, "http://example.com");
+		proxyResponse.proxy(ctx, request, "http://example.com");
 
 		ArgumentCaptor<DefaultFullHttpResponse> responseCaptor = ArgumentCaptor.forClass(DefaultFullHttpResponse.class);
 		Mockito.verify(channel).writeAndFlush(responseCaptor.capture());
