@@ -1,6 +1,5 @@
 package com.euromoby.http;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.security.KeyStore;
@@ -39,8 +38,7 @@ public class SSLContextProvider implements InitializingBean {
 	}	
 	
 	protected void initSSLContext() throws Exception {
-		File keystoreFile = getKeystoreFile();
-		InputStream keystoreInputStream = new FileInputStream(keystoreFile);
+		InputStream keystoreInputStream = getKeystoreInputStream();
 		try {
 			KeyStore keystore = KeyStore.getInstance("JKS");
 			keystore.load(keystoreInputStream, config.getKeystoreStorePass().toCharArray());
@@ -71,13 +69,13 @@ public class SSLContextProvider implements InitializingBean {
 		}
 	}
 	
-	private File getKeystoreFile() throws Exception {
+	private InputStream getKeystoreInputStream() throws Exception {
 		String keystorePath = config.getKeystorePath();
 		if (keystorePath == null) {
 			ClassPathResource cpr = new ClassPathResource("agent.keystore", Agent.class);
-			return cpr.getFile();
+			return cpr.getInputStream();
 		}
-		return new File(keystorePath);
+		return new FileInputStream(keystorePath);
 	}
 	
 	public SSLEngine newServerSSLEngine() {
