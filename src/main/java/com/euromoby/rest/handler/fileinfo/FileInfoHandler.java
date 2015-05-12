@@ -34,7 +34,7 @@ import com.google.gson.Gson;
 public class FileInfoHandler extends RestHandlerBase {
 
 	public static final String URL = "/filesinfo";
-	private static final Pattern URL_PATTERN = Pattern.compile(URL + "/(.+)");
+	private static final Pattern URL_PATTERN = Pattern.compile(URL + "/(.*)");
 	private static final Gson gson = new Gson();
 	
 	private Config config;

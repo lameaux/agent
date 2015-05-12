@@ -28,7 +28,8 @@ public class Config {
 
 	public Config() {
 
-		File agentConfigFile = new File(getJarLocation(), AGENT_PROPERTIES);
+		File jarLocation = getJarLocation();
+		File agentConfigFile = new File(jarLocation, AGENT_PROPERTIES);
 
 		String agentConfigLocation = System.getProperty(PARAM_AGENT_CONFIG);
 		if (!StringUtils.nullOrEmpty(agentConfigLocation)) {
@@ -53,7 +54,7 @@ public class Config {
 
 	protected File getJarLocation() {
 		try {
-			return new File(getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
+			return new File(getClass().getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile();
 		} catch (Exception e) {
 			return null;
 		}
