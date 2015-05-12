@@ -8,6 +8,7 @@ import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
@@ -31,12 +32,16 @@ import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.HttpResponseBodyPart;
 import com.ning.http.client.HttpResponseHeaders;
 import com.ning.http.client.RequestBuilder;
-import com.ning.http.client.Response;
 
 @Component
 public class ProxyResponseProvider {
 
 	private static final Logger log = LoggerFactory.getLogger(ProxyResponseProvider.class);
+	
+	public static final List<String> REQUEST_HEADERS_TO_REMOVE = Arrays.asList(HttpHeaders.Names.COOKIE);
+	public static final List<String> RESPONSE_HEADERS_TO_REMOVE = Arrays.asList(HttpHeaders.Names.TRANSFER_ENCODING, HttpHeaders.Names.SERVER,
+			HttpHeaders.Names.CONTENT_ENCODING, HttpHeaders.Names.EXPIRES, HttpHeaders.Names.CACHE_CONTROL);
+	
 	
 	private AsyncHttpClientProvider asyncHttpClientProvider;
 	
@@ -51,13 +56,14 @@ public class ProxyResponseProvider {
 			AsyncHttpClient client = asyncHttpClientProvider.createAsyncHttpClient();
 			URI uri = new URI(sourceUrl);
 			
-			RequestBuilder requestBuilder = new RequestBuilder();
+			RequestBuilder requestBuilder = asyncHttpClientProvider.createRequestBuilder(uri.getHost(), false);
 			requestBuilder.setUrl(sourceUrl);
-			requestBuilder.setMethod(httpRequest.getMethod().name());
+			// only GET is supported
+			requestBuilder.setMethod(HttpMethod.GET.name());
 			requestBuilder.setHeaders(prepareHeaders(httpRequest.headers(), uri.getHost()));
 
 			
-			AsyncHandler<Response> asyncHandler = new AsyncHandler<Response>() {
+			AsyncHandler<String> asyncHandler = new AsyncHandler<String>() {
 			    //private final Response.ResponseBuilder builder = new Response.ResponseBuilder();
 			    private com.ning.http.client.HttpResponseStatus status;
 
@@ -99,7 +105,7 @@ public class ProxyResponseProvider {
 			    }
 
 			    @Override
-				public Response onCompleted() throws Exception {
+				public String onCompleted() throws Exception {
 			    	log.debug("onCompleted");
 			    	//return builder.build();
 			    	return null;
@@ -113,7 +119,7 @@ public class ProxyResponseProvider {
 			};			
 			
 			
-			Response response = client.prepareRequest(requestBuilder.build()).execute(asyncHandler).get();
+			String response = client.prepareRequest(requestBuilder.build()).execute(asyncHandler).get();
 			
 			writeErrorResponse(ctx, HttpResponseStatus.GATEWAY_TIMEOUT, HttpResponseStatus.GATEWAY_TIMEOUT.reasonPhrase());
 			
@@ -130,7 +136,7 @@ public class ProxyResponseProvider {
 				headers.put(httpHeaderName, Arrays.asList(host));
 				continue;
 			}
-			if (HttpHeaders.Names.COOKIE.equalsIgnoreCase(httpHeaderName)) {
+			if (REQUEST_HEADERS_TO_REMOVE.contains(httpHeaderName)) {
 				continue;
 			}
 			headers.put(httpHeaderName, httpHeaders.getAll(httpHeaderName));

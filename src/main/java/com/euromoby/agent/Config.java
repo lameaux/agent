@@ -175,6 +175,10 @@ public class Config {
 	public static final String TWITTER_CONSUMER_KEY = "agent.twitter.key";
 	public static final String TWITTER_CONSUMER_SECRET = "agent.twitter.secret";
 
+	public static final String HTTP_USERAGENT = "agent.http.useragent";
+	public static final String DEFAULT_HTTP_USERAGENT = "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36";
+	
+	
 	
 	public String get(String key) {
 		return properties.getProperty(key);
@@ -389,6 +393,10 @@ public class Config {
 
 	public int getDownloadFreespaceMin() {
 		return Integer.parseInt(properties.getProperty(DOWNLOAD_FREESPACE_MIN, DEFAULT_DOWNLOAD_FREESPACE_MIN));
+	}	
+
+	public String getHttpUserAgent() {
+		return properties.getProperty(HTTP_USERAGENT, DEFAULT_HTTP_USERAGENT);
 	}	
 	
 	@Override

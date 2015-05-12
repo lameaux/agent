@@ -59,6 +59,7 @@ public class HttpClientProvider {
 		return HttpClientBuilder.create()
 				.setSslcontext(sslContextProvider.getSSLContext())
 				.setSSLHostnameVerifier(new NoopHostnameVerifier())
+				.setUserAgent(config.getHttpUserAgent())
 				.build();
 	}
 
