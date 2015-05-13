@@ -1,7 +1,6 @@
 package com.euromoby.http;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -134,25 +133,5 @@ public class HttpClientProviderTest {
 		
 	}
 	
-	@Test
-	public void shouldBypassProxy() {
-		String ADDRESS = "127.0.0.1";
-		String HOST = "www.euromoby.com";		
-		
-		String[] BYPASS_LIST = new String[] {"127.0.0.*", "localhost", "*.euromoby.*"};		
-		Mockito.when(config.getHttpProxyBypass()).thenReturn(BYPASS_LIST);
-		assertTrue(httpClientProvider.bypassProxy(ADDRESS));
-		assertTrue(httpClientProvider.bypassProxy(HOST));		
-	}
-
-	@Test
-	public void shouldNotBypassProxy() {
-		String ADDRESS = "127.0.1.1";
-		String HOST = "euromoby.com";
-		String[] BYPASS_LIST = new String[] {"127.0.0.*", "localhost", "*.euromoby.*"};		
-		Mockito.when(config.getHttpProxyBypass()).thenReturn(BYPASS_LIST);
-		assertFalse(httpClientProvider.bypassProxy(ADDRESS));
-		assertFalse(httpClientProvider.bypassProxy(HOST));		
-	}	
 	
 }

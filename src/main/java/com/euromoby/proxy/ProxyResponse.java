@@ -15,7 +15,6 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
 
-import java.net.URI;
 import java.nio.channels.ClosedChannelException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -23,14 +22,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.euromoby.http.AsyncHttpClientProvider;
 import com.euromoby.http.HttpUtils;
 import com.ning.http.client.AsyncHandler;
-import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.AsyncHttpClient.BoundRequestBuilder;
 import com.ning.http.client.HttpResponseBodyPart;
 import com.ning.http.client.HttpResponseHeaders;
@@ -44,7 +41,8 @@ public class ProxyResponse {
 			HttpHeaders.Names.HOST.toLowerCase()
 			);
 	public static final List<String> RESPONSE_HEADERS_TO_REMOVE = Arrays.asList(
-			HttpHeaders.Names.TRANSFER_ENCODING.toLowerCase(), 
+			HttpHeaders.Names.TRANSFER_ENCODING.toLowerCase(),
+			HttpHeaders.Names.SET_COOKIE.toLowerCase(), 			
 			HttpHeaders.Names.SERVER.toLowerCase(),
 			HttpHeaders.Names.VIA.toLowerCase(),
 			HttpHeaders.Names.CONTENT_ENCODING.toLowerCase() 
@@ -57,101 +55,13 @@ public class ProxyResponse {
 		this.asyncHttpClientProvider = asyncHttpClientProvider;
 	}
 	
-	public void proxy(final ChannelHandlerContext ctx, final FullHttpRequest httpRequest, String sourceUrl) {
-		AsyncHttpClient client = asyncHttpClientProvider.createAsyncHttpClient();
+	public void proxy(ChannelHandlerContext ctx, FullHttpRequest httpRequest, String sourceUrl) {
 		try {
-			
-			AsyncHandler<String> asyncHandler = new AsyncHandler<String>() {
-				
-                private int responseCode = HttpResponseStatus.OK.code();
-
-			    @Override
-			    public STATE onStatusReceived(final com.ning.http.client.HttpResponseStatus httpResponseStatus) throws Exception {
-			    	log.trace("onStatusReceived {}", httpResponseStatus.getStatusCode());
-
-                    if (httpResponseStatus.getStatusCode() >= 200 && httpResponseStatus.getStatusCode() < 300) {
-                        responseCode = httpResponseStatus.getStatusCode();
-                        return STATE.CONTINUE;
-                    }
-                    if (httpResponseStatus.getStatusCode() == HttpResponseStatus.NOT_MODIFIED.code()) {
-                    	writeStatusResponse(ctx, HttpResponseStatus.NOT_MODIFIED, HttpResponseStatus.NOT_MODIFIED.reasonPhrase());
-                        return STATE.ABORT;
-                    }
-                    HttpResponseStatus errorStatus = HttpResponseStatus.valueOf(httpResponseStatus.getStatusCode());
-                    writeStatusResponse(ctx, errorStatus, errorStatus.reasonPhrase());
-                    return STATE.ABORT;			    	
-			    }
-
-			    @Override
-				public STATE onHeadersReceived(final HttpResponseHeaders headers) throws Exception {
-			    	log.trace("onHeadersReceived");
-			    	
-			    	HttpResponse response = new DefaultHttpResponse(httpRequest.getProtocolVersion(), HttpResponseStatus.valueOf(responseCode));
-			    	
-			    	Map<String, List<String>> headersMap = headers.getHeaders();
-			    	HttpHeaders httpHeaders = response.headers();
-			    	for (String headerName : headersMap.keySet()) {
-			    		if (RESPONSE_HEADERS_TO_REMOVE.contains(headerName.toLowerCase())) {
-			    			continue;
-			    		}
-			    		httpHeaders.set(headerName, headersMap.get(headerName));
-			    	}
-			    	
-					if (supportChunks(httpRequest)) {
-						httpHeaders.set(HttpHeaders.Names.TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED);
-					}			    	
-			    	
-			    	ctx.write(response);
-			    	
-			        return STATE.CONTINUE;
-			    }
-
-			    @Override
-				public STATE onBodyPartReceived(final HttpResponseBodyPart bodyPart) throws Exception {
-			    	log.trace("onBodyPartReceived");
-			    	
-			    	if (supportChunks(httpRequest)) {
-			    		ctx.write(new DefaultHttpContent(Unpooled.wrappedBuffer(bodyPart.getBodyByteBuffer())));
-			    		
-			    	} else {
-			    		ctx.write(Unpooled.wrappedBuffer(bodyPart.getBodyByteBuffer()));
-			    	}
-			    	
-			    	return STATE.CONTINUE;
-			    }			    
-			    
-			    @Override
-				public String onCompleted() throws Exception {
-			    	log.trace("onCompleted");
-			    	
-		    		ChannelFuture lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-		    		if (!HttpHeaders.isKeepAlive(httpRequest)) {
-		    			lastContentFuture.addListener(ChannelFutureListener.CLOSE);
-		    		}			    	
-			    	
-			    	return "OK";
-			    }
-
-				@Override
-				public void onThrowable(Throwable t) {
-					if (!(t instanceof ClosedChannelException)) {
-						log.trace("onThrowable", t);
-						writeStatusResponse(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
-					}
-				}
-
-			};			
-			
-			BoundRequestBuilder boundRequestBuilder = client.prepareGet(sourceUrl);
-			URI uri = new URI(sourceUrl);			
-			asyncHttpClientProvider.configureRequest(boundRequestBuilder, uri.getHost(), false);
+			BoundRequestBuilder boundRequestBuilder = asyncHttpClientProvider.prepareGet(sourceUrl, false);
 			boundRequestBuilder.setHeaders(prepareHeaders(httpRequest.headers()));
-			boundRequestBuilder.execute(asyncHandler).get();
-			
+			boundRequestBuilder.execute(new ProxyAsyncHandler(ctx, httpRequest)).get();
 		} catch (Exception e) {
 			writeStatusResponse(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
-		} finally {
-			IOUtils.closeQuietly(client);
 		}
 	}
 
@@ -179,5 +89,101 @@ public class ProxyResponse {
 		ChannelFuture future = ctx.channel().writeAndFlush(response);
 		future.addListener(ChannelFutureListener.CLOSE);
 	}	
+
+	class ProxyAsyncHandler implements AsyncHandler<String> {
+		
+		private ChannelHandlerContext ctx;
+		private FullHttpRequest httpRequest;
+        private int responseCode = HttpResponseStatus.OK.code();
+        
+		public ProxyAsyncHandler(ChannelHandlerContext ctx, FullHttpRequest httpRequest) {
+			this.ctx = ctx;
+			this.httpRequest = httpRequest;
+		}
+		
+	    @Override
+	    public STATE onStatusReceived(final com.ning.http.client.HttpResponseStatus httpResponseStatus) throws Exception {
+	    	log.trace("onStatusReceived {}", httpResponseStatus.getStatusCode());
+
+            if (httpResponseStatus.getStatusCode() >= 200 && httpResponseStatus.getStatusCode() < 300) {
+                responseCode = httpResponseStatus.getStatusCode();
+                return STATE.CONTINUE;
+            }
+            if (httpResponseStatus.getStatusCode() == HttpResponseStatus.NOT_MODIFIED.code()) {
+            	writeStatusResponse(ctx, HttpResponseStatus.NOT_MODIFIED, HttpResponseStatus.NOT_MODIFIED.reasonPhrase());
+                return STATE.ABORT;
+            }
+            HttpResponseStatus errorStatus = HttpResponseStatus.valueOf(httpResponseStatus.getStatusCode());
+            writeStatusResponse(ctx, errorStatus, errorStatus.reasonPhrase());
+            return STATE.ABORT;			    	
+	    }
+
+	    @Override
+		public STATE onHeadersReceived(final HttpResponseHeaders headers) throws Exception {
+	    	log.trace("onHeadersReceived");
+	    	
+	    	HttpResponse response = new DefaultHttpResponse(httpRequest.getProtocolVersion(), HttpResponseStatus.valueOf(responseCode));
+	    	
+	    	Map<String, List<String>> headersMap = headers.getHeaders();
+	    	HttpHeaders httpHeaders = response.headers();
+	    	for (String headerName : headersMap.keySet()) {
+	    		if (RESPONSE_HEADERS_TO_REMOVE.contains(headerName.toLowerCase())) {
+	    			continue;
+	    		}
+	    		if (headerName.toLowerCase().startsWith("x-")) {
+	    			continue;
+	    		}
+	    		if (headerName.toLowerCase().startsWith("proxy")) {
+	    			continue;
+	    		}	    		
+	    		httpHeaders.set(headerName, headersMap.get(headerName));
+	    	}
+	    	
+			if (supportChunks(httpRequest)) {
+				httpHeaders.set(HttpHeaders.Names.TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED);
+			}			    	
+	    	
+	    	ctx.write(response);
+	    	
+	        return STATE.CONTINUE;
+	    }
+
+	    @Override
+		public STATE onBodyPartReceived(final HttpResponseBodyPart bodyPart) throws Exception {
+	    	log.trace("onBodyPartReceived");
+	    	
+	    	if (supportChunks(httpRequest)) {
+	    		ctx.write(new DefaultHttpContent(Unpooled.wrappedBuffer(bodyPart.getBodyByteBuffer())));
+	    		
+	    	} else {
+	    		ctx.write(Unpooled.wrappedBuffer(bodyPart.getBodyByteBuffer()));
+	    	}
+	    	
+	    	return STATE.CONTINUE;
+	    }			    
+	    
+	    @Override
+		public String onCompleted() throws Exception {
+	    	log.trace("onCompleted");
+	    	
+    		ChannelFuture lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+    		if (!HttpHeaders.isKeepAlive(httpRequest)) {
+    			lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+    		}			    	
+	    	
+	    	return "OK";
+	    }
+
+		@Override
+		public void onThrowable(Throwable t) {
+			if (!(t instanceof ClosedChannelException)) {
+				log.trace("onThrowable", t);
+				writeStatusResponse(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
+			}
+		}
+
+	};			
+
+	
 	
 }

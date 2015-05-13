@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.euromoby.utils.StringUtils;
 
@@ -26,6 +28,8 @@ public class HttpUtils {
     public static final String HTTP_DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
     public static final String HTTP_DATE_GMT_TIMEZONE = "GMT";
     public static final int HTTP_CACHE_SECONDS = 30 * 24 * 60 * 60; // 30 days	
+    
+	public static final Pattern WILDCARD_REGEX = Pattern.compile("[^*]+|(\\*)");	
     
     
 	public static boolean ifModifiedSince(HttpRequest request, File file) {
@@ -65,5 +69,25 @@ public class HttpUtils {
 		QueryStringDecoder decoderQuery = new QueryStringDecoder(request.getUri());
 		return decoderQuery.parameters();
 	}	
+
+	public static boolean bypassProxy(String[] bypassList, String host) {
+		for (String mask : bypassList) {
+			Matcher m = WILDCARD_REGEX.matcher(mask);
+			StringBuffer b = new StringBuffer();
+			while (m.find()) {
+				if (m.group(1) != null) {
+					m.appendReplacement(b, ".*");
+				} else {
+					m.appendReplacement(b, "\\\\Q" + m.group(0) + "\\\\E");
+				}
+			}
+			m.appendTail(b);
+			
+			if (host.matches(b.toString())) {
+				return true;
+			}
+		}
+		return false;		
+	}
 	
 }

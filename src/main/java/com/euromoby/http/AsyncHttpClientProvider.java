@@ -1,8 +1,10 @@
 package com.euromoby.http;
 
-import java.util.regex.Matcher;
+import java.net.URI;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.IOUtils;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -14,21 +16,22 @@ import com.ning.http.client.ProxyServer;
 import com.ning.http.client.Realm.AuthScheme;
 
 @Component
-public class AsyncHttpClientProvider {
+public class AsyncHttpClientProvider implements DisposableBean {
 
 	public static final Pattern WILDCARD_REGEX = Pattern.compile("[^*]+|(\\*)");	
 	
 	private Config config;
 	private SSLContextProvider sslContextProvider;
+	private AsyncHttpClient asyncHttpClient;
 	
 	@Autowired
 	public AsyncHttpClientProvider(Config config, SSLContextProvider sslContextProvider) {
 		this.config = config;
 		this.sslContextProvider = sslContextProvider;
+		asyncHttpClient = createAsyncHttpClient();
 	}
 	
-	public AsyncHttpClient createAsyncHttpClient() {
-		
+	protected AsyncHttpClient createAsyncHttpClient() {
 		AsyncHttpClientConfig.Builder configBuilder  = new AsyncHttpClientConfig.Builder();
 		int timeout = config.getHttpClientTimeout();
 		configBuilder.setConnectTimeout(timeout);
@@ -41,11 +44,13 @@ public class AsyncHttpClientProvider {
 		configBuilder.setSSLContext(sslContextProvider.getSSLContext());
 		configBuilder.setAcceptAnyCertificate(true);
 		return new AsyncHttpClient(configBuilder.build());
-
 	}
 
-	public void configureRequest(BoundRequestBuilder boundRequestBuilder, String host, boolean noProxy) {
-		if (!noProxy && config.isHttpProxy() && !bypassProxy(host)) {
+	public BoundRequestBuilder prepareGet(String url, boolean noProxy) throws Exception {
+		BoundRequestBuilder boundRequestBuilder = asyncHttpClient.prepareGet(url);
+		
+		URI uri = new URI(url);	
+		if (!noProxy && config.isHttpProxy() && !HttpUtils.bypassProxy(config.getHttpProxyBypass(), uri.getHost())) {
 			ProxyServer proxyServer = new ProxyServer(config.getHttpProxyHost(), config.getHttpProxyPort());
 			if (config.isHttpProxyAuthentication()) {
 				proxyServer = new ProxyServer(config.getHttpProxyHost(), config.getHttpProxyPort(), config.getHttpProxyLogin(), config.getHttpProxyPassword());
@@ -53,28 +58,15 @@ public class AsyncHttpClientProvider {
 			}
 			boundRequestBuilder.setProxyServer(proxyServer);
 		}
+		
+		return boundRequestBuilder;
+		
 	}
 
-	protected boolean bypassProxy(String host) {
-		String[] proxyBypass = config.getHttpProxyBypass();
+	@Override
+	public void destroy() throws Exception {
+		IOUtils.closeQuietly(asyncHttpClient);
 		
-		for (String mask : proxyBypass) {
-			Matcher m = WILDCARD_REGEX.matcher(mask);
-			StringBuffer b = new StringBuffer();
-			while (m.find()) {
-				if (m.group(1) != null) {
-					m.appendReplacement(b, ".*");
-				} else {
-					m.appendReplacement(b, "\\\\Q" + m.group(0) + "\\\\E");
-				}
-			}
-			m.appendTail(b);
-			
-			if (host.matches(b.toString())) {
-				return true;
-			}
-		}
-		
-		return false;
 	}
+
 }

@@ -2,7 +2,6 @@ package com.euromoby.http;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.http.HttpHost;
@@ -106,35 +105,15 @@ public class HttpClientProvider {
 		
 		int timeout = config.getHttpClientTimeout();
 		
-		RequestConfig.Builder requestConfigBuilder = RequestConfig.custom().setSocketTimeout(timeout).setConnectTimeout(timeout);
-		if (!noProxy && config.isHttpProxy() && !bypassProxy(host)) {
+		RequestConfig.Builder requestConfigBuilder = RequestConfig.custom();
+		requestConfigBuilder.setSocketTimeout(timeout);
+		requestConfigBuilder.setConnectTimeout(timeout);
+		
+		if (!noProxy && config.isHttpProxy() && !HttpUtils.bypassProxy(config.getHttpProxyBypass(), host)) {
 			requestConfigBuilder.setProxy(new HttpHost(config.getHttpProxyHost(), config.getHttpProxyPort()));
 			requestConfigBuilder.setProxyPreferredAuthSchemes(Arrays.asList(AuthSchemes.BASIC));
 		}
 		return requestConfigBuilder;
-	}
-
-	protected boolean bypassProxy(String host) {
-		String[] proxyBypass = config.getHttpProxyBypass();
-		
-		for (String mask : proxyBypass) {
-			Matcher m = WILDCARD_REGEX.matcher(mask);
-			StringBuffer b = new StringBuffer();
-			while (m.find()) {
-				if (m.group(1) != null) {
-					m.appendReplacement(b, ".*");
-				} else {
-					m.appendReplacement(b, "\\\\Q" + m.group(0) + "\\\\E");
-				}
-			}
-			m.appendTail(b);
-			
-			if (host.matches(b.toString())) {
-				return true;
-			}
-		}
-		
-		return false;
 	}
 	
 }
