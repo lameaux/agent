@@ -39,14 +39,16 @@ public class ProxyResponse {
 
 	private static final Logger log = LoggerFactory.getLogger(ProxyResponse.class);
 	
-	public static final List<String> REQUEST_HEADERS_TO_REMOVE = Arrays.asList(HttpHeaders.Names.COOKIE.toLowerCase());
+	public static final List<String> REQUEST_HEADERS_TO_REMOVE = Arrays.asList(
+			HttpHeaders.Names.COOKIE.toLowerCase(), 
+			HttpHeaders.Names.HOST.toLowerCase()
+			);
 	public static final List<String> RESPONSE_HEADERS_TO_REMOVE = Arrays.asList(
 			HttpHeaders.Names.TRANSFER_ENCODING.toLowerCase(), 
 			HttpHeaders.Names.SERVER.toLowerCase(),
 			HttpHeaders.Names.VIA.toLowerCase(),
-			HttpHeaders.Names.CONTENT_ENCODING.toLowerCase(), 
-			HttpHeaders.Names.EXPIRES.toLowerCase(),
-			HttpHeaders.Names.CACHE_CONTROL.toLowerCase());
+			HttpHeaders.Names.CONTENT_ENCODING.toLowerCase() 
+			);
 	
 	
 	private AsyncHttpClientProvider asyncHttpClientProvider;
@@ -99,8 +101,6 @@ public class ProxyResponse {
 						httpHeaders.set(HttpHeaders.Names.TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED);
 					}			    	
 			    	
-			    	// TODO check Cache/Expired/Modified headers
-			    	
 			    	ctx.write(response);
 			    	
 			        return STATE.CONTINUE;
@@ -145,6 +145,7 @@ public class ProxyResponse {
 			BoundRequestBuilder boundRequestBuilder = client.prepareGet(sourceUrl);
 			URI uri = new URI(sourceUrl);			
 			asyncHttpClientProvider.configureRequest(boundRequestBuilder, uri.getHost(), false);
+			boundRequestBuilder.setHeaders(prepareHeaders(httpRequest.headers()));
 			boundRequestBuilder.execute(asyncHandler).get();
 			
 		} catch (Exception e) {
@@ -154,14 +155,10 @@ public class ProxyResponse {
 		}
 	}
 
-	protected Map<String, Collection<String>> prepareHeaders(HttpHeaders httpHeaders, String host) {
+	protected Map<String, Collection<String>> prepareHeaders(HttpHeaders httpHeaders) {
 		Map<String, Collection<String>> headers = new HashMap<String, Collection<String>>();
 		
 		for (String httpHeaderName : httpHeaders.names()) {
-			if (HttpHeaders.Names.HOST.equalsIgnoreCase(httpHeaderName)) {
-				headers.put(httpHeaderName, Arrays.asList(host));
-				continue;
-			}
 			if (REQUEST_HEADERS_TO_REMOVE.contains(httpHeaderName.toLowerCase())) {
 				continue;
 			}
