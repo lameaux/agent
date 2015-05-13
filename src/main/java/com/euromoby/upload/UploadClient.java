@@ -8,7 +8,6 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -32,8 +31,6 @@ public class UploadClient {
 	}
 
 	public void upload(String location, String targetUrl, boolean noProxy) throws Exception {
-		CloseableHttpClient httpclient = httpClientProvider.createHttpClient();
-		try {
 
 			HttpPost request = new HttpPost(targetUrl);			
 			RequestConfig.Builder requestConfigBuilder = httpClientProvider.createRequestConfigBuilder(request.getURI().getHost(), noProxy);
@@ -41,10 +38,9 @@ public class UploadClient {
 
 			HttpEntity requestMultipartEntity = MultipartEntityBuilder.create().addTextBody(REQUEST_INPUT_LOCATION, location)
 					.addBinaryBody(REQUEST_INPUT_FILE, getLocalFile(location)).build();
-
 			request.setEntity(requestMultipartEntity);
 
-			CloseableHttpResponse response = httpclient.execute(request, httpClientProvider.createHttpClientContext());
+			CloseableHttpResponse response = httpClientProvider.executeRequest(request);
 			try {
 				StatusLine statusLine = response.getStatusLine();
 				EntityUtils.consumeQuietly(response.getEntity());
@@ -54,9 +50,6 @@ public class UploadClient {
 			} finally {
 				response.close();
 			}
-		} finally {
-			httpclient.close();
-		}
 	}
 
 	private File getLocalFile(String location) throws Exception {

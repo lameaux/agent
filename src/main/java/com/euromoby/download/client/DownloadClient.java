@@ -13,7 +13,6 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,14 +36,12 @@ public class DownloadClient {
 	}
 
 	public void download(String url, File targetFile, boolean noProxy) throws Exception {
-		CloseableHttpClient httpclient = httpClientProvider.createHttpClient();
-		try {
 
 			HttpGet request = new HttpGet(url);
 			RequestConfig.Builder requestConfigBuilder = httpClientProvider.createRequestConfigBuilder(request.getURI().getHost(), noProxy);
 			request.setConfig(requestConfigBuilder.build());
 
-			CloseableHttpResponse response = httpclient.execute(request, httpClientProvider.createHttpClientContext());
+			CloseableHttpResponse response = httpClientProvider.executeRequest(request);
 			
 			try {
 
@@ -80,9 +77,6 @@ public class DownloadClient {
 			} finally {
 				response.close();
 			}
-		} finally {
-			httpclient.close();
-		}
 	}
 
 

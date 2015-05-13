@@ -15,9 +15,7 @@ import org.apache.http.HttpVersion;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicStatusLine;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,8 +51,6 @@ public class CdnNetworkTest {
 	CdnResourceMapping cdnResourceMapping;
 	@Mock
 	CdnResource cdnResource;
-	@Mock
-	CloseableHttpClient httpClient;
 	@Mock 
 	RequestConfig.Builder requestConfigBuilder;
 	@Mock
@@ -77,9 +73,8 @@ public class CdnNetworkTest {
 	public void testSendAndReceiveNotFound() throws Exception {
 		List<AgentId> agentList = Collections.singletonList(AGENT1);
 		Mockito.when(agentManager.getActive()).thenReturn(agentList);
-		Mockito.when(httpClientProvider.createHttpClient()).thenReturn(httpClient);
 		Mockito.when(httpClientProvider.createRequestConfigBuilder(Matchers.eq(AGENT1.getHost()), Matchers.eq(false))).thenReturn(requestConfigBuilder);
-		Mockito.when(httpClient.execute(Matchers.any(HttpUriRequest.class), Matchers.any(HttpClientContext.class))).thenReturn(response);
+		Mockito.when(httpClientProvider.executeRequest(Matchers.any(HttpUriRequest.class))).thenReturn(response);
 		Mockito.when(response.getStatusLine()).thenReturn(new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_FOUND, "Not found"));
 		Mockito.when(config.getCdnTimeout()).thenReturn(500);
 		
@@ -106,9 +101,8 @@ public class CdnNetworkTest {
 	public void testSendAndReceiveFound() throws Exception {
 		List<AgentId> agentList = Arrays.asList(AGENT1, AGENT2);
 		Mockito.when(agentManager.getActive()).thenReturn(agentList);
-		Mockito.when(httpClientProvider.createHttpClient()).thenReturn(httpClient);
 		Mockito.when(httpClientProvider.createRequestConfigBuilder(Matchers.anyString(),Matchers.eq(false))).thenReturn(requestConfigBuilder);
-		Mockito.when(httpClient.execute(Matchers.any(HttpUriRequest.class), Matchers.any(HttpClientContext.class))).thenReturn(response);
+		Mockito.when(httpClientProvider.executeRequest(Matchers.any(HttpUriRequest.class))).thenReturn(response);
 		Mockito.when(response.getStatusLine()).thenReturn(new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "Found"));
 		FileInfo fileInfo = new FileInfo();
 		fileInfo.setAgentId(AGENT1);		
@@ -155,9 +149,8 @@ public class CdnNetworkTest {
 		
 		List<AgentId> agentList = Arrays.asList(AGENT1, AGENT2);
 		Mockito.when(agentManager.getActive()).thenReturn(agentList);
-		Mockito.when(httpClientProvider.createHttpClient()).thenReturn(httpClient);
 		Mockito.when(httpClientProvider.createRequestConfigBuilder(Matchers.anyString(), Matchers.eq(false))).thenReturn(requestConfigBuilder);
-		Mockito.when(httpClient.execute(Matchers.any(HttpUriRequest.class), Matchers.any(HttpClientContext.class))).thenReturn(response);
+		Mockito.when(httpClientProvider.executeRequest(Matchers.any(HttpUriRequest.class))).thenReturn(response);
 		Mockito.when(response.getStatusLine()).thenReturn(new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "Found"));
 		FileInfo fileInfo = new FileInfo();
 		fileInfo.setAgentId(AGENT1);		

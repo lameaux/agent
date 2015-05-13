@@ -7,7 +7,6 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -43,33 +42,28 @@ public class GetJobsClient {
 	}
 	
 	public JobDetail[] getJobs(AgentId targetAgentId, boolean noProxy) throws Exception {
-		CloseableHttpClient httpclient = httpClientProvider.createHttpClient();
 
 		AgentId myAgentId = config.getAgentId();
+
+		RequestConfig.Builder requestConfigBuilder = httpClientProvider.createRequestConfigBuilder(targetAgentId.getHost(), noProxy);
+		HttpUriRequest request = createRequest(targetAgentId, myAgentId, requestConfigBuilder);
+
+		CloseableHttpResponse response = httpClientProvider.executeRequest(request);
+
 		try {
-
-			RequestConfig.Builder requestConfigBuilder = httpClientProvider.createRequestConfigBuilder(targetAgentId.getHost(), noProxy);
-			HttpUriRequest request = createRequest(targetAgentId, myAgentId, requestConfigBuilder);
-
-			CloseableHttpResponse response = httpclient.execute(request, httpClientProvider.createHttpClientContext());
-
-			try {
-				StatusLine statusLine = response.getStatusLine();
-				if (statusLine.getStatusCode() != HttpStatus.SC_OK) {
-					EntityUtils.consumeQuietly(response.getEntity());
-					throw new Exception(statusLine.getStatusCode() + " " + statusLine.getReasonPhrase());
-				}
-
-				HttpEntity entity = response.getEntity();
-				String content = EntityUtils.toString(entity);
-				EntityUtils.consumeQuietly(entity);
-				JobDetail[] jobDetails = gson.fromJson(content, JobDetail[].class);
-				return jobDetails;
-			} finally {
-				response.close();
+			StatusLine statusLine = response.getStatusLine();
+			if (statusLine.getStatusCode() != HttpStatus.SC_OK) {
+				EntityUtils.consumeQuietly(response.getEntity());
+				throw new Exception(statusLine.getStatusCode() + " " + statusLine.getReasonPhrase());
 			}
+
+			HttpEntity entity = response.getEntity();
+			String content = EntityUtils.toString(entity);
+			EntityUtils.consumeQuietly(entity);
+			JobDetail[] jobDetails = gson.fromJson(content, JobDetail[].class);
+			return jobDetails;
 		} finally {
-			httpclient.close();
+			response.close();
 		}
 	}
 

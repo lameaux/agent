@@ -9,7 +9,6 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 
 import com.euromoby.http.HttpClientProvider;
@@ -38,16 +37,13 @@ public class CdnWorker implements Callable<FileInfo> {
 
 	@Override
 	public FileInfo call() throws Exception {
-		CloseableHttpClient httpclient = httpClientProvider.createHttpClient();
-
-		try {
 
 			RequestConfig.Builder requestConfigBuilder = httpClientProvider.createRequestConfigBuilder(agentId.getHost(), false);
 			String url = String.format(URL_PATTERN, agentId.getHost(), (agentId.getBasePort() + RestServer.REST_PORT)) + FileInfoHandler.URL + uriPath;
 			HttpUriRequest request = RequestBuilder.get(url).setConfig(requestConfigBuilder.build())
 					.build();
 
-			CloseableHttpResponse response = httpclient.execute(request, httpClientProvider.createHttpClientContext());
+			CloseableHttpResponse response = httpClientProvider.executeRequest(request);
 			try {
 				StatusLine statusLine = response.getStatusLine();
 				if (statusLine.getStatusCode() != HttpStatus.SC_OK) {
@@ -69,9 +65,6 @@ public class CdnWorker implements Callable<FileInfo> {
 			} finally {
 				response.close();
 			}
-		} finally {
-			httpclient.close();
-		}
 	}	
 	
 }

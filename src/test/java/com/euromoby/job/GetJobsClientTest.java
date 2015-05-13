@@ -12,10 +12,8 @@ import org.apache.http.HttpVersion;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicStatusLine;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,8 +39,6 @@ public class GetJobsClientTest {
 	@Mock
 	HttpClientProvider httpClientProvider;
 	@Mock
-	CloseableHttpClient httpclient;
-	@Mock
 	RequestConfig.Builder requestConfigBuilder;
 	@Mock
 	CloseableHttpResponse response;
@@ -58,11 +54,9 @@ public class GetJobsClientTest {
 	@Before
 	public void init() throws Exception {
 		Mockito.when(config.getAgentId()).thenReturn(myAgentId);
-		Mockito.when(httpClientProvider.createHttpClient()).thenReturn(httpclient);
 		Mockito.when(httpClientProvider.createRequestConfigBuilder(Matchers.eq(targetAgentId.getHost()), Matchers.eq(NO_PROXY))).thenReturn(requestConfigBuilder);
 		Mockito.when(requestConfigBuilder.build()).thenReturn(null);
-		Mockito.when(httpClientProvider.createHttpClientContext()).thenReturn(null);	
-		Mockito.when(httpclient.execute(Matchers.any(HttpUriRequest.class), Matchers.any(HttpClientContext.class))).thenReturn(response);		
+		Mockito.when(httpClientProvider.executeRequest(Matchers.any(HttpUriRequest.class))).thenReturn(response);		
 		getJobsClient = new GetJobsClient(config, httpClientProvider);
 	}
 	
@@ -94,8 +88,6 @@ public class GetJobsClientTest {
 		}
 		
 		Mockito.verify(response).close();
-		Mockito.verify(httpclient).close();
-		
 	}
 
 	@Test
@@ -111,10 +103,7 @@ public class GetJobsClientTest {
 		JobDetail[] receivedJobDetails = getJobsClient.getJobs(targetAgentId, NO_PROXY);
 		assertArrayEquals(jobDetails, receivedJobDetails);
 
-		
 		Mockito.verify(response).close();
-		Mockito.verify(httpclient).close();
-		
 	}
 
 	
