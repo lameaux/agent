@@ -8,10 +8,10 @@ import org.springframework.stereotype.Component;
 
 import com.euromoby.agent.Config;
 import com.ning.http.client.AsyncHttpClient;
+import com.ning.http.client.AsyncHttpClient.BoundRequestBuilder;
 import com.ning.http.client.AsyncHttpClientConfig;
 import com.ning.http.client.ProxyServer;
 import com.ning.http.client.Realm.AuthScheme;
-import com.ning.http.client.RequestBuilder;
 
 @Component
 public class AsyncHttpClientProvider {
@@ -30,33 +30,29 @@ public class AsyncHttpClientProvider {
 	public AsyncHttpClient createAsyncHttpClient() {
 		
 		AsyncHttpClientConfig.Builder configBuilder  = new AsyncHttpClientConfig.Builder();
-		//int timeout = config.getHttpClientTimeout();
-		//configBuilder.setConnectTimeout(timeout);
-		//configBuilder.setReadTimeout(timeout);
-		//configBuilder.setRequestTimeout(-1);
+		int timeout = config.getHttpClientTimeout();
+		configBuilder.setConnectTimeout(timeout);
+		configBuilder.setReadTimeout(timeout);
+		configBuilder.setRequestTimeout(-1);
 		configBuilder.setAllowPoolingConnections(true);
-		//configBuilder.setAllowPoolingSslConnections(true);		
+		configBuilder.setAllowPoolingSslConnections(true);		
 		configBuilder.setFollowRedirect(true);
-		//configBuilder.setUserAgent(config.getHttpUserAgent());
-		//configBuilder.setSSLContext(sslContextProvider.getSSLContext());
-		//configBuilder.setAcceptAnyCertificate(true);
-		
+		configBuilder.setUserAgent(config.getHttpUserAgent());
+		configBuilder.setSSLContext(sslContextProvider.getSSLContext());
+		configBuilder.setAcceptAnyCertificate(true);
 		return new AsyncHttpClient(configBuilder.build());
 
 	}
 
-	public RequestBuilder createRequestBuilder(String host, boolean noProxy) {
-		RequestBuilder requestBuilder = new RequestBuilder();
-		
+	public void configureRequest(BoundRequestBuilder boundRequestBuilder, String host, boolean noProxy) {
 		if (!noProxy && config.isHttpProxy() && !bypassProxy(host)) {
 			ProxyServer proxyServer = new ProxyServer(config.getHttpProxyHost(), config.getHttpProxyPort());
 			if (config.isHttpProxyAuthentication()) {
 				proxyServer = new ProxyServer(config.getHttpProxyHost(), config.getHttpProxyPort(), config.getHttpProxyLogin(), config.getHttpProxyPassword());
 				proxyServer.setScheme(AuthScheme.BASIC);
 			}
-			requestBuilder.setProxyServer(proxyServer);
+			boundRequestBuilder.setProxyServer(proxyServer);
 		}
-		return requestBuilder;
 	}
 
 	protected boolean bypassProxy(String host) {
@@ -80,10 +76,5 @@ public class AsyncHttpClientProvider {
 		}
 		
 		return false;
-	}
-	
-	public static void main(String args[]) {
-		AsyncHttpClient client = new AsyncHttpClient();
-		client.prepareGet("http://www.hovnokod.cz").execute();
 	}
 }

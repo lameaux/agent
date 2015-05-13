@@ -10,7 +10,6 @@ import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
@@ -35,7 +34,6 @@ import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.AsyncHttpClient.BoundRequestBuilder;
 import com.ning.http.client.HttpResponseBodyPart;
 import com.ning.http.client.HttpResponseHeaders;
-import com.ning.http.client.RequestBuilder;
 
 public class ProxyResponse {
 
@@ -43,10 +41,11 @@ public class ProxyResponse {
 	
 	public static final List<String> REQUEST_HEADERS_TO_REMOVE = Arrays.asList(HttpHeaders.Names.COOKIE.toLowerCase());
 	public static final List<String> RESPONSE_HEADERS_TO_REMOVE = Arrays.asList(
-			//HttpHeaders.Names.TRANSFER_ENCODING.toLowerCase(), 
+			HttpHeaders.Names.TRANSFER_ENCODING.toLowerCase(), 
 			HttpHeaders.Names.SERVER.toLowerCase(),
-			//HttpHeaders.Names.CONTENT_ENCODING.toLowerCase(), 
-			HttpHeaders.Names.EXPIRES.toLowerCase(), 
+			HttpHeaders.Names.VIA.toLowerCase(),
+			HttpHeaders.Names.CONTENT_ENCODING.toLowerCase(), 
+			HttpHeaders.Names.EXPIRES.toLowerCase(),
 			HttpHeaders.Names.CACHE_CONTROL.toLowerCase());
 	
 	
@@ -59,23 +58,14 @@ public class ProxyResponse {
 	public void proxy(final ChannelHandlerContext ctx, final FullHttpRequest httpRequest, String sourceUrl) {
 		AsyncHttpClient client = asyncHttpClientProvider.createAsyncHttpClient();
 		try {
-			URI uri = new URI(sourceUrl);
-			
-			RequestBuilder requestBuilder = asyncHttpClientProvider.createRequestBuilder(uri.getHost(), false);
-			requestBuilder.setUrl(sourceUrl);
-			// only GET is supported
-			requestBuilder.setMethod(HttpMethod.GET.name());
-			requestBuilder.setHeaders(prepareHeaders(httpRequest.headers(), uri.getHost()));
-
 			
 			AsyncHandler<String> asyncHandler = new AsyncHandler<String>() {
 				
                 private int responseCode = HttpResponseStatus.OK.code();
-                private boolean chunkedResponse = true;
 
 			    @Override
 			    public STATE onStatusReceived(final com.ning.http.client.HttpResponseStatus httpResponseStatus) throws Exception {
-			    	log.debug("onStatusReceived {}", httpResponseStatus.getStatusCode());
+			    	log.trace("onStatusReceived {}", httpResponseStatus.getStatusCode());
 
                     if (httpResponseStatus.getStatusCode() >= 200 && httpResponseStatus.getStatusCode() < 300) {
                         responseCode = httpResponseStatus.getStatusCode();
@@ -92,7 +82,7 @@ public class ProxyResponse {
 
 			    @Override
 				public STATE onHeadersReceived(final HttpResponseHeaders headers) throws Exception {
-			    	log.debug("onHeadersReceived");
+			    	log.trace("onHeadersReceived");
 			    	
 			    	HttpResponse response = new DefaultHttpResponse(httpRequest.getProtocolVersion(), HttpResponseStatus.valueOf(responseCode));
 			    	
@@ -102,49 +92,37 @@ public class ProxyResponse {
 			    		if (RESPONSE_HEADERS_TO_REMOVE.contains(headerName.toLowerCase())) {
 			    			continue;
 			    		}
-			    		if (HttpHeaders.Names.CONTENT_LENGTH.equals(headerName)) {
-			    			chunkedResponse = false;
-			    		}
 			    		httpHeaders.set(headerName, headersMap.get(headerName));
 			    	}
 			    	
+					if (supportChunks(httpRequest)) {
+						httpHeaders.set(HttpHeaders.Names.TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED);
+					}			    	
+			    	
 			    	// TODO check Cache/Expired/Modified headers
 			    	
-			    	ctx.writeAndFlush(response);
+			    	ctx.write(response);
 			    	
 			        return STATE.CONTINUE;
 			    }
 
 			    @Override
 				public STATE onBodyPartReceived(final HttpResponseBodyPart bodyPart) throws Exception {
-			    	log.debug("onBodyPartReceived");
+			    	log.trace("onBodyPartReceived");
 			    	
-			    	if (bodyPart.isLast()) {
-			    		if (chunkedResponse) {
-			    			ctx.channel().writeAndFlush(new DefaultHttpContent(Unpooled.wrappedBuffer(bodyPart.getBodyByteBuffer())));
-			    		} else {
-                            ctx.channel().writeAndFlush(Unpooled.wrappedBuffer(bodyPart.getBodyByteBuffer()));
-			    		}
+			    	if (supportChunks(httpRequest)) {
+			    		ctx.write(new DefaultHttpContent(Unpooled.wrappedBuffer(bodyPart.getBodyByteBuffer())));
+			    		
 			    	} else {
-                        if (chunkedResponse) {
-                            ChannelFuture writeFuture = ctx.channel().write(new DefaultHttpContent(Unpooled.wrappedBuffer(bodyPart.getBodyByteBuffer())));
-//                            while (!ctx.channel().isWritable() && ctx.channel().isOpen()) {
-//                                writeFuture.await(5, TimeUnit.SECONDS);
-//                            }
-                        } else {
-                            ChannelFuture writeFuture = ctx.channel().write(Unpooled.wrappedBuffer(bodyPart.getBodyByteBuffer()));
-//                            while (!ctx.channel().isWritable() && ctx.channel().isOpen()) {
-//                                writeFuture.await(5, TimeUnit.SECONDS);
-//                            }
-                        }			    		
+			    		ctx.write(Unpooled.wrappedBuffer(bodyPart.getBodyByteBuffer()));
 			    	}
 			    	
-			        return STATE.CONTINUE;
+			    	return STATE.CONTINUE;
 			    }			    
 			    
 			    @Override
 				public String onCompleted() throws Exception {
-			    	log.debug("onCompleted");
+			    	log.trace("onCompleted");
 			    	
 		    		ChannelFuture lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
 		    		if (!HttpHeaders.isKeepAlive(httpRequest)) {
@@ -157,16 +135,16 @@ public class ProxyResponse {
 				@Override
 				public void onThrowable(Throwable t) {
 					if (!(t instanceof ClosedChannelException)) {
-						log.debug("onThrowable", t);
+						log.trace("onThrowable", t);
 						writeStatusResponse(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
 					}
 				}
 
 			};			
 			
-			//client.prepareRequest(requestBuilder.build()).execute(); //(asyncHandler);
-			
 			BoundRequestBuilder boundRequestBuilder = client.prepareGet(sourceUrl);
+			URI uri = new URI(sourceUrl);			
+			asyncHttpClientProvider.configureRequest(boundRequestBuilder, uri.getHost(), false);
 			boundRequestBuilder.execute(asyncHandler).get();
 			
 		} catch (Exception e) {
@@ -191,6 +169,10 @@ public class ProxyResponse {
 		}
 		return headers;
 	}
+
+	protected boolean supportChunks(FullHttpRequest httpRequest) {
+		return httpRequest.getProtocolVersion().equals(HttpVersion.HTTP_1_1);
+	}	
 	
 	protected void writeStatusResponse(ChannelHandlerContext ctx, HttpResponseStatus status, String message) {
 		// Build the response object.
