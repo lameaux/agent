@@ -1,14 +1,14 @@
 package com.euromoby.rest.handler;
 
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.Cookie;
-import io.netty.handler.codec.http.CookieDecoder;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.cookie.ClientCookieDecoder;
+import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.multipart.Attribute;
 import io.netty.handler.codec.http.multipart.FileUpload;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
@@ -21,11 +21,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.euromoby.http.HttpResponseProvider;
 import com.euromoby.model.Tuple;
@@ -90,13 +88,12 @@ public abstract class RestHandlerBase implements RestHandler {
 		httpResponseProvider.writeResponse(ctx, response);
 	}
 	
-	public Set<Cookie> getCookies(HttpRequest request) {
+	public Cookie getCookie(HttpRequest request) {
 		String value = request.headers().get(HttpHeaders.Names.COOKIE);
-		if (value == null) {
-			return Collections.emptySet();
-		} else {
-			return CookieDecoder.decode(value);
+		if (value != null) {
+			return ClientCookieDecoder.LAX.decode(value);
 		}
+		return null;
 	}
 
 	public URI getUri(HttpRequest request) {

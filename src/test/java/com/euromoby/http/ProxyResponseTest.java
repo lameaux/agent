@@ -1,4 +1,4 @@
-package com.euromoby.proxy;
+package com.euromoby.http;
 
 import static org.junit.Assert.assertEquals;
 import io.netty.channel.Channel;
@@ -19,6 +19,7 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.euromoby.http.AsyncHttpClientProvider;
+import com.euromoby.http.ProxyResponse;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ProxyResponseTest {

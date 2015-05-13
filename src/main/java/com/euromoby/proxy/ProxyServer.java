@@ -1,4 +1,4 @@
-package com.euromoby.cdn.service;
+package com.euromoby.proxy;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -7,15 +7,15 @@ import com.euromoby.agent.Config;
 import com.euromoby.service.NettyService;
 
 @Component
-public class CdnServer extends NettyService {
+public class ProxyServer extends NettyService {
 	
-	public static final String SERVICE_NAME = "cdn";
-	public static final int CDN_PORT = 80;
+	public static final String SERVICE_NAME = "proxy";
+	public static final int PROXY_PORT = 3128;
 	
 	private Config config;
 	
 	@Autowired
-	public CdnServer(Config config, CdnServerInitializer initializer) {
+	public ProxyServer(Config config, ProxyServerInitializer initializer) {
 		super(initializer);
 		this.config = config;
 	}
@@ -23,7 +23,7 @@ public class CdnServer extends NettyService {
 
 	@Override
 	public int getPort() {
-		return config.getBasePort() + CDN_PORT;
+		return config.getBasePort() + PROXY_PORT;
 	}
 
 	@Override

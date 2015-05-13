@@ -23,7 +23,7 @@ public class TelnetServerTest {
 
 	@Before
 	public void init() {
-		Mockito.when(config.getTelnetPort()).thenReturn(Integer.parseInt(Config.DEFAULT_AGENT_BASE_PORT) + TelnetServer.TELNET_PORT);
+		Mockito.when(config.getBasePort()).thenReturn(Integer.parseInt(Config.DEFAULT_AGENT_BASE_PORT));
 		server = new TelnetServer(config, telnetServerInitializer);
 	}
 

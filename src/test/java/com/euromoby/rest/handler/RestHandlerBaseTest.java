@@ -2,18 +2,20 @@ package com.euromoby.rest.handler;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.ClientCookieEncoder;
-import io.netty.handler.codec.http.Cookie;
-import io.netty.handler.codec.http.DefaultCookie;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.cookie.ClientCookieEncoder;
+import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.cookie.DefaultCookie;
 
 import java.io.File;
 import java.net.URI;
@@ -97,24 +99,22 @@ public class RestHandlerBaseTest {
 	
 	@Test
 	public void testGetCookies() {
-		Set<Cookie> empty = restHandlerBase.getCookies(request);
-		assertTrue(empty.isEmpty());
+		Cookie empty = restHandlerBase.getCookie(request);
+		assertNull(empty);
 		
 		Set<Cookie> cookies = new HashSet<Cookie>();
 		String COOKIE_NAME = "foo";
 		String COOKIE_VALUE = "bar";
 		Cookie cookie1 = new DefaultCookie(COOKIE_NAME, COOKIE_VALUE);
 		cookies.add(cookie1);
-		String ENCODED_COOKIES = ClientCookieEncoder.encode(cookies);
+		String ENCODED_COOKIES = ClientCookieEncoder.LAX.encode(cookies);
 		
 		Mockito.when(headers.get(Matchers.eq(HttpHeaders.Names.COOKIE))).thenReturn(ENCODED_COOKIES);
 		
-		Set<Cookie> headerCookies = restHandlerBase.getCookies(request);
-		assertFalse(headerCookies.isEmpty());
-		
-		Cookie headerCookie = headerCookies.iterator().next();
-		assertEquals(COOKIE_NAME, headerCookie.getName());
-		assertEquals(COOKIE_VALUE, headerCookie.getValue());		
+		Cookie headerCookie = restHandlerBase.getCookie(request);
+		assertNotNull(headerCookie);
+		assertEquals(COOKIE_NAME, headerCookie.name());
+		assertEquals(COOKIE_VALUE, headerCookie.value());		
 	}
 	
 	@Test

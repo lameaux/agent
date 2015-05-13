@@ -22,7 +22,7 @@ public class TelnetServer extends NettyService {
 
 	@Override
 	public int getPort() {
-		return config.getTelnetPort();
+		return config.getBasePort() + TELNET_PORT;
 	}
 	
 	@Override

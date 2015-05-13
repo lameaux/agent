@@ -1,4 +1,4 @@
-package com.euromoby.proxy;
+package com.euromoby.http;
 
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
@@ -25,8 +25,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.euromoby.http.AsyncHttpClientProvider;
-import com.euromoby.http.HttpUtils;
 import com.ning.http.client.AsyncHandler;
 import com.ning.http.client.AsyncHttpClient.BoundRequestBuilder;
 import com.ning.http.client.HttpResponseBodyPart;

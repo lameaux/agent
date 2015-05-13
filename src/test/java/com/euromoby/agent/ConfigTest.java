@@ -13,8 +13,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.euromoby.model.AgentId;
-import com.euromoby.rest.RestServer;
-import com.euromoby.telnet.TelnetServer;
 import com.euromoby.utils.NetUtils;
 import com.euromoby.utils.SystemUtils;
 
@@ -87,16 +85,6 @@ public class ConfigTest {
 		// changed
 		properties.put(Config.AGENT_BASE_PORT, String.valueOf(DUMMY_INT));
 		assertEquals(DUMMY_INT, config.getBasePort());
-	}
-
-	@Test
-	public void testGetTelnetPort() {
-		assertEquals(Integer.parseInt(Config.DEFAULT_AGENT_BASE_PORT) + TelnetServer.TELNET_PORT, config.getTelnetPort());
-	}
-	
-	@Test
-	public void testGetRestPort() {
-		assertEquals(Integer.parseInt(Config.DEFAULT_AGENT_BASE_PORT) + RestServer.REST_PORT, config.getRestPort());
 	}
 
 	@Test

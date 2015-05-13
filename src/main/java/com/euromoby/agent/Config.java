@@ -10,10 +10,7 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.euromoby.cdn.service.CdnServer;
 import com.euromoby.model.AgentId;
-import com.euromoby.rest.RestServer;
-import com.euromoby.telnet.TelnetServer;
 import com.euromoby.utils.NetUtils;
 import com.euromoby.utils.StringUtils;
 import com.euromoby.utils.SystemUtils;
@@ -228,18 +225,6 @@ public class Config {
 
 	public int getBasePort() {
 		return Integer.parseInt(properties.getProperty(AGENT_BASE_PORT, DEFAULT_AGENT_BASE_PORT));
-	}
-
-	public int getTelnetPort() {
-		return getBasePort() + TelnetServer.TELNET_PORT;
-	}
-
-	public int getRestPort() {
-		return getBasePort() + RestServer.REST_PORT;
-	}
-
-	public int getCdnPort() {
-		return getBasePort() + CdnServer.CDN_PORT;
 	}
 
 	public String getKeystorePath() {

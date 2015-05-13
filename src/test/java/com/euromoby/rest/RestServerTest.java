@@ -25,7 +25,7 @@ public class RestServerTest {
 
 	@Before
 	public void init() {
-		Mockito.when(config.getRestPort()).thenReturn(Integer.parseInt(Config.DEFAULT_AGENT_BASE_PORT) + RestServer.REST_PORT);
+		Mockito.when(config.getBasePort()).thenReturn(Integer.parseInt(Config.DEFAULT_AGENT_BASE_PORT));
 		server = new RestServer(config, restServerInitializer);
 	}
 

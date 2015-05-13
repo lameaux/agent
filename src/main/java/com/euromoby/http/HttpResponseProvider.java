@@ -5,18 +5,15 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.Cookie;
-import io.netty.handler.codec.http.CookieDecoder;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
-import io.netty.handler.codec.http.ServerCookieEncoder;
-
-import java.util.Collections;
-import java.util.Set;
+import io.netty.handler.codec.http.cookie.ClientCookieDecoder;
+import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 
 import com.euromoby.rest.RestException;
 
@@ -80,18 +77,13 @@ public class HttpResponseProvider {
 	}	
 
 	public void writeResponse(ChannelHandlerContext ctx, FullHttpResponse response) {
-		Set<Cookie> cookies;
+		Cookie cookie = null;
 		String value = request.headers().get(HttpHeaders.Names.COOKIE);
-		if (value == null) {
-			cookies = Collections.emptySet();
-		} else {
-			cookies = CookieDecoder.decode(value);
+		if (value != null) {
+			cookie = ClientCookieDecoder.LAX.decode(value);
 		}
-		if (!cookies.isEmpty()) {
-			// Reset the cookies if necessary.
-			for (Cookie cookie : cookies) {
-				response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.encode(cookie));
-			}
+		if (cookie != null) {
+			response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.LAX.encode(cookie));
 		}
 		// Write the response.
 		ChannelFuture future = ctx.channel().writeAndFlush(response);

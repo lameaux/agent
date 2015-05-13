@@ -22,7 +22,7 @@ public class RestServer extends NettyService {
 
 	@Override
 	public int getPort() {
-		return config.getRestPort();
+		return config.getBasePort() + REST_PORT;
 	}
 
 	@Override
